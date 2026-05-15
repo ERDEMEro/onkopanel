@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "qqaP7OoTRfoUO5FmpFQwI"
+uri = "file://.agents/outputs/oncology-analysis.md"
+type = "text"
+title = "Onkoloji Veri Seti — Kapsamlı Analiz Raporu"

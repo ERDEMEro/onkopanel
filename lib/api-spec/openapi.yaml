@@ -3,13 +3,15 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Oncology patient data API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: oncology
+    description: Oncology patient data operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,184 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /oncology/summary:
+    get:
+      operationId: getOncologySummary
+      tags: [oncology]
+      summary: Get high-level summary KPIs
+      description: Returns total patient count, gender distribution, death count, average age
+      responses:
+        "200":
+          description: Summary KPIs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OncologySummary"
+
+  /oncology/gender-distribution:
+    get:
+      operationId: getGenderDistribution
+      tags: [oncology]
+      summary: Gender distribution
+      description: Count of patients by gender
+      responses:
+        "200":
+          description: Gender distribution
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LabelCount"
+
+  /oncology/age-distribution:
+    get:
+      operationId: getAgeDistribution
+      tags: [oncology]
+      summary: Age distribution by decade
+      description: Count of patients grouped into 10-year age brackets
+      responses:
+        "200":
+          description: Age distribution
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LabelCount"
+
+  /oncology/department-distribution:
+    get:
+      operationId: getDepartmentDistribution
+      tags: [oncology]
+      summary: Department distribution
+      description: Count of patient visits per department (top 10)
+      responses:
+        "200":
+          description: Department distribution
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LabelCount"
+
+  /oncology/admission-types:
+    get:
+      operationId: getAdmissionTypes
+      tags: [oncology]
+      summary: Admission and arrival type breakdown
+      description: Counts by başvuru tipi and geliş tipi
+      responses:
+        "200":
+          description: Admission type breakdown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdmissionTypes"
+
+  /oncology/genetic-tests:
+    get:
+      operationId: getGeneticTests
+      tags: [oncology]
+      summary: Genetic test distribution
+      description: Count of genetic tests performed (top 15)
+      responses:
+        "200":
+          description: Genetic test distribution
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LabelCount"
+
+  /oncology/top-medications:
+    get:
+      operationId: getTopMedications
+      tags: [oncology]
+      summary: Top prescribed medications
+      description: Most frequently ordered medications (top 20)
+      responses:
+        "200":
+          description: Top medications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LabelCount"
+
+  /oncology/procedure-types:
+    get:
+      operationId: getProcedureTypes
+      tags: [oncology]
+      summary: Procedure type distribution
+      description: Count of procedures grouped by işlem tipi
+      responses:
+        "200":
+          description: Procedure type distribution
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LabelCount"
+
+  /oncology/admission-trend:
+    get:
+      operationId: getAdmissionTrend
+      tags: [oncology]
+      summary: Monthly admission trend
+      description: Number of admissions per month over time
+      responses:
+        "200":
+          description: Monthly admission trend
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrendPoint"
+
+  /oncology/patients:
+    get:
+      operationId: getPatients
+      tags: [oncology]
+      summary: Patient list with filters
+      description: Paginated and filterable patient list
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: gender
+          in: query
+          schema:
+            type: string
+        - name: department
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Patient list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientList"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +214,118 @@ components:
       required:
         - status
 
+    LabelCount:
+      type: object
+      properties:
+        label:
+          type: string
+        count:
+          type: integer
+      required:
+        - label
+        - count
+
+    TrendPoint:
+      type: object
+      properties:
+        month:
+          type: string
+        count:
+          type: integer
+      required:
+        - month
+        - count
+
+    OncologySummary:
+      type: object
+      properties:
+        totalPatients:
+          type: integer
+        femaleCount:
+          type: integer
+        maleCount:
+          type: integer
+        averageAge:
+          type: number
+        withGeneticTest:
+          type: integer
+        totalAdmissions:
+          type: integer
+        departmentCount:
+          type: integer
+      required:
+        - totalPatients
+        - femaleCount
+        - maleCount
+        - averageAge
+        - withGeneticTest
+        - totalAdmissions
+        - departmentCount
+
+    AdmissionTypes:
+      type: object
+      properties:
+        basvuruTipi:
+          type: array
+          items:
+            $ref: "#/components/schemas/LabelCount"
+        gelisTipi:
+          type: array
+          items:
+            $ref: "#/components/schemas/LabelCount"
+        yatisTipi:
+          type: array
+          items:
+            $ref: "#/components/schemas/LabelCount"
+      required:
+        - basvuruTipi
+        - gelisTipi
+        - yatisTipi
+
+    Patient:
+      type: object
+      properties:
+        id:
+          type: string
+        clientId:
+          type: string
+        gender:
+          type: string
+        birthDate:
+          type: string
+        age:
+          type: integer
+        department:
+          type: string
+        admissionDate:
+          type: string
+        hasGeneticTest:
+          type: boolean
+        admissionType:
+          type: string
+        arrivalType:
+          type: string
+      required:
+        - id
+        - clientId
+        - gender
+        - department
+
+    PatientList:
+      type: object
+      properties:
+        patients:
+          type: array
+          items:
+            $ref: "#/components/schemas/Patient"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required:
+        - patients
+        - total
+        - page
+        - limit

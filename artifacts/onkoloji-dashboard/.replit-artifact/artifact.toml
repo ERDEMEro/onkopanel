@@ -1,0 +1,31 @@
+kind = "data-app"
+previewPath = "/"
+title = "Onkoloji Veri Panosu"
+version = "1.0.0"
+id = "artifacts/onkoloji-dashboard"
+router = "path"
+
+[[integratedSkills]]
+name = "data-visualization"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24512
+
+[services.development]
+run = "pnpm --filter @workspace/onkoloji-dashboard run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/onkoloji-dashboard", "run", "build" ]
+publicDir = "artifacts/onkoloji-dashboard/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24512"
+BASE_PATH = "/"

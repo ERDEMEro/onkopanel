@@ -17,6 +17,7 @@ import type {
 
 import type {
   AdmissionTypes,
+  CancerTypeMeds,
   GetPatientsParams,
   HealthStatus,
   LabelCount,
@@ -805,6 +806,84 @@ export function useGetAdmissionTrend<TData = Awaited<ReturnType<typeof getAdmiss
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetAdmissionTrendQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetMedsByCancerTypeUrl = () => {
+
+
+
+
+  return `/api/oncology/meds-by-cancer-type`
+}
+
+/**
+ * Returns top 6 medications for each detected cancer type
+ * @summary Top medications grouped by cancer type
+ */
+export const getMedsByCancerType = async ( options?: RequestInit): Promise<CancerTypeMeds[]> => {
+
+  return customFetch<CancerTypeMeds[]>(getGetMedsByCancerTypeUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMedsByCancerTypeQueryKey = () => {
+    return [
+    `/api/oncology/meds-by-cancer-type`
+    ] as const;
+    }
+
+
+export const getGetMedsByCancerTypeQueryOptions = <TData = Awaited<ReturnType<typeof getMedsByCancerType>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMedsByCancerType>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMedsByCancerTypeQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMedsByCancerType>>> = ({ signal }) => getMedsByCancerType({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMedsByCancerType>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMedsByCancerTypeQueryResult = NonNullable<Awaited<ReturnType<typeof getMedsByCancerType>>>
+export type GetMedsByCancerTypeQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Top medications grouped by cancer type
+ */
+
+export function useGetMedsByCancerType<TData = Awaited<ReturnType<typeof getMedsByCancerType>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMedsByCancerType>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMedsByCancerTypeQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -35,6 +35,11 @@ export interface AdmissionTypes {
   yatisTipi: LabelCount[];
 }
 
+export interface CancerTypeMeds {
+  cancerType: string;
+  medications: LabelCount[];
+}
+
 export interface Patient {
   id: string;
   clientId: string;

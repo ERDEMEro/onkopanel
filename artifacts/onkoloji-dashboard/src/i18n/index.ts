@@ -37,6 +37,10 @@ const tr = {
       admissionsLabel: "Başvuru",
       gelisTipi: "Geliş Tipi",
       basvuruTipi: "Başvuru Tipi",
+      medsByCancerType: "Kanser Türüne Göre İlaçlar",
+      medsByCancerTypeSubtitle: "Kanser türü seçin → en sık kullanılan ilaçları görün",
+      selectCancerType: "Kanser Türü Seçin",
+      frequency: "Sıklık",
     },
     sections: {
       keyInsights: "Temel Bulgular",
@@ -190,6 +194,10 @@ const en: typeof tr = {
       admissionsLabel: "Admissions",
       gelisTipi: "Arrival Type",
       basvuruTipi: "Admission Type",
+      medsByCancerType: "Medications by Cancer Type",
+      medsByCancerTypeSubtitle: "Select a cancer type → view the most commonly used medications",
+      selectCancerType: "Select Cancer Type",
+      frequency: "Frequency",
     },
     sections: {
       keyInsights: "Key Insights",

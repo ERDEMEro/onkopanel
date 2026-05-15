@@ -167,6 +167,22 @@ paths:
                 items:
                   $ref: "#/components/schemas/TrendPoint"
 
+  /oncology/meds-by-cancer-type:
+    get:
+      operationId: getMedsByCancerType
+      tags: [oncology]
+      summary: Top medications grouped by cancer type
+      description: Returns top 6 medications for each detected cancer type
+      responses:
+        "200":
+          description: Medications by cancer type
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CancerTypeMeds"
+
   /oncology/patients:
     get:
       operationId: getPatients
@@ -281,6 +297,19 @@ components:
         - basvuruTipi
         - gelisTipi
         - yatisTipi
+
+    CancerTypeMeds:
+      type: object
+      properties:
+        cancerType:
+          type: string
+        medications:
+          type: array
+          items:
+            $ref: "#/components/schemas/LabelCount"
+      required:
+        - cancerType
+        - medications
 
     Patient:
       type: object

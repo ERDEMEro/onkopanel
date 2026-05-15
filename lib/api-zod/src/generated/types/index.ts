@@ -7,6 +7,7 @@
  */
 
 export * from './admissionTypes';
+export * from './cancerTypeMeds';
 export * from './getPatientsParams';
 export * from './healthStatus';
 export * from './labelCount';

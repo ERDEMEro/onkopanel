@@ -130,6 +130,20 @@ export const GetAdmissionTrendResponse = zod.array(GetAdmissionTrendResponseItem
 
 
 /**
+ * Returns top 6 medications for each detected cancer type
+ * @summary Top medications grouped by cancer type
+ */
+export const GetMedsByCancerTypeResponseItem = zod.object({
+  "cancerType": zod.string(),
+  "medications": zod.array(zod.object({
+  "label": zod.string(),
+  "count": zod.number()
+}))
+})
+export const GetMedsByCancerTypeResponse = zod.array(GetMedsByCancerTypeResponseItem)
+
+
+/**
  * Paginated and filterable patient list
  * @summary Patient list with filters
  */

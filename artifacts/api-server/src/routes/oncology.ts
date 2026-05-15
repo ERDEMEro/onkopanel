@@ -288,6 +288,69 @@ router.get("/admission-trend", (_req: Request, res: Response): void => {
   res.json(result);
 });
 
+const CANCER_KEYWORDS: Record<string, string[]> = {
+  "Meme": ["meme karsinomu", "meme kanseri", "meme malign", "meme ca"],
+  "Akciğer": ["akciğer karsinomu", "akciğer kanseri", "nsclc", "sclc", "akciger"],
+  "Kolorektal": ["kolorektal", "kolon kanseri", "rektum kanseri", "colorektal"],
+  "Lenfoma": ["lenfoma", "hodgkin", "diffuse large"],
+  "Prostat": ["prostat kanseri", "prostat karsinomu"],
+  "Over": ["over kanseri", "over karsinomu"],
+  "Mide": ["mide kanseri", "gastrik karsinom", "gastric"],
+  "Pankreas": ["pankreas kanseri", "pankreatik"],
+};
+
+function detectCancerType(text: string): string | null {
+  const t = text.toLowerCase();
+  for (const [type, keywords] of Object.entries(CANCER_KEYWORDS)) {
+    if (keywords.some((kw) => t.includes(kw))) return type;
+  }
+  return null;
+}
+
+router.get("/meds-by-cancer-type", (_req: Request, res: Response): void => {
+  const rows = loadData();
+  const medsByCancer: Record<string, Record<string, number>> = {};
+
+  for (const row of rows) {
+    const text = [
+      row["epikriz"] || "",
+      (row as any)["hikaye"] || "",
+      (row as any)["patoloji rapor özet"] || "",
+    ].join(" ");
+
+    const cancerType = detectCancerType(text);
+    if (!cancerType) continue;
+
+    const medRaw = row["order ilaç"];
+    if (!medRaw || !medRaw.trim()) continue;
+
+    if (!medsByCancer[cancerType]) medsByCancer[cancerType] = {};
+
+    extractBracketValues(medRaw).forEach((m) => {
+      const label = shortenMedLabel(m);
+      if (label) {
+        medsByCancer[cancerType][label] = (medsByCancer[cancerType][label] || 0) + 1;
+      }
+    });
+  }
+
+  const result = Object.entries(medsByCancer)
+    .sort((a, b) => {
+      const totalA = Object.values(a[1]).reduce((s, v) => s + v, 0);
+      const totalB = Object.values(b[1]).reduce((s, v) => s + v, 0);
+      return totalB - totalA;
+    })
+    .map(([cancerType, counts]) => ({
+      cancerType,
+      medications: Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8)
+        .map(([label, count]) => ({ label, count })),
+    }));
+
+  res.json(result);
+});
+
 router.get("/patients", (req: Request, res: Response): void => {
   const rows = loadData();
   const page = parseInt((req.query.page as string) || "1");

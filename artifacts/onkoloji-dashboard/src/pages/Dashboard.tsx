@@ -12,6 +12,7 @@ import {
   useGetTopMedications,
   useGetProcedureTypes,
   useGetAdmissionTrend,
+  useGetMedsByCancerType,
   getGetOncologySummaryQueryKey,
   getGetGenderDistributionQueryKey,
   getGetAgeDistributionQueryKey,
@@ -21,6 +22,7 @@ import {
   getGetTopMedicationsQueryKey,
   getGetProcedureTypesQueryKey,
   getGetAdmissionTrendQueryKey,
+  getGetMedsByCancerTypeQueryKey,
 } from "@workspace/api-client-react";
 import { CSVLink } from "react-csv";
 import {
@@ -118,6 +120,7 @@ export default function Dashboard() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [intervalMs, setIntervalMs] = useState(5 * 60 * 1000);
+  const [selectedCancerType, setSelectedCancerType] = useState<string>("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const INTERVAL_OPTIONS = lang === "en" ? INTERVAL_OPTIONS_EN : INTERVAL_OPTIONS_TR;
@@ -131,8 +134,15 @@ export default function Dashboard() {
   const medsQ = useGetTopMedications({ query: { enabled: true, queryKey: getGetTopMedicationsQueryKey() } });
   const procQ = useGetProcedureTypes({ query: { enabled: true, queryKey: getGetProcedureTypesQueryKey() } });
   const trendQ = useGetAdmissionTrend({ query: { enabled: true, queryKey: getGetAdmissionTrendQueryKey() } });
+  const medsCancerQ = useGetMedsByCancerType({ query: { enabled: true, queryKey: getGetMedsByCancerTypeQueryKey() } });
 
   const loading = summaryQ.isLoading || summaryQ.isFetching || genderQ.isLoading || genderQ.isFetching || trendQ.isLoading || trendQ.isFetching;
+
+  useEffect(() => {
+    if (medsCancerQ.data && medsCancerQ.data.length > 0 && !selectedCancerType) {
+      setSelectedCancerType(medsCancerQ.data[0].cancerType);
+    }
+  }, [medsCancerQ.data]);
 
   useEffect(() => {
     if (loading) { setIsSpinning(true); return; }
@@ -495,6 +505,104 @@ export default function Dashboard() {
             </Card>
           </div>
         </div>
+
+        {/* Meds by Cancer Type */}
+        <Card className="shadow-sm mb-6">
+          <CardHeader className="px-5 pt-5 pb-3">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <CardTitle className="text-base font-semibold">{d.charts.medsByCancerType}</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">{d.charts.medsByCancerTypeSubtitle}</p>
+              </div>
+              {!medsCancerQ.isLoading && !medsCancerQ.isFetching && medsCancerQ.data && selectedCancerType && (
+                <CSVLink
+                  data={medsCancerQ.data.find(c => c.cancerType === selectedCancerType)?.medications ?? []}
+                  filename={`ilaclar-${selectedCancerType.toLowerCase()}.csv`}
+                  className="print:hidden flex items-center justify-center w-[26px] h-[26px] rounded-[6px] transition-colors hover:opacity-80"
+                  style={{ backgroundColor: isDark ? "rgba(255,255,255,0.1)" : "#f1f5f9", color: isDark ? "#cbd5e1" : "#475569" }}
+                  aria-label="CSV"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                </CSVLink>
+              )}
+            </div>
+
+            {/* Cancer type tab pills */}
+            {!medsCancerQ.isLoading && medsCancerQ.data && medsCancerQ.data.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {medsCancerQ.data.map((item) => {
+                  const active = item.cancerType === selectedCancerType;
+                  return (
+                    <button
+                      key={item.cancerType}
+                      onClick={() => setSelectedCancerType(item.cancerType)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                        active
+                          ? "bg-teal-600 text-white border-teal-600 shadow-sm"
+                          : "bg-background text-muted-foreground border-border hover:border-teal-400 hover:text-teal-600"
+                      }`}
+                    >
+                      {item.cancerType}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </CardHeader>
+
+          <CardContent className="px-2 pb-5">
+            {medsCancerQ.isLoading || medsCancerQ.isFetching ? (
+              <Skeleton className="w-full h-[280px] mx-4" />
+            ) : !selectedCancerType || !medsCancerQ.data ? (
+              <div className="h-[280px] flex items-center justify-center text-muted-foreground text-sm">
+                {d.charts.selectCancerType}
+              </div>
+            ) : (() => {
+              const entry = medsCancerQ.data.find(c => c.cancerType === selectedCancerType);
+              const meds = entry?.medications ?? [];
+              if (meds.length === 0) return (
+                <div className="h-[280px] flex items-center justify-center text-muted-foreground text-sm">—</div>
+              );
+              const maxCount = Math.max(...meds.map(m => m.count));
+              return (
+                <ResponsiveContainer width="100%" height={Math.max(220, meds.length * 42)} debounce={0}>
+                  <BarChart data={meds} layout="vertical" margin={{ left: 0, right: 60, top: 8, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} horizontal={false} />
+                    <XAxis
+                      type="number"
+                      domain={[0, maxCount * 1.12]}
+                      tick={{ fontSize: 11, fill: tickColor }}
+                      stroke={tickColor}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(1)}K` : String(v)}
+                    />
+                    <YAxis
+                      dataKey="label"
+                      type="category"
+                      width={160}
+                      tick={{ fontSize: 11, fill: tickColor }}
+                      stroke={tickColor}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <Tooltip content={<CustomTooltip />} isAnimationActive={false} cursor={{ fill: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)" }} />
+                    <Bar
+                      dataKey="count"
+                      name={d.charts.frequency}
+                      fill={CHART_COLORS.teal}
+                      fillOpacity={0.9}
+                      radius={[0, 4, 4, 0]}
+                      isAnimationActive={false}
+                      barSize={22}
+                      label={{ position: "right", fontSize: 11, fill: tickColor, formatter: (v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}K` : String(v) }}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              );
+            })()}
+          </CardContent>
+        </Card>
 
         <Card className="shadow-sm">
           <CardHeader className="px-5 pt-5 pb-2">

@@ -144,6 +144,9 @@ const tr = {
     dataBasedMedsNote: "Kliniğimizdeki bu kanser türü hastalarında en sık kullanılan ilaçlar",
     dataBasedMedsSource: "Kaynak: 1.000 gerçek hasta kaydı",
     dataBasedMedsNone: "Bu kanser türü için veri bulunamadı.",
+    naturalRemediesTitle: "Doğal Destekleyici Yaklaşımlar",
+    naturalRemediesDisclaimer: "Bu yöntemler tıbbi tedavinin tamamlayıcısıdır; kesinlikle tedavi yerine geçmez. Uygulamadan önce hekiminize danışın.",
+    naturalRemediesWarning: "Dikkat",
   },
   aiAssistant: {
     badge: "YZ Asistan",
@@ -330,6 +333,9 @@ const en: typeof tr = {
     dataBasedMedsNote: "Most frequently used medications in our clinic for this cancer type",
     dataBasedMedsSource: "Source: 1,000 real patient records",
     dataBasedMedsNone: "No data found for this cancer type.",
+    naturalRemediesTitle: "Natural Supportive Approaches",
+    naturalRemediesDisclaimer: "These are complementary to medical treatment and cannot replace it. Consult your physician before use.",
+    naturalRemediesWarning: "Caution",
   },
   aiAssistant: {
     badge: "AI Assistant",

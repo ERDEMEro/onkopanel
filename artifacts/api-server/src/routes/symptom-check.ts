@@ -16,7 +16,14 @@ Verilen şikayetlere göre SADECE JSON formatında yanıt döndür, başka hiçb
       "matchingSymptoms": ["verilen belirtilerden eşleşenler"],
       "otherTypicalSymptoms": ["bu kanser türünde sık görülen ama belirtilmeyen diğer semptomlar"],
       "recommendedTests": ["öncelikle yapılması gereken test/tetkik"],
-      "urgency": "acil" veya "bir hafta içinde" veya "bir ay içinde"
+      "urgency": "acil" veya "bir hafta içinde" veya "bir ay içinde",
+      "naturalRemedies": [
+        {
+          "name": "Bitkisel/doğal yaklaşım adı (örn: Zerdeçal, Yeşil Çay, D Vitamini, Akdeniz Diyeti…)",
+          "benefit": "Bu kanser türünde ne işe yarayabileceğinin kısa açıklaması (1 cümle, Türkçe)",
+          "warning": "Dikkat edilmesi gereken nokta veya ilaç etkileşimi (1 cümle, yoksa boş string)"
+        }
+      ]
     }
   ],
   "generalAdvice": "Genel öneri (2-3 cümle Türkçe, kesinlikle doktora başvurmayı vurgula)",
@@ -25,6 +32,8 @@ Verilen şikayetlere göre SADECE JSON formatında yanıt döndür, başka hiçb
 
 Kurallar:
 - Maksimum 3 kanser türü tahmin et, en az 1
+- Her kanser türü için 3-5 doğal/bitkisel destekleyici yaklaşım öner; bunlar tıbbi tedavinin YANINDA kullanılabilir, yerini alamaz
+- naturalRemedies yalnızca bilimsel literatürde veya geleneksel tıpta kabul görmüş bitkisel/diyet/yaşam tarzı yaklaşımları içersin
 - Belirtilerle en iyi eşleşen türleri önce listele
 - Türkçe yanıt ver
 - Bu bir kesin tanı değil, yönlendirme aracıdır; bunu yansıt

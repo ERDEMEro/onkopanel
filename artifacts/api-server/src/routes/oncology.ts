@@ -72,7 +72,7 @@ function getBirthYear(raw: string): number | null {
 function getAge(raw: string): number | null {
   const yr = getBirthYear(raw);
   if (!yr) return null;
-  return 2024 - yr;
+  return new Date().getFullYear() - yr;
 }
 
 function countBy(items: string[]): Array<{ label: string; count: number }> {
@@ -132,19 +132,31 @@ router.get("/summary", (_req: Request, res: Response): void => {
 
 router.get("/gender-distribution", (_req: Request, res: Response): void => {
   const rows = loadData();
-  const genders = rows.map((r) => extractGender(r.cinsiyet)).filter(Boolean);
+  const seen = new Set<string>();
+  const genders: string[] = [];
+  for (const row of rows) {
+    if (row.client_id && !seen.has(row.client_id)) {
+      seen.add(row.client_id);
+      const g = extractGender(row.cinsiyet);
+      if (g) genders.push(g);
+    }
+  }
   res.json(countBy(genders));
 });
 
 router.get("/age-distribution", (_req: Request, res: Response): void => {
   const rows = loadData();
+  const seen = new Set<string>();
   const buckets: Record<string, number> = {};
   for (const row of rows) {
-    const age = getAge(row["doğum tarihi"]);
-    if (age !== null && age > 0 && age < 120) {
-      const decade = Math.floor(age / 10) * 10;
-      const label = `${decade}-${decade + 9}`;
-      buckets[label] = (buckets[label] || 0) + 1;
+    if (row.client_id && !seen.has(row.client_id)) {
+      seen.add(row.client_id);
+      const age = getAge(row["doğum tarihi"]);
+      if (age !== null && age > 0 && age < 120) {
+        const decade = Math.floor(age / 10) * 10;
+        const label = `${decade}-${decade + 9}`;
+        buckets[label] = (buckets[label] || 0) + 1;
+      }
     }
   }
   const result = Object.entries(buckets)

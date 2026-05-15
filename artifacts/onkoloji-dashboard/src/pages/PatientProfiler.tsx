@@ -22,7 +22,7 @@ const GENDERS = [
 interface CohortData {
   patientCount: number;
   totalPatientsOverall: number;
-  avgRecordsPerPatient: number;
+  avgProceduresPerPatient: number;
   hospitalizationRate: number;
   icuRate: number;
   surgeryRate: number;
@@ -123,8 +123,8 @@ function NarrativeCard({ data, ageGroup, gender }: { data: CohortData; ageGroup:
         <strong>%{data.emergencyRate}</strong>'dir. Bu grupta genetik test yapılma oranı{" "}
         <strong>%{data.geneticTestRate}</strong> ile{" "}
         {data.geneticTestRate < 5 ? "oldukça düşük seviyede kalmaktadır" : "görece sınırlıdır"}.
-        Kişi başına düşen ortalama kayıt sayısı <strong>{data.avgRecordsPerPatient}</strong> olup bu,
-        hasta başına yüksek klinik temas yoğunluğuna işaret etmektedir.
+        Kişi başına düşen ortalama işlem sayısı <strong>{data.avgProceduresPerPatient}</strong> olup bu,
+        hasta başına klinik iş yükünün somut bir göstergesidir.
       </p>
     </div>
   );
@@ -277,11 +277,11 @@ export default function PatientProfiler() {
           />
           <KPITile
             icon={<ClipboardList className="w-4 h-4" />}
-            label="Ort. Kayıt / Hasta"
-            value={data ? data.avgRecordsPerPatient : null}
+            label="Ort. İşlem / Hasta"
+            value={data ? data.avgProceduresPerPatient : null}
             unit=""
             color="#64748b"
-            sub="Klinik temas yoğunluğu"
+            sub="Klinik işlem yoğunluğu"
           />
         </div>
 

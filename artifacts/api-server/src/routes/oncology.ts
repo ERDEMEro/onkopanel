@@ -344,7 +344,7 @@ router.get("/cohort", (req: Request, res: Response): void => {
   let hasSurgery = 0;
   let hasEmergency = 0;
   let hasGeneticTest = 0;
-  let totalRows = 0;
+  let totalProcItems = 0;
 
   for (const [, pRows] of patientRows) {
     const firstRow = pRows[0];
@@ -358,7 +358,7 @@ router.get("/cohort", (req: Request, res: Response): void => {
     }
 
     patientCount++;
-    totalRows += pRows.length;
+    let patProcItems = 0;
 
     let pHasHosp = false;
     let pHasICU = false;
@@ -396,12 +396,15 @@ router.get("/cohort", (req: Request, res: Response): void => {
         const vals = extractBracketValues(procRaw);
         if (vals.length > 0) {
           vals.forEach((p) => { procTypeCounts[p] = (procTypeCounts[p] || 0) + 1; });
+          patProcItems += vals.length;
         } else if (procRaw.trim()) {
           procTypeCounts[procRaw.trim()] = (procTypeCounts[procRaw.trim()] || 0) + 1;
+          patProcItems += 1;
         }
       }
     }
 
+    totalProcItems += patProcItems;
     if (pHasHosp) hasHospitalization++;
     if (pHasICU) hasICU++;
     if (pHasSurgery) hasSurgery++;
@@ -429,7 +432,7 @@ router.get("/cohort", (req: Request, res: Response): void => {
   res.json({
     patientCount,
     totalPatientsOverall: patientRows.size,
-    avgRecordsPerPatient: Math.round(totalRows / patientCount),
+    avgProceduresPerPatient: Math.round(totalProcItems / patientCount),
     hospitalizationRate: pct(hasHospitalization),
     icuRate: pct(hasICU),
     surgeryRate: pct(hasSurgery),

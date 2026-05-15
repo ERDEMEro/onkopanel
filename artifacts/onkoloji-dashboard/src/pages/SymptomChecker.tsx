@@ -55,24 +55,23 @@ interface CheckResult {
   urgencyLevel: string;
 }
 
-interface Doctor {
-  name: string;
-  title: string;
+interface Center {
   hospital: string;
   hospitalType: "Devlet" | "Üniversite" | "Özel";
-  specialization: string;
+  department: string;
   city: string;
   district: string;
   estimatedFee: string;
   sgkCovered: boolean;
+  appointmentMethod: string;
   appointmentTip: string;
-  note: string;
+  whyRecommended: string;
 }
 
 interface DoctorResult {
-  doctors: Doctor[];
+  centers: Center[];
   generalTip: string;
-  urgentNote: string;
+  importantNote: string;
 }
 
 const LIKELIHOOD_STYLE: Record<string, { bg: string; text: string; border: string }> = {
@@ -513,56 +512,56 @@ export default function SymptomChecker() {
               {/* Results */}
               {doctorResult && (
                 <div className="space-y-4">
-                  {doctorResult.urgentNote && (
-                    <div className="rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30 p-4 flex gap-3 text-sm">
-                      <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                      <p className="text-red-700 dark:text-red-400">{doctorResult.urgentNote}</p>
-                    </div>
-                  )}
+                  {/* AI disclaimer banner */}
+                  <div className="rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30 p-3 flex gap-2.5 text-xs">
+                    <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                    <p className="text-blue-800 dark:text-blue-300">
+                      <span className="font-semibold">Nasıl randevu alırsınız?</span> Aşağıdaki hastanelerin onkoloji bölümünü seçin, ardından <span className="font-semibold">MHRS (mhrs.gov.tr)</span> üzerinden veya hastanenin web sitesinden gerçek doktorunuzu bizzat seçerek randevu alın.
+                    </p>
+                  </div>
 
-                  {doctorResult.doctors?.map((doc, i) => (
+                  {doctorResult.centers?.map((center, i) => (
                     <div key={i} className="rounded-xl border bg-card p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-950/40 flex items-center justify-center shrink-0">
-                          <UserRound className="w-5 h-5 text-rose-600 dark:text-rose-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-2 mb-1">
-                            <p className="font-bold text-sm">{doc.name}</p>
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${HOSPITAL_TYPE_STYLE[doc.hospitalType] ?? "bg-muted text-muted-foreground"}`}>
-                              {doc.hospitalType}
+                      <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${HOSPITAL_TYPE_STYLE[center.hospitalType] ?? "bg-muted text-muted-foreground"}`}>
+                              {center.hospitalType}
                             </span>
-                            {doc.sgkCovered && (
+                            {center.sgkCovered && (
                               <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 font-medium flex items-center gap-1">
                                 <BadgeCheck className="w-3 h-3" /> SGK
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground">{doc.specialization}</p>
+                          <p className="font-bold text-sm">{center.hospital}</p>
+                          <p className="text-xs text-rose-600 dark:text-rose-400 font-medium mt-0.5">{center.department}</p>
                         </div>
-                      </div>
-
-                      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-                        <div className="flex items-center gap-1.5 text-muted-foreground">
-                          <Building2 className="w-3.5 h-3.5 shrink-0" />
-                          <span className="truncate">{doc.hospital}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <MapPin className="w-3.5 h-3.5 shrink-0" />
-                          <span>{doc.district}, {doc.city}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-muted-foreground">
-                          <Wallet className="w-3.5 h-3.5 shrink-0" />
-                          <span>{doc.estimatedFee}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-muted-foreground">
-                          <PhoneCall className="w-3.5 h-3.5 shrink-0" />
-                          <span className="truncate">{doc.appointmentTip}</span>
+                          <span>{center.district ? `${center.district}, ` : ""}{center.city}</span>
                         </div>
                       </div>
 
-                      {doc.note && (
-                        <p className="mt-2.5 text-xs text-muted-foreground border-t pt-2.5 leading-relaxed">{doc.note}</p>
+                      <div className="grid grid-cols-1 gap-1.5 text-xs mt-2">
+                        <div className="flex items-start gap-1.5 text-muted-foreground">
+                          <Wallet className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                          <span>{center.estimatedFee}</span>
+                        </div>
+                        <div className="flex items-start gap-1.5 text-muted-foreground">
+                          <PhoneCall className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                          <span>{center.appointmentMethod}</span>
+                        </div>
+                        {center.appointmentTip && (
+                          <div className="flex items-start gap-1.5 text-muted-foreground">
+                            <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                            <span>{center.appointmentTip}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {center.whyRecommended && (
+                        <p className="mt-2.5 text-xs text-muted-foreground border-t pt-2.5 leading-relaxed italic">{center.whyRecommended}</p>
                       )}
                     </div>
                   ))}
@@ -573,16 +572,18 @@ export default function SymptomChecker() {
                     </div>
                   )}
 
+                  {doctorResult.importantNote && (
+                    <div className="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/20 p-4 text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+                      <span className="font-semibold">Önemli:</span> {doctorResult.importantNote}
+                    </div>
+                  )}
+
                   <button
                     onClick={() => { setDoctorResult(null); setDoctorError(null); }}
                     className="w-full py-2.5 rounded-xl border text-sm font-medium hover:bg-muted transition-colors"
                   >
                     Yeniden Ara
                   </button>
-
-                  <div className="text-xs text-muted-foreground text-center pb-1">
-                    Bu öneriler yapay zeka tarafından oluşturulmuştur. Lütfen randevu öncesi hastaneyi doğrulayınız.
-                  </div>
                 </div>
               )}
             </div>

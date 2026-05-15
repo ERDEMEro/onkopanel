@@ -1,6 +1,7 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useTheme, AccentColor, FontSize } from "@/context/ThemeContext";
-import { Sun, Moon, Monitor } from "lucide-react";
+import { useLang } from "@/context/LanguageContext";
+import { Sun, Moon } from "lucide-react";
 
 interface ThemePanelProps {
   open: boolean;
@@ -15,27 +16,29 @@ const ACCENTS: { key: AccentColor; label: string; light: string; dark: string }[
   { key: "orange", label: "Turuncu", light: "hsl(25 95% 47%)",  dark: "hsl(24 95% 55%)"  },
 ];
 
-const FONT_SIZES: { key: FontSize; label: string; description: string }[] = [
-  { key: "sm", label: "Küçük", description: "13px" },
-  { key: "md", label: "Orta",  description: "14px" },
-  { key: "lg", label: "Büyük", description: "16px" },
-];
-
 export function ThemePanel({ open, onClose }: ThemePanelProps) {
   const { isDark, accentColor, fontSize, compact, setIsDark, setAccentColor, setFontSize, setCompact } = useTheme();
+  const { t } = useLang();
+  const th = t.theme;
+
+  const FONT_SIZES: { key: FontSize; label: string; px: string }[] = [
+    { key: "sm", label: th.small,  px: "13px" },
+    { key: "md", label: th.medium, px: "14px" },
+    { key: "lg", label: th.large,  px: "16px" },
+  ];
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent side="right" className="w-80 flex flex-col gap-0 p-0 overflow-y-auto">
         <SheetHeader className="px-5 pt-5 pb-4 border-b">
-          <SheetTitle className="text-base font-semibold">Tema ve Kişiselleştirme</SheetTitle>
+          <SheetTitle className="text-base font-semibold">{th.title}</SheetTitle>
         </SheetHeader>
 
         <div className="flex flex-col gap-6 px-5 py-5">
 
-          {/* Görünüm */}
+          {/* Appearance */}
           <section>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Görünüm</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{th.appearance}</p>
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setIsDark(false)}
@@ -46,7 +49,7 @@ export function ThemePanel({ open, onClose }: ThemePanelProps) {
                 <div className="w-10 h-7 rounded bg-white border border-slate-200 flex items-center justify-center">
                   <Sun className="w-4 h-4 text-amber-400" />
                 </div>
-                <span className={`text-xs font-medium ${!isDark ? "text-primary" : "text-muted-foreground"}`}>Açık</span>
+                <span className={`text-xs font-medium ${!isDark ? "text-primary" : "text-muted-foreground"}`}>{th.light}</span>
               </button>
 
               <button
@@ -58,14 +61,14 @@ export function ThemePanel({ open, onClose }: ThemePanelProps) {
                 <div className="w-10 h-7 rounded bg-slate-900 border border-slate-700 flex items-center justify-center">
                   <Moon className="w-4 h-4 text-slate-300" />
                 </div>
-                <span className={`text-xs font-medium ${isDark ? "text-primary" : "text-muted-foreground"}`}>Koyu</span>
+                <span className={`text-xs font-medium ${isDark ? "text-primary" : "text-muted-foreground"}`}>{th.dark}</span>
               </button>
             </div>
           </section>
 
-          {/* Renk Teması */}
+          {/* Color Theme */}
           <section>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Renk Teması</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{th.colorTheme}</p>
             <div className="flex gap-3 flex-wrap">
               {ACCENTS.map((a) => {
                 const color = isDark ? a.dark : a.light;
@@ -78,9 +81,7 @@ export function ThemePanel({ open, onClose }: ThemePanelProps) {
                     title={a.label}
                   >
                     <div
-                      className={`w-9 h-9 rounded-full transition-all ${
-                        active ? "scale-110" : "hover:scale-105"
-                      }`}
+                      className={`w-9 h-9 rounded-full transition-all ${active ? "scale-110" : "hover:scale-105"}`}
                       style={{
                         backgroundColor: color,
                         outline: active ? `2px solid ${color}` : "none",
@@ -102,9 +103,9 @@ export function ThemePanel({ open, onClose }: ThemePanelProps) {
             </div>
           </section>
 
-          {/* Yazı Boyutu */}
+          {/* Font Size */}
           <section>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Yazı Boyutu</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{th.fontSize}</p>
             <div className="grid grid-cols-3 gap-2">
               {FONT_SIZES.map((f) => {
                 const active = fontSize === f.key;
@@ -116,12 +117,7 @@ export function ThemePanel({ open, onClose }: ThemePanelProps) {
                       active ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/40"
                     }`}
                   >
-                    <span
-                      className="font-bold leading-none"
-                      style={{ fontSize: f.description }}
-                    >
-                      Aa
-                    </span>
+                    <span className="font-bold leading-none" style={{ fontSize: f.px }}>Aa</span>
                     <span className={`text-[10px] font-medium ${active ? "text-primary" : "text-muted-foreground"}`}>
                       {f.label}
                     </span>
@@ -131,9 +127,9 @@ export function ThemePanel({ open, onClose }: ThemePanelProps) {
             </div>
           </section>
 
-          {/* Yoğunluk */}
+          {/* Density */}
           <section>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Yoğunluk</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{th.density}</p>
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setCompact(false)}
@@ -146,7 +142,7 @@ export function ThemePanel({ open, onClose }: ThemePanelProps) {
                   <div className="h-2 rounded bg-muted" />
                   <div className="h-2 rounded bg-muted" />
                 </div>
-                <span className={`text-xs font-medium ${!compact ? "text-primary" : "text-muted-foreground"}`}>Normal</span>
+                <span className={`text-xs font-medium ${!compact ? "text-primary" : "text-muted-foreground"}`}>{th.normal}</span>
               </button>
 
               <button
@@ -161,22 +157,17 @@ export function ThemePanel({ open, onClose }: ThemePanelProps) {
                   <div className="h-1.5 rounded bg-muted" />
                   <div className="h-1.5 rounded bg-muted" />
                 </div>
-                <span className={`text-xs font-medium ${compact ? "text-primary" : "text-muted-foreground"}`}>Kompakt</span>
+                <span className={`text-xs font-medium ${compact ? "text-primary" : "text-muted-foreground"}`}>{th.compact}</span>
               </button>
             </div>
           </section>
 
-          {/* Sıfırla */}
+          {/* Reset */}
           <button
-            onClick={() => {
-              setIsDark(false);
-              setAccentColor("teal");
-              setFontSize("md");
-              setCompact(false);
-            }}
+            onClick={() => { setIsDark(false); setAccentColor("teal"); setFontSize("md"); setCompact(false); }}
             className="w-full text-xs text-muted-foreground hover:text-foreground border rounded-lg py-2 transition-colors hover:bg-muted"
           >
-            Varsayılana Sıfırla
+            {th.reset}
           </button>
 
         </div>

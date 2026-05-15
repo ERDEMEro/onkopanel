@@ -8,6 +8,7 @@ import Dashboard from "@/pages/Dashboard";
 import PatientProfiler from "@/pages/PatientProfiler";
 import SymptomChecker from "@/pages/SymptomChecker";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { LanguageProvider, useLang } from "@/context/LanguageContext";
 import { ThemePanel } from "@/components/ThemePanel";
 import { BarChart2, Users, Stethoscope, Palette } from "lucide-react";
 
@@ -23,11 +24,12 @@ const queryClient = new QueryClient({
 function TabNav() {
   const [location, navigate] = useLocation();
   const [themeOpen, setThemeOpen] = useState(false);
+  const { lang, setLang, t } = useLang();
 
   const tabs = [
-    { path: "/", label: "Veri Panosu", icon: <BarChart2 className="w-4 h-4" /> },
-    { path: "/profil", label: "Hasta Profil Aracı", icon: <Users className="w-4 h-4" /> },
-    { path: "/belirti", label: "Belirti Değerlendirici", icon: <Stethoscope className="w-4 h-4" /> },
+    { path: "/", label: t.nav.dashboard, icon: <BarChart2 className="w-4 h-4" /> },
+    { path: "/profil", label: t.nav.patientProfiler, icon: <Users className="w-4 h-4" /> },
+    { path: "/belirti", label: t.nav.symptomChecker, icon: <Stethoscope className="w-4 h-4" /> },
   ];
 
   return (
@@ -52,14 +54,40 @@ function TabNav() {
             );
           })}
 
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            {/* Language toggle */}
+            <div className="flex items-center rounded-md border overflow-hidden text-xs font-medium h-7">
+              <button
+                onClick={() => setLang("tr")}
+                className={`px-2.5 h-full transition-colors ${
+                  lang === "tr"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                TR
+              </button>
+              <div className="w-px h-4 bg-border" />
+              <button
+                onClick={() => setLang("en")}
+                className={`px-2.5 h-full transition-colors ${
+                  lang === "en"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                EN
+              </button>
+            </div>
+
+            {/* Theme button */}
             <button
               onClick={() => setThemeOpen(true)}
               className="flex items-center gap-1.5 px-3 h-7 rounded-md text-xs font-medium border transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
-              title="Tema ve Kişiselleştirme"
+              title={t.nav.theme}
             >
               <Palette className="w-3.5 h-3.5" />
-              Tema
+              {t.nav.theme}
             </button>
           </div>
         </div>
@@ -87,14 +115,16 @@ function Router() {
 function App() {
   return (
     <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router />
-          </WouterRouter>
-          <Toaster />
-        </TooltipProvider>
-      </QueryClientProvider>
+      <LanguageProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <Router />
+            </WouterRouter>
+            <Toaster />
+          </TooltipProvider>
+        </QueryClientProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

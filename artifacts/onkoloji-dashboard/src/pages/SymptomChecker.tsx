@@ -2,11 +2,34 @@ import { useState, useRef, useEffect } from "react";
 import {
   AlertTriangle, CheckCircle2, Clock, FlaskConical, ChevronRight,
   Info, Stethoscope, ShieldAlert, UserRound, MapPin, Wallet,
-  BadgeCheck, PhoneCall, X, Loader2,
+  BadgeCheck, PhoneCall, X, Loader2, Pill, Database,
 } from "lucide-react";
 import { useLang } from "@/context/LanguageContext";
+import {
+  useGetMedsByCancerType,
+  getGetMedsByCancerTypeQueryKey,
+} from "@workspace/api-client-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const DATASET_CANCER_MAP: Array<{ key: string; keywords: string[] }> = [
+  { key: "Meme",      keywords: ["meme"] },
+  { key: "Akciğer",  keywords: ["akciğer", "akciger", "akciğer", "nsclc", "sclc", "lung"] },
+  { key: "Prostat",  keywords: ["prostat"] },
+  { key: "Kolorektal", keywords: ["kolorektal", "kolon", "rektum", "colorectal"] },
+  { key: "Lenfoma",  keywords: ["lenfoma", "hodgkin", "diffuse"] },
+  { key: "Mide",     keywords: ["mide", "gastrik", "gastric"] },
+  { key: "Pankreas", keywords: ["pankreas"] },
+  { key: "Over",     keywords: ["over", "ovarian"] },
+];
+
+function detectDatasetCancerType(aiCancerType: string): string | null {
+  const t = aiCancerType.toLowerCase();
+  for (const { key, keywords } of DATASET_CANCER_MAP) {
+    if (keywords.some((kw) => t.includes(kw))) return key;
+  }
+  return null;
+}
 
 const SYMPTOM_GROUPS_TR = [
   { group: "Genel Belirtiler", symptoms: ["Açıklanamayan kilo kaybı", "Süregelen yorgunluk / halsizlik", "Uzun süreli ateş", "Gece terlemesi", "İştahsızlık"] },
@@ -112,6 +135,10 @@ function isSerious(result: CheckResult): boolean {
 export default function SymptomChecker() {
   const { lang, t } = useLang();
   const s = t.symptom;
+
+  const medsCancerQ = useGetMedsByCancerType({
+    query: { queryKey: getGetMedsByCancerTypeQueryKey() },
+  });
 
   const SYMPTOM_GROUPS = lang === "en" ? SYMPTOM_GROUPS_EN : SYMPTOM_GROUPS_TR;
   const BUDGET_OPTIONS = lang === "en" ? BUDGET_OPTIONS_EN : BUDGET_OPTIONS_TR;
@@ -345,6 +372,12 @@ export default function SymptomChecker() {
                 {result.predictions?.map((pred, i) => {
                   const style = LIKELIHOOD_STYLE[pred.likelihood] ?? LIKELIHOOD_STYLE["Düşük"];
                   const showBtn = pred.likelihood === "Yüksek" || pred.likelihood === "Orta";
+                  const datasetKey = detectDatasetCancerType(pred.cancerType);
+                  const datasetEntry = datasetKey
+                    ? medsCancerQ.data?.find((d) => d.cancerType === datasetKey)
+                    : null;
+                  const topMeds = datasetEntry?.medications?.slice(0, 6) ?? [];
+
                   return (
                     <div key={i} className={`rounded-xl border p-5 ${style.bg} ${style.border}`}>
                       <div className="flex items-start justify-between gap-2 mb-3">
@@ -385,6 +418,43 @@ export default function SymptomChecker() {
                               <span key={j} className="text-xs px-2 py-0.5 rounded-full bg-white/70 dark:bg-black/25 border border-border text-foreground/70">{tst}</span>
                             ))}
                           </div>
+                        </div>
+                      )}
+
+                      {/* Data-based medication profile */}
+                      {datasetKey && (
+                        <div className="mb-4 rounded-lg border border-border/60 bg-white/50 dark:bg-black/20 p-3">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                            <Pill className="w-3.5 h-3.5" />
+                            {s.dataBasedMedsTitle}
+                          </p>
+                          {medsCancerQ.isLoading ? (
+                            <div className="flex gap-1.5">
+                              {[...Array(4)].map((_, k) => (
+                                <div key={k} className="h-5 w-20 rounded-full bg-muted animate-pulse" />
+                              ))}
+                            </div>
+                          ) : topMeds.length === 0 ? (
+                            <p className="text-xs text-muted-foreground">{s.dataBasedMedsNone}</p>
+                          ) : (
+                            <>
+                              <div className="flex flex-wrap gap-1.5 mb-2">
+                                {topMeds.map((med, k) => (
+                                  <div key={k} className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-teal-50 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-300">
+                                    <span className="font-medium">{k + 1}.</span>
+                                    <span>{med.label}</span>
+                                    <span className="text-teal-500 dark:text-teal-400 font-semibold ml-0.5">
+                                      ×{med.count >= 1000 ? `${(med.count / 1000).toFixed(1)}K` : med.count}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                <Database className="w-3 h-3 shrink-0" />
+                                <span>{s.dataBasedMedsNote} · {s.dataBasedMedsSource}</span>
+                              </div>
+                            </>
+                          )}
                         </div>
                       )}
 

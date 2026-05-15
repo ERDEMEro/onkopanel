@@ -139,6 +139,10 @@ const tr = {
       "Cilt & Lenf": "Cilt & Lenf",
       "Diğer": "Diğer",
     } as Record<string, string>,
+    dataBasedMedsTitle: "Veriye Dayalı İlaç Profili",
+    dataBasedMedsNote: "Kliniğimizdeki bu kanser türü hastalarında en sık kullanılan ilaçlar",
+    dataBasedMedsSource: "Kaynak: 1.000 gerçek hasta kaydı",
+    dataBasedMedsNone: "Bu kanser türü için veri bulunamadı.",
   },
   theme: {
     title: "Tema ve Kişiselleştirme",
@@ -296,6 +300,10 @@ const en: typeof tr = {
       "Cilt & Lenf": "Skin & Lymph",
       "Diğer": "Other",
     },
+    dataBasedMedsTitle: "Data-Based Medication Profile",
+    dataBasedMedsNote: "Most frequently used medications in our clinic for this cancer type",
+    dataBasedMedsSource: "Source: 1,000 real patient records",
+    dataBasedMedsNone: "No data found for this cancer type.",
   },
   theme: {
     title: "Theme & Personalization",

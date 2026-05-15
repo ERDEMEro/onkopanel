@@ -324,4 +324,120 @@ router.get("/patients", (req: Request, res: Response): void => {
   res.json({ patients: pageData, total, page, limit });
 });
 
+router.get("/cohort", (req: Request, res: Response): void => {
+  const rows = loadData();
+  const ageGroup = (req.query.ageGroup as string) || "all";
+  const genderFilter = (req.query.gender as string) || "all";
+
+  const patientRows = new Map<string, RawRow[]>();
+  for (const row of rows) {
+    if (!row.client_id) continue;
+    if (!patientRows.has(row.client_id)) patientRows.set(row.client_id, []);
+    patientRows.get(row.client_id)!.push(row);
+  }
+
+  const medCounts: Record<string, number> = {};
+  const procTypeCounts: Record<string, number> = {};
+  let patientCount = 0;
+  let hasHospitalization = 0;
+  let hasICU = 0;
+  let hasSurgery = 0;
+  let hasEmergency = 0;
+  let hasGeneticTest = 0;
+  let totalRows = 0;
+
+  for (const [, pRows] of patientRows) {
+    const firstRow = pRows[0];
+    const age = getAge(firstRow["doğum tarihi"]);
+    const gender = extractGender(firstRow.cinsiyet);
+
+    if (genderFilter !== "all" && gender !== genderFilter) continue;
+    if (ageGroup !== "all") {
+      const [min, max] = ageGroup.split("-").map(Number);
+      if (age === null || age < min || age > max) continue;
+    }
+
+    patientCount++;
+    totalRows += pRows.length;
+
+    let pHasHosp = false;
+    let pHasICU = false;
+    let pHasSurgery = false;
+    let pHasEmergency = false;
+    let pHasGenetic = false;
+
+    for (const row of pRows) {
+      if (row["genetic test "]?.trim()) pHasGenetic = true;
+
+      const yatisVals = extractBracketValues(row["yatış tipi"] || "").map((v) => v.toLowerCase());
+      if (yatisVals.length > 0) {
+        pHasHosp = true;
+        if (yatisVals.some((v) => v.includes("yogun") || v.includes("yoğun"))) pHasICU = true;
+        if (yatisVals.some((v) => v.includes("ameliyat"))) pHasSurgery = true;
+      }
+
+      const basvuruVals = extractBracketValues(row["başvuru tipi"] || "").map((v) => v.toLowerCase());
+      if (basvuruVals.some((v) => v.includes("acil"))) pHasEmergency = true;
+      if (basvuruVals.some((v) => v.includes("ameliyat"))) pHasSurgery = true;
+
+      const procVals = extractBracketValues(row["işlem tipi"] || "").map((v) => v.toLowerCase());
+      if (procVals.some((v) => v.includes("yoğun") || v.includes("yogun"))) pHasICU = true;
+
+      const medRaw = row["order ilaç"];
+      if (medRaw) {
+        extractBracketValues(medRaw).forEach((m) => {
+          const short = shortenMedLabel(m);
+          medCounts[short] = (medCounts[short] || 0) + 1;
+        });
+      }
+
+      const procRaw = row["işlem tipi"];
+      if (procRaw) {
+        const vals = extractBracketValues(procRaw);
+        if (vals.length > 0) {
+          vals.forEach((p) => { procTypeCounts[p] = (procTypeCounts[p] || 0) + 1; });
+        } else if (procRaw.trim()) {
+          procTypeCounts[procRaw.trim()] = (procTypeCounts[procRaw.trim()] || 0) + 1;
+        }
+      }
+    }
+
+    if (pHasHosp) hasHospitalization++;
+    if (pHasICU) hasICU++;
+    if (pHasSurgery) hasSurgery++;
+    if (pHasEmergency) hasEmergency++;
+    if (pHasGenetic) hasGeneticTest++;
+  }
+
+  if (patientCount === 0) {
+    res.json({ patientCount: 0, totalPatientsOverall: patientRows.size });
+    return;
+  }
+
+  const pct = (n: number) => Math.round((n / patientCount) * 100);
+
+  const topMedications = Object.entries(medCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([label, count]) => ({ label, count }));
+
+  const topProcedureTypes = Object.entries(procTypeCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([label, count]) => ({ label, count }));
+
+  res.json({
+    patientCount,
+    totalPatientsOverall: patientRows.size,
+    avgRecordsPerPatient: Math.round(totalRows / patientCount),
+    hospitalizationRate: pct(hasHospitalization),
+    icuRate: pct(hasICU),
+    surgeryRate: pct(hasSurgery),
+    emergencyRate: pct(hasEmergency),
+    geneticTestRate: pct(hasGeneticTest),
+    topMedications,
+    topProcedureTypes,
+  });
+});
+
 export default router;

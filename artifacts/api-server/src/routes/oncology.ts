@@ -151,11 +151,63 @@ router.get("/department-distribution", (_req: Request, res: Response): void => {
   res.json(countBy(depts).slice(0, 15));
 });
 
+function toTitleCase(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/(?:^|\s)\S/g, (c) => c.toUpperCase());
+}
+
+function shortenMedLabel(raw: string): string {
+  const tc = toTitleCase(raw.replace(/\(SETSIZ\)/gi, "").replace(/\(MEDIFLEKS\)/gi, "Medifleks").trim());
+  const doseMatch = tc.match(/^([\w%,]+(?:\s+[\w%,]+)?)\s+(\d+[,.]?\d*\s*(?:mg|mcg|g|ml|iu|miu|%\d+)?)/i);
+  if (doseMatch) {
+    const name = doseMatch[1].trim();
+    const dose = doseMatch[2].trim();
+    const combined = `${name} ${dose}`;
+    return combined.length > 24 ? combined.slice(0, 24).trim() + "…" : combined;
+  }
+  const words = tc.split(/\s+/).slice(0, 2).join(" ");
+  return words.length > 24 ? words.slice(0, 24).trim() + "…" : words;
+}
+
+const GENETIC_SHORT: Record<string, string> = {
+  "HLA-DR Low resolution(Molekül düşük çözünürlükte)": "HLA-DR",
+  "HCV-RNA, kantitatif": "HCV-RNA",
+  "Mikrosatellit İnstabilitesi (MSI)": "MSI",
+  "HLA-DQ Low resolution ( Mol.düşük çöz )": "HLA-DQ",
+  "HLA-A Low resolution( Molekül düşük çözünürlükte )": "HLA-A",
+  "CMV DNA PCR (Kan)": "CMV DNA PCR",
+  "Human papilloma virus (HPV)-genotiplendirme": "HPV Genotiplendirme",
+  "HIV 1 RNA (Viral Yük)": "HIV 1 RNA",
+  "Hepatit C (HCV) genotiplendirme": "HCV Genotiplendirme",
+  "JAK2 V617F": "JAK2 V617F",
+  "Trombofili Paneli (F2-F5-FXIII, MTHFR, PAI)": "Trombofili Paneli",
+};
+
+function shortenGeneticLabel(raw: string): string {
+  if (GENETIC_SHORT[raw]) return GENETIC_SHORT[raw];
+  const paren = raw.match(/^([^(]+)/);
+  const base = (paren ? paren[1] : raw).trim();
+  return base.length > 28 ? base.slice(0, 28).trim() + "…" : base;
+}
+
 router.get("/admission-types", (_req: Request, res: Response): void => {
   const rows = loadData();
-  const basvuru = rows.map((r) => r["başvuru tipi"]?.trim()).filter(Boolean);
-  const gelis = rows.map((r) => r["geliş tipi"]?.trim()).filter(Boolean);
-  const yatis = rows.map((r) => r["yatış tipi"]?.trim()).filter(Boolean);
+  const basvuru: string[] = [];
+  const gelis: string[] = [];
+  const yatis: string[] = [];
+
+  for (const row of rows) {
+    const bRaw = row["başvuru tipi"]?.trim();
+    if (bRaw) extractBracketValues(bRaw).forEach((v) => basvuru.push(toTitleCase(v)));
+
+    const gRaw = row["geliş tipi"]?.trim();
+    if (gRaw) extractBracketValues(gRaw).forEach((v) => gelis.push(toTitleCase(v)));
+
+    const yRaw = row["yatış tipi"]?.trim();
+    if (yRaw) extractBracketValues(yRaw).forEach((v) => yatis.push(toTitleCase(v)));
+  }
+
   res.json({
     basvuruTipi: countBy(basvuru),
     gelisTipi: countBy(gelis),
@@ -169,8 +221,12 @@ router.get("/genetic-tests", (_req: Request, res: Response): void => {
   for (const row of rows) {
     const rawTest = row["genetic test "];
     if (rawTest && rawTest.trim()) {
-      extractBracketValues(rawTest).forEach((t) => tests.push(t));
-      if (!rawTest.includes("[")) tests.push(rawTest.trim());
+      const vals = extractBracketValues(rawTest);
+      if (vals.length > 0) {
+        vals.forEach((t) => tests.push(shortenGeneticLabel(t)));
+      } else {
+        tests.push(shortenGeneticLabel(rawTest.trim()));
+      }
     }
   }
   res.json(countBy(tests).slice(0, 15));
@@ -182,7 +238,7 @@ router.get("/top-medications", (_req: Request, res: Response): void => {
   for (const row of rows) {
     const raw = row["order ilaç"];
     if (raw && raw.trim()) {
-      extractBracketValues(raw).forEach((m) => meds.push(m));
+      extractBracketValues(raw).forEach((m) => meds.push(shortenMedLabel(m)));
     }
   }
   res.json(countBy(meds).slice(0, 20));

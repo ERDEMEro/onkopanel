@@ -471,12 +471,12 @@ export default function Dashboard() {
             <CardContent className="px-2">
               {testsQ.isLoading || testsQ.isFetching ? <Skeleton className="w-full h-[280px] mx-4" /> : (
                 <ResponsiveContainer width="100%" height={280} debounce={0}>
-                  <BarChart data={testsQ.data?.slice(0, 8) || []} layout="vertical" margin={{ left: 0, right: 15, top: 10, bottom: 0 }}>
+                  <BarChart data={testsQ.data?.slice(0, 10) || []} layout="vertical" margin={{ left: 0, right: 30, top: 10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={gridColor} horizontal={false} />
                     <XAxis type="number" tick={{ fontSize: 12, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
-                    <YAxis dataKey="label" type="category" width={140} tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
+                    <YAxis dataKey="label" type="category" width={120} tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
                     <Tooltip content={<CustomTooltip />} isAnimationActive={false} cursor={{ fill: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }} />
-                    <Bar dataKey="count" name="Test" fill={CHART_COLORS.slate} fillOpacity={0.9} radius={[0, 3, 3, 0]} isAnimationActive={false} barSize={20} />
+                    <Bar dataKey="count" name="Test" fill={CHART_COLORS.slate} fillOpacity={0.9} radius={[0, 3, 3, 0]} isAnimationActive={false} barSize={18} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -498,10 +498,10 @@ export default function Dashboard() {
             <CardContent className="px-2">
               {medsQ.isLoading || medsQ.isFetching ? <Skeleton className="w-full h-[320px] mx-4" /> : (
                 <ResponsiveContainer width="100%" height={320} debounce={0}>
-                  <BarChart data={medsQ.data?.slice(0, 10) || []} layout="vertical" margin={{ left: 0, right: 15, top: 10, bottom: 0 }}>
+                  <BarChart data={medsQ.data?.slice(0, 10) || []} layout="vertical" margin={{ left: 0, right: 30, top: 10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={gridColor} horizontal={false} />
-                    <XAxis type="number" tick={{ fontSize: 12, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
-                    <YAxis dataKey="label" type="category" width={160} tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
+                    <XAxis type="number" tick={{ fontSize: 12, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v} />
+                    <YAxis dataKey="label" type="category" width={120} tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
                     <Tooltip content={<CustomTooltip />} isAnimationActive={false} cursor={{ fill: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }} />
                     <Bar dataKey="count" name="Sıklık" fill={CHART_COLORS.blue} fillOpacity={0.9} radius={[0, 3, 3, 0]} isAnimationActive={false} barSize={16} />
                   </BarChart>
@@ -514,16 +514,21 @@ export default function Dashboard() {
             <Card>
               <CardHeader className="px-5 pt-5 pb-3 flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-base font-semibold">Geliş Tipleri</CardTitle>
+                {!admitTypesQ.isLoading && !admitTypesQ.isFetching && admitTypesQ.data?.gelisTipi && admitTypesQ.data.gelisTipi.length > 0 && (
+                  <CSVLink data={admitTypesQ.data.gelisTipi} filename="gelis-tipleri.csv" className="print:hidden flex items-center justify-center w-[26px] h-[26px] rounded-[6px] transition-colors hover:opacity-80" style={{ backgroundColor: isDark ? "rgba(255,255,255,0.1)" : "#f1f5f9", color: isDark ? "#cbd5e1" : "#475569" }} aria-label="CSV İndir">
+                    <Download className="w-3.5 h-3.5" />
+                  </CSVLink>
+                )}
               </CardHeader>
               <CardContent className="px-2 pb-5">
-                {admitTypesQ.isLoading || admitTypesQ.isFetching ? <Skeleton className="w-full h-[120px] mx-4" /> : (
-                  <ResponsiveContainer width="100%" height={120} debounce={0}>
-                    <BarChart data={admitTypesQ.data?.gelisTipi || []} layout="vertical" margin={{ left: 0, right: 15, top: 0, bottom: 0 }}>
+                {admitTypesQ.isLoading || admitTypesQ.isFetching ? <Skeleton className="w-full h-[110px] mx-4" /> : (
+                  <ResponsiveContainer width="100%" height={110} debounce={0}>
+                    <BarChart data={admitTypesQ.data?.gelisTipi?.slice(0, 5) || []} layout="vertical" margin={{ left: 0, right: 30, top: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke={gridColor} horizontal={false} />
-                      <XAxis type="number" hide />
-                      <YAxis dataKey="label" type="category" width={120} tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
+                      <XAxis type="number" tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v} />
+                      <YAxis dataKey="label" type="category" width={90} tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
                       <Tooltip content={<CustomTooltip />} isAnimationActive={false} cursor={{ fill: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }} />
-                      <Bar dataKey="count" name="Başvuru" fill={CHART_COLORS.slate} fillOpacity={0.8} radius={[0, 3, 3, 0]} isAnimationActive={false} barSize={24} />
+                      <Bar dataKey="count" name="Kayıt" fill={CHART_COLORS.teal} fillOpacity={0.85} radius={[0, 3, 3, 0]} isAnimationActive={false} barSize={22} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -533,16 +538,21 @@ export default function Dashboard() {
             <Card>
               <CardHeader className="px-5 pt-5 pb-3 flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-base font-semibold">Başvuru Tipleri</CardTitle>
+                {!admitTypesQ.isLoading && !admitTypesQ.isFetching && admitTypesQ.data?.basvuruTipi && admitTypesQ.data.basvuruTipi.length > 0 && (
+                  <CSVLink data={admitTypesQ.data.basvuruTipi} filename="basvuru-tipleri.csv" className="print:hidden flex items-center justify-center w-[26px] h-[26px] rounded-[6px] transition-colors hover:opacity-80" style={{ backgroundColor: isDark ? "rgba(255,255,255,0.1)" : "#f1f5f9", color: isDark ? "#cbd5e1" : "#475569" }} aria-label="CSV İndir">
+                    <Download className="w-3.5 h-3.5" />
+                  </CSVLink>
+                )}
               </CardHeader>
               <CardContent className="px-2 pb-5">
-                {admitTypesQ.isLoading || admitTypesQ.isFetching ? <Skeleton className="w-full h-[120px] mx-4" /> : (
-                  <ResponsiveContainer width="100%" height={120} debounce={0}>
-                    <BarChart data={admitTypesQ.data?.basvuruTipi || []} layout="vertical" margin={{ left: 0, right: 15, top: 0, bottom: 0 }}>
+                {admitTypesQ.isLoading || admitTypesQ.isFetching ? <Skeleton className="w-full h-[200px] mx-4" /> : (
+                  <ResponsiveContainer width="100%" height={200} debounce={0}>
+                    <BarChart data={admitTypesQ.data?.basvuruTipi?.slice(0, 8) || []} layout="vertical" margin={{ left: 0, right: 30, top: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke={gridColor} horizontal={false} />
-                      <XAxis type="number" hide />
-                      <YAxis dataKey="label" type="category" width={120} tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
+                      <XAxis type="number" tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v} />
+                      <YAxis dataKey="label" type="category" width={130} tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
                       <Tooltip content={<CustomTooltip />} isAnimationActive={false} cursor={{ fill: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }} />
-                      <Bar dataKey="count" name="Başvuru" fill={CHART_COLORS.slate} fillOpacity={0.8} radius={[0, 3, 3, 0]} isAnimationActive={false} barSize={24} />
+                      <Bar dataKey="count" name="Kayıt" fill={CHART_COLORS.blue} fillOpacity={0.85} radius={[0, 3, 3, 0]} isAnimationActive={false} barSize={18} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}

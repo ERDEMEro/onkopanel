@@ -35,6 +35,7 @@ import {
   RefreshCw, ChevronDown, Check, Sun, Moon, Download, Printer, ArrowUp, ArrowDown
 } from "lucide-react";
 import { PatientTable } from "@/components/patient-table";
+import { KeyInsights } from "@/components/key-insights";
 
 const CHART_COLORS = {
   blue: "#0079F2",
@@ -319,6 +320,9 @@ export default function Dashboard() {
           <KPICard title="Kadın Hasta" value={summaryQ.data?.femaleCount} loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.purple} />
           <KPICard title="Genetik Testli" value={summaryQ.data?.withGeneticTest} loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.blue} />
         </div>
+
+        {/* Key Insights */}
+        <KeyInsights />
 
         {/* Top Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">

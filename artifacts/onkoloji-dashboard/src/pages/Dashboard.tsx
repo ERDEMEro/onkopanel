@@ -469,14 +469,14 @@ export default function Dashboard() {
               )}
             </CardHeader>
             <CardContent className="px-2">
-              {testsQ.isLoading || testsQ.isFetching ? <Skeleton className="w-full h-[280px] mx-4" /> : (
-                <ResponsiveContainer width="100%" height={280} debounce={0}>
-                  <BarChart data={testsQ.data?.slice(0, 10) || []} layout="vertical" margin={{ left: 0, right: 30, top: 10, bottom: 0 }}>
+              {testsQ.isLoading || testsQ.isFetching ? <Skeleton className="w-full h-[340px] mx-4" /> : (
+                <ResponsiveContainer width="100%" height={340} debounce={0}>
+                  <BarChart data={testsQ.data?.slice(0, 10) || []} layout="vertical" margin={{ left: 0, right: 30, top: 10, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={gridColor} horizontal={false} />
-                    <XAxis type="number" tick={{ fontSize: 12, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
-                    <YAxis dataKey="label" type="category" width={120} tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
+                    <XAxis type="number" tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
+                    <YAxis dataKey="label" type="category" width={140} tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
                     <Tooltip content={<CustomTooltip />} isAnimationActive={false} cursor={{ fill: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }} />
-                    <Bar dataKey="count" name="Test" fill={CHART_COLORS.slate} fillOpacity={0.9} radius={[0, 3, 3, 0]} isAnimationActive={false} barSize={18} />
+                    <Bar dataKey="count" name="Test" fill={CHART_COLORS.slate} fillOpacity={0.9} radius={[0, 3, 3, 0]} isAnimationActive={false} barSize={14} />
                   </BarChart>
                 </ResponsiveContainer>
               )}

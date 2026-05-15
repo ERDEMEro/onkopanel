@@ -313,7 +313,7 @@ export default function Dashboard() {
         </div>
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
           <KPICard title="Toplam Hasta" value={summaryQ.data?.totalPatients} loading={summaryQ.isLoading || summaryQ.isFetching} />
           <KPICard title="Toplam Başvuru" value={summaryQ.data?.totalAdmissions} loading={summaryQ.isLoading || summaryQ.isFetching} />
           <KPICard title="Ortalama Yaş" value={summaryQ.data?.averageAge ? Math.round(summaryQ.data.averageAge) : "--"} loading={summaryQ.isLoading || summaryQ.isFetching} />
@@ -321,6 +321,12 @@ export default function Dashboard() {
           <KPICard title="Erkek Hasta" value={summaryQ.data?.maleCount} loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.blue} />
           <KPICard title="Kadın Hasta" value={summaryQ.data?.femaleCount} loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.purple} />
           <KPICard title="Genetik Testli" value={summaryQ.data?.withGeneticTest} loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.teal} />
+          <KPICard
+            title="Vefat Oranı"
+            value={(summaryQ.data as any)?.mortalityRate !== undefined ? `%${(summaryQ.data as any).mortalityRate}` : "--"}
+            loading={summaryQ.isLoading || summaryQ.isFetching}
+            valueColor={CHART_COLORS.red}
+          />
         </div>
 
         {/* Key Insights */}

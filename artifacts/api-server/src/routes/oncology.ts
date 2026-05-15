@@ -87,7 +87,8 @@ function countBy(items: string[]): Array<{ label: string; count: number }> {
 
 router.get("/summary", (_req: Request, res: Response): void => {
   const rows = loadData();
-  const uniqueClients = new Set<string>();
+  const seenClients = new Set<string>();
+  const deceasedClients = new Set<string>();
   let femaleCount = 0;
   let maleCount = 0;
   const ages: number[] = [];
@@ -95,27 +96,37 @@ router.get("/summary", (_req: Request, res: Response): void => {
   const departments = new Set<string>();
 
   for (const row of rows) {
-    if (row.client_id) uniqueClients.add(row.client_id);
-    const gender = extractGender(row.cinsiyet);
-    if (gender === "Kadın") femaleCount++;
-    else if (gender === "Erkek") maleCount++;
-    const age = getAge(row["doğum tarihi"]);
-    if (age !== null && age > 0 && age < 120) ages.push(age);
+    if (row.client_id) {
+      if (!seenClients.has(row.client_id)) {
+        seenClients.add(row.client_id);
+        const gender = extractGender(row.cinsiyet);
+        if (gender === "Kadın") femaleCount++;
+        else if (gender === "Erkek") maleCount++;
+        const age = getAge(row["doğum tarihi"]);
+        if (age !== null && age > 0 && age < 120) ages.push(age);
+      }
+      if (row["ölüm tarihi"] && row["ölüm tarihi"].trim()) {
+        deceasedClients.add(row.client_id);
+      }
+    }
     if (row["genetic test "] && row["genetic test "].trim()) withGeneticTest++;
     const depts = extractBracketValues(row.department);
     depts.forEach((d) => departments.add(d));
   }
 
   const avgAge = ages.length ? ages.reduce((a, b) => a + b, 0) / ages.length : 0;
+  const total = seenClients.size;
 
   res.json({
-    totalPatients: uniqueClients.size,
+    totalPatients: total,
     femaleCount,
     maleCount,
     averageAge: Math.round(avgAge * 10) / 10,
     withGeneticTest,
     totalAdmissions: rows.length,
     departmentCount: departments.size,
+    deceasedCount: deceasedClients.size,
+    mortalityRate: total > 0 ? Math.round((deceasedClients.size / total) * 100) : 0,
   });
 });
 
@@ -344,6 +355,7 @@ router.get("/cohort", (req: Request, res: Response): void => {
   let hasSurgery = 0;
   let hasEmergency = 0;
   let hasGeneticTest = 0;
+  let hasDeceased = 0;
   let totalProcItems = 0;
 
   for (const [, pRows] of patientRows) {
@@ -365,9 +377,11 @@ router.get("/cohort", (req: Request, res: Response): void => {
     let pHasSurgery = false;
     let pHasEmergency = false;
     let pHasGenetic = false;
+    let pHasDeceased = false;
 
     for (const row of pRows) {
       if (row["genetic test "]?.trim()) pHasGenetic = true;
+      if (row["ölüm tarihi"]?.trim()) pHasDeceased = true;
 
       const yatisVals = extractBracketValues(row["yatış tipi"] || "").map((v) => v.toLowerCase());
       if (yatisVals.length > 0) {
@@ -410,6 +424,7 @@ router.get("/cohort", (req: Request, res: Response): void => {
     if (pHasSurgery) hasSurgery++;
     if (pHasEmergency) hasEmergency++;
     if (pHasGenetic) hasGeneticTest++;
+    if (pHasDeceased) hasDeceased++;
   }
 
   if (patientCount === 0) {
@@ -438,6 +453,7 @@ router.get("/cohort", (req: Request, res: Response): void => {
     surgeryRate: pct(hasSurgery),
     emergencyRate: pct(hasEmergency),
     geneticTestRate: pct(hasGeneticTest),
+    mortalityRate: pct(hasDeceased),
     topMedications,
     topProcedureTypes,
   });

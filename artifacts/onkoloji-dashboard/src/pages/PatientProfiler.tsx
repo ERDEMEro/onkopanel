@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, BedDouble, AlertTriangle, Scissors, Activity, FlaskConical, ClipboardList, Pill } from "lucide-react";
+import { Users, BedDouble, AlertTriangle, Scissors, Activity, FlaskConical, ClipboardList, Pill, Skull } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -28,6 +28,7 @@ interface CohortData {
   surgeryRate: number;
   emergencyRate: number;
   geneticTestRate: number;
+  mortalityRate: number;
   topMedications: { label: string; count: number }[];
   topProcedureTypes: { label: string; count: number }[];
 }
@@ -239,7 +240,7 @@ export default function PatientProfiler() {
         </div>
 
         {/* KPI Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-7 gap-3 mb-8">
           <KPITile
             icon={<BedDouble className="w-4 h-4" />}
             label="Yatış Olan"
@@ -274,6 +275,13 @@ export default function PatientProfiler() {
             value={data ? data.geneticTestRate : null}
             color="#0d9488"
             sub="Moleküler test kaydı olan"
+          />
+          <KPITile
+            icon={<Skull className="w-4 h-4" />}
+            label="Vefat Oranı"
+            value={data ? data.mortalityRate : null}
+            color="#7f1d1d"
+            sub="Ölüm tarihi kayıtlı hasta"
           />
           <KPITile
             icon={<ClipboardList className="w-4 h-4" />}

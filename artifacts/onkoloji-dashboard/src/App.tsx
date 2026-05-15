@@ -6,7 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import PatientProfiler from "@/pages/PatientProfiler";
-import { BarChart2, Users } from "lucide-react";
+import SymptomChecker from "@/pages/SymptomChecker";
+import { BarChart2, Users, Stethoscope } from "lucide-react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +32,7 @@ function TabNav() {
   const tabs = [
     { path: "/", label: "Veri Panosu", icon: <BarChart2 className="w-4 h-4" /> },
     { path: "/profil", label: "Hasta Profil Aracı", icon: <Users className="w-4 h-4" /> },
+    { path: "/belirti", label: "Belirti Değerlendirici", icon: <Stethoscope className="w-4 h-4" /> },
   ];
 
   return (
@@ -65,6 +67,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Dashboard} />
         <Route path="/profil" component={PatientProfiler} />
+        <Route path="/belirti" component={SymptomChecker} />
         <Route component={NotFound} />
       </Switch>
     </>

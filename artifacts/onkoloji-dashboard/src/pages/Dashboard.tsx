@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { PatientTable } from "@/components/patient-table";
 import { KeyInsights } from "@/components/key-insights";
+import { ProblemSolutions } from "@/components/problem-solutions";
 
 const CHART_COLORS = {
   blue: "#0079F2",
@@ -323,6 +324,9 @@ export default function Dashboard() {
 
         {/* Key Insights */}
         <KeyInsights />
+
+        {/* Problem & Solutions */}
+        <ProblemSolutions />
 
         {/* Top Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTheme } from "@/context/ThemeContext";
 import {
   useGetOncologySummary,
   useGetGenderDistribution,
@@ -32,7 +33,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import {
-  RefreshCw, ChevronDown, Check, Sun, Moon, Download, Printer, ArrowUp, ArrowDown
+  RefreshCw, ChevronDown, Check, Printer, Download, ArrowUp, ArrowDown
 } from "lucide-react";
 import { PatientTable } from "@/components/patient-table";
 import { KeyInsights } from "@/components/key-insights";
@@ -139,7 +140,7 @@ function KPICard({ title, value, loading, valueColor = CHART_COLORS.teal }: { ti
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
-  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
+  const { isDark } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -164,16 +165,12 @@ export default function Dashboard() {
 
   // Effects
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", isDark);
-  }, [isDark]);
-
-  useEffect(() => {
     if (loading) {
       setIsSpinning(true);
-    } else {
-      const t = setTimeout(() => setIsSpinning(false), 600);
-      return () => clearTimeout(t);
+      return;
     }
+    const t = setTimeout(() => setIsSpinning(false), 600);
+    return () => clearTimeout(t);
   }, [loading]);
 
   useEffect(() => {
@@ -296,18 +293,6 @@ export default function Dashboard() {
               aria-label="PDF'e Aktar"
             >
               <Printer className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setIsDark((d) => !d)}
-              className="flex items-center justify-center w-[30px] h-[30px] rounded-[6px] transition-colors border"
-              style={{
-                backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#ffffff",
-                borderColor: isDark ? "rgba(255,255,255,0.1)" : "#e2e8f0",
-                color: isDark ? "#e2e8f0" : "#334155",
-              }}
-              aria-label="Karanlık Mod"
-            >
-              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
           </div>
         </div>

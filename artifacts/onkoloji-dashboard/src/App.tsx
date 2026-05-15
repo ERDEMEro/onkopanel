@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -7,7 +7,9 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import PatientProfiler from "@/pages/PatientProfiler";
 import SymptomChecker from "@/pages/SymptomChecker";
-import { BarChart2, Users, Stethoscope } from "lucide-react";
+import { ThemeProvider } from "@/context/ThemeContext";
+import { ThemePanel } from "@/components/ThemePanel";
+import { BarChart2, Users, Stethoscope, Palette } from "lucide-react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,16 +20,9 @@ const queryClient = new QueryClient({
   },
 });
 
-function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [isDark, setIsDark] = useState(false);
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", isDark);
-  }, [isDark]);
-  return <>{children}</>;
-}
-
 function TabNav() {
   const [location, navigate] = useLocation();
+  const [themeOpen, setThemeOpen] = useState(false);
 
   const tabs = [
     { path: "/", label: "Veri Panosu", icon: <BarChart2 className="w-4 h-4" /> },
@@ -36,27 +31,42 @@ function TabNav() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div className="max-w-[1400px] mx-auto px-6 flex items-center gap-1 h-11">
-        {tabs.map((tab) => {
-          const active = location === tab.path;
-          return (
+    <>
+      <nav className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="max-w-[1400px] mx-auto px-6 flex items-center gap-1 h-11">
+          {tabs.map((tab) => {
+            const active = location === tab.path;
+            return (
+              <button
+                key={tab.path}
+                onClick={() => navigate(tab.path)}
+                className={`flex items-center gap-1.5 px-4 h-full text-sm font-medium border-b-2 transition-colors ${
+                  active
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            );
+          })}
+
+          <div className="ml-auto">
             <button
-              key={tab.path}
-              onClick={() => navigate(tab.path)}
-              className={`flex items-center gap-1.5 px-4 h-full text-sm font-medium border-b-2 transition-colors ${
-                active
-                  ? "border-teal-500 text-teal-600 dark:text-teal-400"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
-              }`}
+              onClick={() => setThemeOpen(true)}
+              className="flex items-center gap-1.5 px-3 h-7 rounded-md text-xs font-medium border transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
+              title="Tema ve Kişiselleştirme"
             >
-              {tab.icon}
-              {tab.label}
+              <Palette className="w-3.5 h-3.5" />
+              Tema
             </button>
-          );
-        })}
-      </div>
-    </nav>
+          </div>
+        </div>
+      </nav>
+
+      <ThemePanel open={themeOpen} onClose={() => setThemeOpen(false)} />
+    </>
   );
 }
 

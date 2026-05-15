@@ -56,15 +56,17 @@ interface CheckResult {
 }
 
 interface Center {
+  doctorName?: string | null;
   hospital: string;
   hospitalType: "Devlet" | "Üniversite" | "Özel";
   department: string;
   city: string;
-  district: string;
+  district?: string | null;
   estimatedFee: string;
   sgkCovered: boolean;
   appointmentMethod: string;
   appointmentTip: string;
+  sourceUrl?: string | null;
   whyRecommended: string;
 }
 
@@ -522,6 +524,19 @@ export default function SymptomChecker() {
 
                   {doctorResult.centers?.map((center, i) => (
                     <div key={i} className="rounded-xl border bg-card p-4">
+                      {/* Doctor name if available */}
+                      {center.doctorName && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-950/40 flex items-center justify-center shrink-0">
+                            <UserRound className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-sm">{center.doctorName}</p>
+                            <p className="text-xs text-muted-foreground">{center.department}</p>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
                         <div>
                           <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
@@ -534,8 +549,10 @@ export default function SymptomChecker() {
                               </span>
                             )}
                           </div>
-                          <p className="font-bold text-sm">{center.hospital}</p>
-                          <p className="text-xs text-rose-600 dark:text-rose-400 font-medium mt-0.5">{center.department}</p>
+                          <p className={`font-semibold text-sm ${center.doctorName ? "text-muted-foreground" : ""}`}>{center.hospital}</p>
+                          {!center.doctorName && (
+                            <p className="text-xs text-rose-600 dark:text-rose-400 font-medium mt-0.5">{center.department}</p>
+                          )}
                         </div>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <MapPin className="w-3.5 h-3.5 shrink-0" />
@@ -562,6 +579,18 @@ export default function SymptomChecker() {
 
                       {center.whyRecommended && (
                         <p className="mt-2.5 text-xs text-muted-foreground border-t pt-2.5 leading-relaxed italic">{center.whyRecommended}</p>
+                      )}
+
+                      {center.sourceUrl && (
+                        <a
+                          href={center.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          <ChevronRight className="w-3 h-3" />
+                          Kaynağa git
+                        </a>
                       )}
                     </div>
                   ))}

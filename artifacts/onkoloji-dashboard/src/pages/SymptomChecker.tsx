@@ -1,5 +1,9 @@
-import { useState } from "react";
-import { AlertTriangle, CheckCircle2, Clock, FlaskConical, ChevronRight, Info, Stethoscope, ShieldAlert } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import {
+  AlertTriangle, CheckCircle2, Clock, FlaskConical, ChevronRight,
+  Info, Stethoscope, ShieldAlert, UserRound, MapPin, Wallet,
+  Building2, BadgeCheck, PhoneCall, X, Loader2,
+} from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -30,6 +34,12 @@ const SYMPTOM_GROUPS = [
   },
 ];
 
+const BUDGET_OPTIONS = [
+  { value: "Kısıtlı", label: "Kısıtlı — Devlet / Üniversite Hastanesi (SGK)", desc: "Ücretsiz veya çok düşük ücret" },
+  { value: "Orta", label: "Orta — Anlaşmalı Özel / Sigortalı", desc: "500 – 1.500 TL muayene" },
+  { value: "Premium", label: "Premium — Üst Düzey Özel Hastane", desc: "2.000 TL ve üzeri, VIP hizmet" },
+];
+
 interface Prediction {
   cancerType: string;
   likelihood: "Yüksek" | "Orta" | "Düşük";
@@ -45,36 +55,89 @@ interface CheckResult {
   urgencyLevel: string;
 }
 
+interface Doctor {
+  name: string;
+  title: string;
+  hospital: string;
+  hospitalType: "Devlet" | "Üniversite" | "Özel";
+  specialization: string;
+  city: string;
+  district: string;
+  estimatedFee: string;
+  sgkCovered: boolean;
+  appointmentTip: string;
+  note: string;
+}
+
+interface DoctorResult {
+  doctors: Doctor[];
+  generalTip: string;
+  urgentNote: string;
+}
+
 const LIKELIHOOD_STYLE: Record<string, { bg: string; text: string; border: string }> = {
   Yüksek: { bg: "bg-red-50 dark:bg-red-950/30", text: "text-red-700 dark:text-red-400", border: "border-red-200 dark:border-red-900" },
-  Orta: { bg: "bg-amber-50 dark:bg-amber-950/30", text: "text-amber-700 dark:text-amber-400", border: "border-amber-200 dark:border-amber-900" },
-  Düşük: { bg: "bg-blue-50 dark:bg-blue-950/30", text: "text-blue-700 dark:text-blue-400", border: "border-blue-200 dark:border-blue-900" },
+  Orta:   { bg: "bg-amber-50 dark:bg-amber-950/30", text: "text-amber-700 dark:text-amber-400", border: "border-amber-200 dark:border-amber-900" },
+  Düşük:  { bg: "bg-blue-50 dark:bg-blue-950/30", text: "text-blue-700 dark:text-blue-400", border: "border-blue-200 dark:border-blue-900" },
+};
+
+const HOSPITAL_TYPE_STYLE: Record<string, string> = {
+  Devlet:     "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+  Üniversite: "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300",
+  Özel:       "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
 };
 
 const URGENCY_ICON: Record<string, React.ReactNode> = {
-  acil: <AlertTriangle className="w-4 h-4 text-red-600" />,
+  acil:               <AlertTriangle className="w-4 h-4 text-red-600" />,
   "bir hafta içinde": <Clock className="w-4 h-4 text-amber-600" />,
-  "bir ay içinde": <CheckCircle2 className="w-4 h-4 text-blue-500" />,
+  "bir ay içinde":    <CheckCircle2 className="w-4 h-4 text-blue-500" />,
 };
 
 const URGENCY_LABEL: Record<string, string> = {
-  acil: "Acil — hemen başvurun",
+  acil:               "Acil — hemen başvurun",
   "bir hafta içinde": "Bir hafta içinde başvurun",
-  "bir ay içinde": "Bir ay içinde başvurun",
+  "bir ay içinde":    "Bir ay içinde başvurun",
 };
 
+function isSerious(result: CheckResult): boolean {
+  if (result.urgencyLevel === "acil" || result.urgencyLevel === "bir hafta içinde") return true;
+  return result.predictions?.some((p) => p.likelihood === "Yüksek") ?? false;
+}
+
 export default function SymptomChecker() {
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [freeText, setFreeText] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<CheckResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected]         = useState<Set<string>>(new Set());
+  const [freeText, setFreeText]         = useState("");
+  const [loading, setLoading]           = useState(false);
+  const [result, setResult]             = useState<CheckResult | null>(null);
+  const [error, setError]               = useState<string | null>(null);
+
+  const [showDoctorModal, setShowDoctorModal] = useState(false);
+  const [doctorTarget, setDoctorTarget]       = useState<string>("");
+  const [location, setLocation]               = useState("");
+  const [budget, setBudget]                   = useState("");
+  const [doctorLoading, setDoctorLoading]     = useState(false);
+  const [doctorResult, setDoctorResult]       = useState<DoctorResult | null>(null);
+  const [doctorError, setDoctorError]         = useState<string | null>(null);
+
+  const modalRef = useRef<HTMLDivElement>(null);
+  const locationRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (showDoctorModal) setTimeout(() => locationRef.current?.focus(), 100);
+  }, [showDoctorModal]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") closeModal();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   function toggleSymptom(s: string) {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(s)) next.delete(s);
-      else next.add(s);
+      if (next.has(s)) next.delete(s); else next.add(s);
       return next;
     });
   }
@@ -84,15 +147,15 @@ export default function SymptomChecker() {
     if (selected.size > 0) parts.push([...selected].join(", "));
     if (freeText.trim()) parts.push(freeText.trim());
     const symptoms = parts.join(". ");
-
     if (!symptoms) return;
 
     setLoading(true);
     setResult(null);
     setError(null);
+    setDoctorResult(null);
 
     try {
-      const res = await fetch(`${BASE}/api/symptom-check`, {
+      const res  = await fetch(`${BASE}/api/symptom-check`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ symptoms }),
@@ -104,6 +167,40 @@ export default function SymptomChecker() {
       setError(e.message || "Bağlantı hatası. Lütfen tekrar deneyin.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  function openDoctorModal(cancerType: string) {
+    setDoctorTarget(cancerType);
+    setDoctorResult(null);
+    setDoctorError(null);
+    setBudget("");
+    setShowDoctorModal(true);
+  }
+
+  function closeModal() {
+    setShowDoctorModal(false);
+  }
+
+  async function handleDoctorSearch() {
+    if (!location.trim() || !budget) return;
+    setDoctorLoading(true);
+    setDoctorError(null);
+    setDoctorResult(null);
+
+    try {
+      const res  = await fetch(`${BASE}/api/doctor-recommend`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cancerType: doctorTarget, location: location.trim(), budget }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Hata");
+      setDoctorResult(data);
+    } catch (e: any) {
+      setDoctorError(e.message || "Öneri alınamadı.");
+    } finally {
+      setDoctorLoading(false);
     }
   }
 
@@ -120,7 +217,7 @@ export default function SymptomChecker() {
           </div>
           <h1 className="text-3xl font-bold tracking-tight mb-2">Yapay Zeka Belirti Tarama Aracı</h1>
           <p className="text-muted-foreground text-[15px] max-w-2xl">
-            Belirtilerinizi seçin veya yazın; yapay zeka onkoloji verilerimize dayanarak olası kanser türlerini ve önerilen adımları değerlendirsin.
+            Belirtilerinizi seçin veya yazın; yapay zeka olası kanser türlerini değerlendirsin ve gerekirse size uygun onkoloğu önersin.
           </p>
         </div>
 
@@ -149,15 +246,12 @@ export default function SymptomChecker() {
                       {g.symptoms.map((s) => {
                         const active = selected.has(s);
                         return (
-                          <button
-                            key={s}
-                            onClick={() => toggleSymptom(s)}
+                          <button key={s} onClick={() => toggleSymptom(s)}
                             className={`px-2.5 py-1 text-xs rounded-lg border transition-colors ${
                               active
                                 ? "bg-rose-600 text-white border-rose-600"
                                 : "bg-background text-muted-foreground border-border hover:border-rose-400 hover:text-rose-600"
-                            }`}
-                          >
+                            }`}>
                             {s}
                           </button>
                         );
@@ -172,9 +266,7 @@ export default function SymptomChecker() {
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                 Ek açıklama (isteğe bağlı)
               </p>
-              <textarea
-                value={freeText}
-                onChange={(e) => setFreeText(e.target.value)}
+              <textarea value={freeText} onChange={(e) => setFreeText(e.target.value)}
                 placeholder="Belirtilerinizi kendi cümlelerinizle de açıklayabilirsiniz. Örn: '3 haftadır devam eden öksürük ve zaman zaman kan geliyor...'"
                 rows={4}
                 className="w-full text-sm rounded-lg border border-border bg-background px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-rose-500/40 placeholder:text-muted-foreground/50"
@@ -188,22 +280,12 @@ export default function SymptomChecker() {
               </div>
             )}
 
-            <button
-              onClick={handleSubmit}
-              disabled={!hasInput || loading}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white"
-            >
+            <button onClick={handleSubmit} disabled={!hasInput || loading}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white">
               {loading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                  Yapay zeka analiz ediyor…
-                </>
+                <><Loader2 className="w-4 h-4 animate-spin" /> Yapay zeka analiz ediyor…</>
               ) : (
-                <>
-                  <Stethoscope className="w-4 h-4" />
-                  Belirtileri Değerlendir
-                  <ChevronRight className="w-4 h-4" />
-                </>
+                <><Stethoscope className="w-4 h-4" /> Belirtileri Değerlendir <ChevronRight className="w-4 h-4" /></>
               )}
             </button>
           </div>
@@ -229,8 +311,7 @@ export default function SymptomChecker() {
 
             {error && (
               <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/20 p-5 text-red-700 dark:text-red-400 text-sm flex gap-3">
-                <AlertTriangle className="w-5 h-5 shrink-0" />
-                {error}
+                <AlertTriangle className="w-5 h-5 shrink-0" /> {error}
               </div>
             )}
 
@@ -246,9 +327,7 @@ export default function SymptomChecker() {
                 }`}>
                   {URGENCY_ICON[result.urgencyLevel] ?? <Clock className="w-4 h-4" />}
                   <div>
-                    <p className="font-semibold text-sm">
-                      {URGENCY_LABEL[result.urgencyLevel] ?? "Doktora başvurun"}
-                    </p>
+                    <p className="font-semibold text-sm">{URGENCY_LABEL[result.urgencyLevel] ?? "Doktora başvurun"}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{result.generalAdvice}</p>
                   </div>
                 </div>
@@ -256,12 +335,13 @@ export default function SymptomChecker() {
                 {/* Predictions */}
                 {result.predictions?.map((pred, i) => {
                   const style = LIKELIHOOD_STYLE[pred.likelihood] ?? LIKELIHOOD_STYLE["Düşük"];
+                  const showBtn = pred.likelihood === "Yüksek" || pred.likelihood === "Orta";
                   return (
                     <div key={i} className={`rounded-xl border p-5 ${style.bg} ${style.border}`}>
                       <div className="flex items-start justify-between gap-2 mb-3">
                         <div>
                           <span className="text-xs text-muted-foreground font-medium">#{i + 1} Olası Tanı</span>
-                          <h3 className={`font-bold text-lg ${style.text}`}>{pred.cancerType}</h3>
+                          <h3 className={`font-bold text-lg capitalize ${style.text}`}>{pred.cancerType}</h3>
                         </div>
                         <span className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full border ${style.text} ${style.border} bg-white/60 dark:bg-black/20`}>
                           {pred.likelihood} İhtimal
@@ -287,7 +367,7 @@ export default function SymptomChecker() {
                       )}
 
                       {pred.recommendedTests?.length > 0 && (
-                        <div>
+                        <div className="mb-4">
                           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 flex items-center gap-1">
                             <FlaskConical className="w-3 h-3" /> Önerilen Tetkikler
                           </p>
@@ -299,25 +379,216 @@ export default function SymptomChecker() {
                         </div>
                       )}
 
-                      <div className="mt-3 pt-3 border-t border-border/40 flex items-center gap-1.5 text-xs text-muted-foreground">
-                        {URGENCY_ICON[pred.urgency] ?? <Clock className="w-3.5 h-3.5" />}
-                        <span>{URGENCY_LABEL[pred.urgency] ?? pred.urgency}</span>
+                      <div className="flex items-center justify-between pt-3 border-t border-border/40 gap-3">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          {URGENCY_ICON[pred.urgency] ?? <Clock className="w-3.5 h-3.5" />}
+                          <span>{URGENCY_LABEL[pred.urgency] ?? pred.urgency}</span>
+                        </div>
+
+                        {showBtn && (
+                          <button
+                            onClick={() => openDoctorModal(pred.cancerType)}
+                            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-white dark:bg-black/30 border border-current text-rose-700 dark:text-rose-400 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-colors"
+                          >
+                            <UserRound className="w-3.5 h-3.5" />
+                            Doktora Danış
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
                 })}
 
+                {/* Serious CTA banner */}
+                {isSerious(result) && (
+                  <div className="rounded-xl border-2 border-rose-400 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/30 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div className="flex-1">
+                      <p className="font-bold text-rose-700 dark:text-rose-300 text-sm">Uzman Onkolog Önerisi Alın</p>
+                      <p className="text-xs text-rose-600/80 dark:text-rose-400/80 mt-0.5">
+                        Sonuçlarınız ciddi görünüyor. Konumunuza ve bütçenize göre yapay zeka size uygun onkoloji uzmanlarını önerin.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => openDoctorModal(result.predictions?.[0]?.cancerType ?? "kanser")}
+                      className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm transition-colors"
+                    >
+                      <UserRound className="w-4 h-4" />
+                      Doktora Danış
+                    </button>
+                  </div>
+                )}
+
                 {/* Disclaimer */}
                 <div className="rounded-xl border bg-muted/40 p-4 text-xs text-muted-foreground leading-relaxed">
                   <span className="font-semibold">Yasal Uyarı:</span> Bu sonuçlar yalnızca genel bilgilendirme amaçlıdır.
                   Yapay zeka değerlendirmesi kesin tıbbi tanı niteliği taşımaz.
-                  Semptomlarınız için mutlaka bir hekim tarafından muayene olunuz ve gerekli testleri yaptırınız.
+                  Semptomlarınız için mutlaka bir hekim tarafından muayene olunuz.
                 </div>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Doctor Modal */}
+      {showDoctorModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
+        >
+          <div
+            ref={modalRef}
+            className="bg-background w-full max-w-2xl rounded-2xl border shadow-2xl max-h-[90vh] overflow-y-auto"
+          >
+            {/* Modal header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 bg-background z-10">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium mb-0.5">Doktor Arama</p>
+                <h2 className="font-bold text-base capitalize">{doctorTarget} için Uzman Önerisi</h2>
+              </div>
+              <button onClick={closeModal} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="px-6 py-5 space-y-5">
+              {/* Location + Budget */}
+              {!doctorResult && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5" /> Konumunuz (Şehir / İlçe)
+                    </label>
+                    <input
+                      ref={locationRef}
+                      type="text"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="Örn: İstanbul, Ankara, İzmir Bornova…"
+                      className="w-full text-sm rounded-xl border border-border bg-background px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-rose-500/40 placeholder:text-muted-foreground/50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                      <Wallet className="w-3.5 h-3.5" /> Bütçeniz
+                    </label>
+                    <div className="space-y-2">
+                      {BUDGET_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => setBudget(opt.value)}
+                          className={`w-full text-left px-4 py-3 rounded-xl border transition-colors ${
+                            budget === opt.value
+                              ? "border-rose-500 bg-rose-50 dark:bg-rose-950/30"
+                              : "border-border hover:border-rose-300 bg-background"
+                          }`}
+                        >
+                          <p className="text-sm font-semibold">{opt.label}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleDoctorSearch}
+                    disabled={!location.trim() || !budget || doctorLoading}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-rose-600 hover:bg-rose-700 text-white"
+                  >
+                    {doctorLoading
+                      ? <><Loader2 className="w-4 h-4 animate-spin" /> Uzmanlar aranıyor…</>
+                      : <><UserRound className="w-4 h-4" /> Uzman Bul</>
+                    }
+                  </button>
+
+                  {doctorError && (
+                    <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/20 p-4 text-sm text-red-700 dark:text-red-400 flex gap-2">
+                      <AlertTriangle className="w-4 h-4 shrink-0" /> {doctorError}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Results */}
+              {doctorResult && (
+                <div className="space-y-4">
+                  {doctorResult.urgentNote && (
+                    <div className="rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30 p-4 flex gap-3 text-sm">
+                      <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                      <p className="text-red-700 dark:text-red-400">{doctorResult.urgentNote}</p>
+                    </div>
+                  )}
+
+                  {doctorResult.doctors?.map((doc, i) => (
+                    <div key={i} className="rounded-xl border bg-card p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-950/40 flex items-center justify-center shrink-0">
+                          <UserRound className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
+                            <p className="font-bold text-sm">{doc.name}</p>
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${HOSPITAL_TYPE_STYLE[doc.hospitalType] ?? "bg-muted text-muted-foreground"}`}>
+                              {doc.hospitalType}
+                            </span>
+                            {doc.sgkCovered && (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 font-medium flex items-center gap-1">
+                                <BadgeCheck className="w-3 h-3" /> SGK
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">{doc.specialization}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <Building2 className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate">{doc.hospital}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <MapPin className="w-3.5 h-3.5 shrink-0" />
+                          <span>{doc.district}, {doc.city}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <Wallet className="w-3.5 h-3.5 shrink-0" />
+                          <span>{doc.estimatedFee}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <PhoneCall className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate">{doc.appointmentTip}</span>
+                        </div>
+                      </div>
+
+                      {doc.note && (
+                        <p className="mt-2.5 text-xs text-muted-foreground border-t pt-2.5 leading-relaxed">{doc.note}</p>
+                      )}
+                    </div>
+                  ))}
+
+                  {doctorResult.generalTip && (
+                    <div className="rounded-xl border bg-muted/40 p-4 text-xs text-muted-foreground leading-relaxed">
+                      <span className="font-semibold">Genel Öneri:</span> {doctorResult.generalTip}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => { setDoctorResult(null); setDoctorError(null); }}
+                    className="w-full py-2.5 rounded-xl border text-sm font-medium hover:bg-muted transition-colors"
+                  >
+                    Yeniden Ara
+                  </button>
+
+                  <div className="text-xs text-muted-foreground text-center pb-1">
+                    Bu öneriler yapay zeka tarafından oluşturulmuştur. Lütfen randevu öncesi hastaneyi doğrulayınız.
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

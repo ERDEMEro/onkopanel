@@ -505,16 +505,34 @@ export default function BeslenmeDanismani() {
   /* ─── Setup screen ─── */
   if (!started) {
     return (
+      <>
+        {activePlan && <MealCalendar plan={activePlan} onClose={() => setActivePlan(null)} />}
+        {wizardOpen && (
+          <MealWizard
+            onClose={() => setWizardOpen(false)}
+            onGenerate={handleWizardGenerate}
+            loading={wizardLoading}
+          />
+        )}
       <div className="flex flex-col h-[calc(100vh-52px)] bg-gradient-to-br from-emerald-50/40 via-white to-teal-50/30 items-center justify-center px-6">
         <div className="w-full max-w-md">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-200">
-              <Salad className="w-6 h-6 text-white" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-200">
+                <Salad className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold text-slate-800">Beslenme Danışmanı</h1>
+                <p className="text-xs text-slate-400">Kanser türünüze özel beslenme rehberi</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-800">Beslenme Danışmanı</h1>
-              <p className="text-xs text-slate-400">Kanser türünüze özel beslenme rehberi</p>
-            </div>
+            <button
+              onClick={() => savedPlan ? setActivePlan(savedPlan) : setWizardOpen(true)}
+              className={`flex items-center gap-1.5 text-xs font-medium transition-all px-3 py-2 rounded-xl border ${savedPlan ? "bg-emerald-500 border-emerald-500 text-white shadow-sm hover:bg-emerald-600" : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"}`}
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              {savedPlan ? "Takvimim" : "Takvim Oluştur"}
+            </button>
           </div>
           {history.length > 0 && (
             <button onClick={() => { setStarted(true); setMessages([]); setShowHistory(true); }} className="w-full mb-3 flex items-center justify-between px-4 py-2.5 rounded-xl border border-emerald-100 bg-emerald-50/60 hover:bg-emerald-100/60 text-sm text-emerald-700 transition-colors">
@@ -546,6 +564,7 @@ export default function BeslenmeDanismani() {
           <p className="text-[11px] text-slate-400 text-center mt-3">Bilgiler kişisel sağlık kararı niteliği taşımaz; diyetisyeninizle çalışın.</p>
         </div>
       </div>
+      </>
     );
   }
 

@@ -9,7 +9,7 @@ interface AuthState {
   isAuthenticated: boolean;
   refresh: () => Promise<void>;
   loginWithPassword: (email: string, password: string) => Promise<{ error?: string }>;
-  registerWithPassword: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ error?: string }>;
+  registerWithPassword: (email: string, password: string, firstName?: string, lastName?: string, isDoctor?: boolean) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
   loginWithReplit: () => void;
 }

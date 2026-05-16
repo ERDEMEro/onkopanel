@@ -9,6 +9,7 @@ import casesRouter from "./cases";
 import griefSupportRouter from "./grief-support";
 import caregiverSupportRouter from "./caregiver-support";
 import nutritionAdvisorRouter from "./nutrition-advisor";
+import mealPlanRouter from "./meal-plan";
 import oncologyNewsRouter from "./oncology-news";
 import priorityPanelRouter from "./priority-panel";
 
@@ -24,6 +25,7 @@ router.use(casesRouter);
 router.use(griefSupportRouter);
 router.use(caregiverSupportRouter);
 router.use(nutritionAdvisorRouter);
+router.use(mealPlanRouter);
 router.use(oncologyNewsRouter);
 router.use(priorityPanelRouter);
 

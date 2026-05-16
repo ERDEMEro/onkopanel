@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -50,10 +50,7 @@ function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
         { path: "/vaka",      label: "Vaka Doldur",         icon: <ClipboardList className="w-3.5 h-3.5" /> },
       ]
     : [
-        { path: "/",          label: t.nav.dashboard,       icon: <BarChart2 className="w-3.5 h-3.5" /> },
-        { path: "/profil",    label: t.nav.patientProfiler, icon: <Users className="w-3.5 h-3.5" /> },
         { path: "/belirti",   label: t.nav.symptomChecker,  icon: <Stethoscope className="w-3.5 h-3.5" /> },
-        { path: "/kutuphane", label: t.nav.library,         icon: <BookOpen className="w-3.5 h-3.5" /> },
         { path: "/egitim",    label: t.nav.educationCenter, icon: <GraduationCap className="w-3.5 h-3.5" /> },
         { path: "/asistan",   label: t.nav.aiAssistant,     icon: <Sparkles className="w-3.5 h-3.5" /> },
       ];
@@ -170,11 +167,13 @@ function PageTransition({ children }: { children: ReactNode }) {
 
 function Router() {
   const [loginOpen, setLoginOpen] = useState(false);
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (!isLoading && !isAuthenticated) {
     return <AuthPage />;
   }
+
+  const isDoctor = !!user?.isDoctor;
 
   return (
     <>
@@ -182,14 +181,20 @@ function Router() {
       <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
       <PageTransition>
         <Switch>
-          <Route path="/"          component={Dashboard} />
-          <Route path="/profil"    component={PatientProfiler} />
+          {isDoctor ? (
+            <Route path="/" component={Dashboard} />
+          ) : (
+            <Route path="/">
+              <Redirect to="/belirti" />
+            </Route>
+          )}
+          <Route path="/profil"    component={isDoctor ? PatientProfiler : NotFound} />
           <Route path="/belirti"   component={SymptomChecker} />
-          <Route path="/kutuphane" component={CancerLibrary} />
+          <Route path="/kutuphane" component={isDoctor ? CancerLibrary : NotFound} />
           <Route path="/egitim"    component={EgitimMerkezi} />
           <Route path="/asistan"   component={AiAsistan} />
           <Route path="/ayarlar"   component={Ayarlar} />
-          <Route path="/vaka"      component={VakaDoldur} />
+          <Route path="/vaka"      component={isDoctor ? VakaDoldur : NotFound} />
           <Route component={NotFound} />
         </Switch>
       </PageTransition>

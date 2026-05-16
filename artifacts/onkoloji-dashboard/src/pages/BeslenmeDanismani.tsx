@@ -150,7 +150,7 @@ function MealWizard({
   }
 
   return (
-    <div className="absolute inset-0 z-30 bg-white/95 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl border border-emerald-100 shadow-xl overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-4 flex items-center justify-between">
@@ -541,6 +541,13 @@ export default function BeslenmeDanismani() {
   return (
     <>
       {activePlan && <MealCalendar plan={activePlan} onClose={() => setActivePlan(null)} />}
+      {wizardOpen && (
+        <MealWizard
+          onClose={() => setWizardOpen(false)}
+          onGenerate={handleWizardGenerate}
+          loading={wizardLoading}
+        />
+      )}
 
       <div className="flex flex-col h-[calc(100vh-52px)] bg-gradient-to-br from-emerald-50/40 via-white to-teal-50/30">
         {/* Header */}
@@ -572,17 +579,8 @@ export default function BeslenmeDanismani() {
           </div>
         </div>
 
-        {/* Messages + Wizard overlay */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 relative">
-          {/* Wizard overlay */}
-          {wizardOpen && (
-            <MealWizard
-              onClose={() => setWizardOpen(false)}
-              onGenerate={handleWizardGenerate}
-              loading={wizardLoading}
-            />
-          )}
-
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-6 py-6">
           {showHistory ? (
             <div className="max-w-3xl mx-auto">
               <div className="flex items-center justify-between mb-4">

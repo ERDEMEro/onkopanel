@@ -7,6 +7,15 @@ import {
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const CURRENT_KEY = "onko_chat_beslenme_current";
 const HISTORY_KEY = "onko_chat_beslenme_history";
+const SAVED_PLAN_KEY = "onko_beslenme_saved_plan";
+
+function loadSavedPlan(): MealPlan | null {
+  try { const s = localStorage.getItem(SAVED_PLAN_KEY); if (s) return JSON.parse(s); } catch {}
+  return null;
+}
+function savePlan(plan: MealPlan) {
+  try { localStorage.setItem(SAVED_PLAN_KEY, JSON.stringify(plan)); } catch {}
+}
 
 /* ─── Types ─── */
 interface Message {
@@ -406,6 +415,7 @@ export default function BeslenmeDanismani() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [wizardLoading, setWizardLoading] = useState(false);
   const [activePlan, setActivePlan] = useState<MealPlan | null>(null);
+  const [savedPlan, setSavedPlan] = useState<MealPlan | null>(loadSavedPlan);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -474,6 +484,8 @@ export default function BeslenmeDanismani() {
     try {
       const plan = await callMealPlan(wizardData, cancer, phase);
       setWizardOpen(false);
+      savePlan(plan);
+      setSavedPlan(plan);
       setMessages(prev => [...prev, { role: "assistant", content: "", mealPlan: plan }]);
       setActivePlan(plan);
     } catch {
@@ -565,6 +577,15 @@ export default function BeslenmeDanismani() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {/* Calendar shortcut */}
+              <button
+                onClick={() => savedPlan ? setActivePlan(savedPlan) : setWizardOpen(true)}
+                className={`flex items-center gap-1.5 text-xs font-medium transition-all px-2.5 py-1.5 rounded-lg border ${savedPlan ? "bg-emerald-500 border-emerald-500 text-white shadow-sm hover:bg-emerald-600" : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"}`}
+                title={savedPlan ? "Son beslenme planını görüntüle" : "Yeni beslenme takvimi oluştur"}
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                {savedPlan ? "Takvimim" : "Takvim Oluştur"}
+              </button>
               <button
                 onClick={() => setShowHistory(v => !v)}
                 className={`flex items-center gap-1.5 text-xs transition-colors px-2.5 py-1.5 rounded-lg border ${showHistory ? "bg-emerald-50 border-emerald-200 text-emerald-600" : "border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-100"}`}

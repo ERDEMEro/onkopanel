@@ -522,4 +522,143 @@ router.get("/cohort", (req: Request, res: Response): void => {
   });
 });
 
+// ─── Cancer Library Stats ───────────────────────────────────────────────────
+
+const LIBRARY_CANCER_DETECT: Array<{ key: string; labelTr: string; labelEn: string; keywords: string[] }> = [
+  { key: "breast",      labelTr: "Meme Kanseri",                   labelEn: "Breast Cancer",           keywords: ["meme karsinomu", "meme kanseri", "meme malign", "meme ca"] },
+  { key: "prostate",    labelTr: "Prostat Kanseri",                 labelEn: "Prostate Cancer",         keywords: ["prostat"] },
+  { key: "bladder",     labelTr: "Mesane Kanseri",                  labelEn: "Bladder Cancer",          keywords: ["mesane"] },
+  { key: "lung",        labelTr: "Akciğer Kanseri",                 labelEn: "Lung Cancer",             keywords: ["akciğer karsinomu", "akciğer kanseri", "nsclc", "sclc", "akciger"] },
+  { key: "liver",       labelTr: "Karaciğer Kanseri",               labelEn: "Liver Cancer",            keywords: ["hepatosellüler", "karaciğer karsinomu", "karaciğer kanseri", "karaciğer ca"] },
+  { key: "colorectal",  labelTr: "Kolon/Rektum Kanseri",            labelEn: "Colorectal Cancer",       keywords: ["kolorektal", "kolon kanseri", "rektum kanseri", "colorektal"] },
+  { key: "pancreatic",  labelTr: "Pankreas Kanseri",                labelEn: "Pancreatic Cancer",       keywords: ["pankreas kanseri", "pankreatik"] },
+  { key: "cervical",    labelTr: "Serviks/Endometriyum Kanseri",    labelEn: "Cervical/Endometrial",    keywords: ["serviks", "endometrium", "endometriyum"] },
+  { key: "lymphoma",    labelTr: "Lenfoma",                         labelEn: "Lymphoma",                keywords: ["lenfoma", "hodgkin", "diffuse large"] },
+  { key: "stomach",     labelTr: "Mide Kanseri",                    labelEn: "Stomach Cancer",          keywords: ["mide kanseri", "gastrik karsinom", "gastric"] },
+  { key: "myeloma",     labelTr: "Multipl Miyelom",                 labelEn: "Multiple Myeloma",        keywords: ["miyelom", "myeloma"] },
+  { key: "kidney",      labelTr: "Böbrek Kanseri",                  labelEn: "Kidney Cancer",           keywords: ["böbrek kanseri", "böbrek karsinomu"] },
+];
+
+const CITY_MAP: Record<string, string> = {
+  ADN: "Adana",   ANT: "Antalya",    IST: "İstanbul", SAM: "Samsun",
+  KON: "Konya",   BUR: "Bursa",      ESK: "Eskişehir", IZM: "İzmir",
+  TRZ: "Trabzon",
+};
+
+function extractCity(clientId: string): string {
+  const parts = clientId.split("_");
+  for (const p of parts) { if (CITY_MAP[p]) return CITY_MAP[p]; }
+  return "Diğer";
+}
+
+function detectLibraryCancerType(text: string): string | null {
+  const t = text.toLowerCase();
+  for (const { key, keywords } of LIBRARY_CANCER_DETECT) {
+    if (keywords.some((kw) => t.includes(kw))) return key;
+  }
+  return null;
+}
+
+interface PatientInfo {
+  cancerKey: string | null;
+  age: number | null;
+  gender: string;
+  isDead: boolean;
+  city: string;
+}
+
+let _patientCache: Map<string, PatientInfo> | null = null;
+
+function buildPatientCache(): Map<string, PatientInfo> {
+  if (_patientCache) return _patientCache;
+  const rows = loadData();
+  const rowsByClient = new Map<string, RawRow[]>();
+  for (const row of rows) {
+    if (!row.client_id) continue;
+    if (!rowsByClient.has(row.client_id)) rowsByClient.set(row.client_id, []);
+    rowsByClient.get(row.client_id)!.push(row);
+  }
+  _patientCache = new Map();
+  for (const [clientId, pRows] of rowsByClient) {
+    const text = pRows.map((r) => [(r as any)["hikaye"] || "", (r as any)["epikriz"] || ""].join(" ")).join(" ");
+    const firstRow = pRows[0];
+    _patientCache.set(clientId, {
+      cancerKey: detectLibraryCancerType(text),
+      age: getAge(firstRow["doğum tarihi"]),
+      gender: extractGender(firstRow.cinsiyet),
+      isDead: pRows.some((r) => r["ölüm tarihi"]?.trim()),
+      city: extractCity(clientId),
+    });
+  }
+  return _patientCache;
+}
+
+router.get("/cancer-type-list", (_req: Request, res: Response): void => {
+  const cache = buildPatientCache();
+  const counts: Record<string, number> = {};
+  for (const { cancerKey } of cache.values()) {
+    if (cancerKey) counts[cancerKey] = (counts[cancerKey] || 0) + 1;
+  }
+  const result = LIBRARY_CANCER_DETECT
+    .filter(({ key }) => counts[key])
+    .map(({ key, labelTr, labelEn }) => ({ key, labelTr, labelEn, count: counts[key] || 0 }))
+    .sort((a, b) => b.count - a.count);
+  res.json(result);
+});
+
+router.get("/cancer-type-detail/:key", (req: Request, res: Response): void => {
+  const { key } = req.params;
+  const typeInfo = LIBRARY_CANCER_DETECT.find((c) => c.key === key);
+  if (!typeInfo) { res.status(404).json({ error: "Not found" }); return; }
+
+  const cache = buildPatientCache();
+  const matched = [...cache.values()].filter((p) => p.cancerKey === key);
+  const totalPatients = matched.length;
+  const totalOverall = cache.size;
+
+  if (totalPatients === 0) {
+    res.json({ key, labelTr: typeInfo.labelTr, labelEn: typeInfo.labelEn, totalPatients: 0 });
+    return;
+  }
+
+  const ages = matched.map((p) => p.age).filter((a): a is number => a !== null && a > 0 && a < 120);
+  const avgAge = ages.length ? ages.reduce((a, b) => a + b, 0) / ages.length : 0;
+  const deaths = matched.filter((p) => p.isDead).length;
+  const genderF = matched.filter((p) => p.gender === "Kadın").length;
+  const genderM = matched.filter((p) => p.gender === "Erkek").length;
+
+  const ageBuckets: Record<string, number> = {};
+  for (const age of ages) {
+    const b = age < 30 ? "0-29" : age < 45 ? "30-44" : age < 60 ? "45-59" : age < 75 ? "60-74" : "75+";
+    ageBuckets[b] = (ageBuckets[b] || 0) + 1;
+  }
+  const ageGroups = ["0-29","30-44","45-59","60-74","75+"]
+    .map((b) => ({ label: b, count: ageBuckets[b] || 0 }))
+    .filter((b) => b.count > 0);
+
+  const cityBuckets: Record<string, number> = {};
+  for (const p of matched) cityBuckets[p.city] = (cityBuckets[p.city] || 0) + 1;
+  const cityDistribution = Object.entries(cityBuckets)
+    .sort((a, b) => b[1] - a[1])
+    .map(([label, count]) => ({ label, count }));
+
+  res.json({
+    key,
+    labelTr: typeInfo.labelTr,
+    labelEn: typeInfo.labelEn,
+    totalPatients,
+    prevalence: Math.round((totalPatients / totalOverall) * 10000) / 100,
+    avgAge: Math.round(avgAge * 10) / 10,
+    minAge: ages.length ? Math.min(...ages) : null,
+    maxAge: ages.length ? Math.max(...ages) : null,
+    deaths,
+    mortalityRate: Math.round((deaths / totalPatients) * 1000) / 10,
+    genderF,
+    genderM,
+    ageGroups,
+    cityDistribution,
+  });
+});
+
 export default router;
+

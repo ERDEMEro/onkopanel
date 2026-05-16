@@ -198,7 +198,7 @@ const tr = {
   library: {
     title: "Kanser Kütüphanesi",
     subtitle: "15 kanser türü hakkında kapsamlı tıbbi bilgi",
-    searchPlaceholder: "Kanser türü veya belirti ara…",
+    searchPlaceholder: "Kanser türü ara…",
     allTypes: "Tüm Türler",
     categories: {
       carcinoma: "Karsinom",
@@ -225,6 +225,27 @@ const tr = {
     statCategories: "Kategori",
     statUpdated: "Güncelleme",
     disclaimer: "Bu bilgiler yalnızca genel eğitim amaçlıdır ve tıbbi tavsiye yerine geçmez. Belirtileriniz için mutlaka bir hekime başvurun. Tanı ve tedavi süreçleri kişiden kişiye farklılık gösterebilir.",
+    kpi: {
+      totalPatients: "Toplam Hasta",
+      prevalence: "Yaygınlık",
+      avgAge: "Ortalama Yaş",
+      mortality: "Mortalite",
+      gender: "Cinsiyet",
+      cities: "Şehirler",
+    },
+    data: {
+      selectPrompt: "Sol panelden bir kanser türü seçin",
+      loading: "Yükleniyor…",
+      female: "Kadın",
+      male: "Erkek",
+      deaths: "vefat",
+      ageRange: "yaş aralığı",
+      ageGroups: "Yaş Grupları",
+      genderDistribution: "Cinsiyet Dağılımı",
+      cityDistribution: "Şehir Dağılımı",
+      educationSection: "Tıbbi Bilgiler",
+      realDataBadge: "Gerçek Hasta Verisi",
+    },
   },
   theme: {
     title: "Tema ve Kişiselleştirme",
@@ -440,7 +461,7 @@ const en: typeof tr = {
   library: {
     title: "Cancer Library",
     subtitle: "Comprehensive medical information on 15 cancer types",
-    searchPlaceholder: "Search cancer type or symptom…",
+    searchPlaceholder: "Search cancer type…",
     allTypes: "All Types",
     categories: {
       carcinoma: "Carcinoma",
@@ -467,6 +488,27 @@ const en: typeof tr = {
     statCategories: "Categories",
     statUpdated: "Updated",
     disclaimer: "This information is for general educational purposes only and does not constitute medical advice. Always consult a physician for your symptoms. Diagnosis and treatment processes may vary from person to person.",
+    kpi: {
+      totalPatients: "Total Patients",
+      prevalence: "Prevalence",
+      avgAge: "Average Age",
+      mortality: "Mortality",
+      gender: "Gender",
+      cities: "Cities",
+    },
+    data: {
+      selectPrompt: "Select a cancer type from the left panel",
+      loading: "Loading…",
+      female: "Female",
+      male: "Male",
+      deaths: "deaths",
+      ageRange: "age range",
+      ageGroups: "Age Groups",
+      genderDistribution: "Gender Distribution",
+      cityDistribution: "City Distribution",
+      educationSection: "Medical Information",
+      realDataBadge: "Real Patient Data",
+    },
   },
   theme: {
     title: "Theme & Personalization",

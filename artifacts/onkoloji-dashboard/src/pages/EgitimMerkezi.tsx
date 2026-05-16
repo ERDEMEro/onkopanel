@@ -15,7 +15,7 @@ interface Article {
 
 interface EduVideo {
   title: string; titleEn: string;
-  channel: string; videoId: string; durationMin: number;
+  channel: string; searchQuery: string; durationMin: number;
 }
 
 interface CancerEdu {
@@ -41,9 +41,9 @@ const EDU_DATA: CancerEdu[] = [
       { title: "Meme Kanseri Kılavuzu", titleEn: "Breast Cancer Guidelines", source: "NCCN", sourceType: "nccn", description: "Meme kanseri tanı, evreleme ve tedavisinde kullanılan kanıta dayalı NCCN kılavuzları.", descriptionEn: "Evidence-based NCCN guidelines for breast cancer diagnosis, staging, and treatment.", url: "https://www.nccn.org/patients/guidelines/content/PDF/breast-invasive-patient.pdf" },
     ],
     videos: [
-      { title: "Meme Kanseri Nedir? Belirtiler ve Tedavi", titleEn: "What Is Breast Cancer? Signs and Treatment", channel: "Mayo Clinic", videoId: "Y5Z0-3M0s_M", durationMin: 4 },
-      { title: "Meme Kanseri: Evreleme ve Tedavi Seçenekleri", titleEn: "Breast Cancer Staging & Treatment Options", channel: "Memorial Sloan Kettering", videoId: "cLQXfPqMVAk", durationMin: 7 },
-      { title: "Triple-Negatif Meme Kanseri Açıklandı", titleEn: "Triple-Negative Breast Cancer Explained", channel: "Dana-Farber Cancer Institute", videoId: "yYCkVg7glrE", durationMin: 5 },
+      { title: "Meme Kanseri Nedir? Belirtiler ve Tedavi", titleEn: "What Is Breast Cancer? Signs and Treatment", channel: "Mayo Clinic", searchQuery: "breast cancer symptoms treatment Mayo Clinic", durationMin: 4 },
+      { title: "Meme Kanseri: Evreleme ve Tedavi Seçenekleri", titleEn: "Breast Cancer Staging & Treatment Options", channel: "Memorial Sloan Kettering", searchQuery: "breast cancer staging treatment options Memorial Sloan Kettering", durationMin: 7 },
+      { title: "Triple-Negatif Meme Kanseri Açıklandı", titleEn: "Triple-Negative Breast Cancer Explained", channel: "Dana-Farber Cancer Institute", searchQuery: "triple negative breast cancer explained Dana-Farber", durationMin: 5 },
     ],
   },
   {
@@ -57,8 +57,8 @@ const EDU_DATA: CancerEdu[] = [
       { title: "Prostat Kanseri Bilgileri", titleEn: "Prostate Cancer Information", source: "NIH / NCI", sourceType: "nih", description: "NIH'den kanıta dayalı prostat kanseri bilgileri, tedavi seçenekleri ve klinik araştırmalar.", descriptionEn: "Evidence-based prostate cancer information from NIH, treatment options, and clinical trials.", url: "https://www.cancer.gov/types/prostate" },
     ],
     videos: [
-      { title: "Prostat Kanseri Belirtileri ve PSA Testi", titleEn: "Prostate Cancer Symptoms and PSA Test", channel: "Mayo Clinic", videoId: "BJ3gfNhNt_o", durationMin: 5 },
-      { title: "Prostat Kanseri Tedavisi: Seçenekler", titleEn: "Prostate Cancer Treatment Options", channel: "Memorial Sloan Kettering", videoId: "kfluqHRxnYs", durationMin: 8 },
+      { title: "Prostat Kanseri Belirtileri ve PSA Testi", titleEn: "Prostate Cancer Symptoms and PSA Test", channel: "Mayo Clinic", searchQuery: "prostate cancer symptoms PSA test Mayo Clinic", durationMin: 5 },
+      { title: "Prostat Kanseri Tedavisi: Seçenekler", titleEn: "Prostate Cancer Treatment Options", channel: "Memorial Sloan Kettering", searchQuery: "prostate cancer treatment options Memorial Sloan Kettering", durationMin: 8 },
     ],
   },
   {
@@ -72,8 +72,8 @@ const EDU_DATA: CancerEdu[] = [
       { title: "Mesane Kanseri Genel Bakış", titleEn: "Bladder Cancer Overview", source: "Cancer Research UK", sourceType: "cruk", description: "Mesane kanseri türleri, nedenleri ve tedavisi hakkında kapsamlı bilgi.", descriptionEn: "Comprehensive information on bladder cancer types, causes and treatment.", url: "https://www.cancerresearchuk.org/about-cancer/bladder-cancer" },
     ],
     videos: [
-      { title: "Mesane Kanseri: Belirtiler ve Tanı", titleEn: "Bladder Cancer: Symptoms and Diagnosis", channel: "Mayo Clinic", videoId: "JzR1xCnNr4I", durationMin: 4 },
-      { title: "Sistoskopi Nedir?", titleEn: "What Is Cystoscopy?", channel: "Cleveland Clinic", videoId: "QLJrqJZ9GzA", durationMin: 3 },
+      { title: "Mesane Kanseri: Belirtiler ve Tanı", titleEn: "Bladder Cancer: Symptoms and Diagnosis", channel: "Mayo Clinic", searchQuery: "bladder cancer symptoms diagnosis Mayo Clinic", durationMin: 4 },
+      { title: "Sistoskopi Nedir?", titleEn: "What Is Cystoscopy?", channel: "Cleveland Clinic", searchQuery: "cystoscopy procedure Cleveland Clinic", durationMin: 3 },
     ],
   },
   {
@@ -87,8 +87,8 @@ const EDU_DATA: CancerEdu[] = [
       { title: "Akciğer Kanseri Bilgileri", titleEn: "Lung Cancer Information", source: "NIH / NCI", sourceType: "nih", description: "NCI'dan akciğer kanseri türleri, evreleme, tedavi ve klinik araştırma bilgileri.", descriptionEn: "NCI lung cancer types, staging, treatment, and clinical trial information.", url: "https://www.cancer.gov/types/lung" },
     ],
     videos: [
-      { title: "Akciğer Kanseri Türleri ve Tedavisi", titleEn: "Lung Cancer Types and Treatment", channel: "Memorial Sloan Kettering", videoId: "Nj0bGHBfHiA", durationMin: 6 },
-      { title: "Akciğer Kanseri: İmmünoterapi", titleEn: "Lung Cancer Immunotherapy", channel: "Dana-Farber Cancer Institute", videoId: "vFOQKkyj6xU", durationMin: 5 },
+      { title: "Akciğer Kanseri Türleri ve Tedavisi", titleEn: "Lung Cancer Types and Treatment", channel: "Memorial Sloan Kettering", searchQuery: "lung cancer types treatment Memorial Sloan Kettering", durationMin: 6 },
+      { title: "Akciğer Kanseri: İmmünoterapi", titleEn: "Lung Cancer Immunotherapy", channel: "Dana-Farber Cancer Institute", searchQuery: "lung cancer immunotherapy Dana-Farber", durationMin: 5 },
     ],
   },
   {
@@ -102,8 +102,8 @@ const EDU_DATA: CancerEdu[] = [
       { title: "Karaciğer Kanseri Tedavisi", titleEn: "Liver Cancer Treatment", source: "NIH / NCI", sourceType: "nih", description: "NCI'dan primer ve metastatik karaciğer kanseri için tedavi seçenekleri.", descriptionEn: "Treatment options for primary and metastatic liver cancer from NCI.", url: "https://www.cancer.gov/types/liver" },
     ],
     videos: [
-      { title: "Karaciğer Kanseri: Risk ve Tedavi", titleEn: "Liver Cancer: Risk and Treatment", channel: "Mayo Clinic", videoId: "h5VqnBUReHY", durationMin: 5 },
-      { title: "Hepatosellüler Karsinom Açıklandı", titleEn: "Hepatocellular Carcinoma Explained", channel: "Memorial Sloan Kettering", videoId: "6y-7p1fJrX4", durationMin: 7 },
+      { title: "Karaciğer Kanseri: Risk ve Tedavi", titleEn: "Liver Cancer: Risk and Treatment", channel: "Mayo Clinic", searchQuery: "liver cancer risk treatment Mayo Clinic", durationMin: 5 },
+      { title: "Hepatosellüler Karsinom Açıklandı", titleEn: "Hepatocellular Carcinoma Explained", channel: "Memorial Sloan Kettering", searchQuery: "hepatocellular carcinoma explained Memorial Sloan Kettering", durationMin: 7 },
     ],
   },
   {
@@ -117,8 +117,8 @@ const EDU_DATA: CancerEdu[] = [
       { title: "Kolorektal Kanser Önleme", titleEn: "Colorectal Cancer Prevention", source: "WHO", sourceType: "who", description: "WHO'nun diyet, fiziksel aktivite ve tarama programları aracılığıyla önleme önerileri.", descriptionEn: "WHO recommendations for prevention through diet, physical activity, and screening.", url: "https://www.who.int/news-room/fact-sheets/detail/colorectal-cancer" },
     ],
     videos: [
-      { title: "Kolon Kanseri: Belirtiler ve Tarama", titleEn: "Colon Cancer: Symptoms and Screening", channel: "Mayo Clinic", videoId: "aBhm8NVG9I8", durationMin: 5 },
-      { title: "Kolonoskopi Nedir?", titleEn: "What Is a Colonoscopy?", channel: "Cleveland Clinic", videoId: "V4gmCj5UrG0", durationMin: 4 },
+      { title: "Kolon Kanseri: Belirtiler ve Tarama", titleEn: "Colon Cancer: Symptoms and Screening", channel: "Mayo Clinic", searchQuery: "colon cancer symptoms screening Mayo Clinic", durationMin: 5 },
+      { title: "Kolonoskopi Nedir?", titleEn: "What Is a Colonoscopy?", channel: "Cleveland Clinic", searchQuery: "what is colonoscopy Cleveland Clinic", durationMin: 4 },
     ],
   },
   {
@@ -131,8 +131,8 @@ const EDU_DATA: CancerEdu[] = [
       { title: "Pankreas Kanseri Araştırması", titleEn: "Pancreatic Cancer Research", source: "NIH / NCI", sourceType: "nih", description: "NCI'dan pankreas kanseri tanı, evreleme ve tedavi protokolleri.", descriptionEn: "Pancreatic cancer diagnosis, staging and treatment protocols from NCI.", url: "https://www.cancer.gov/types/pancreatic" },
     ],
     videos: [
-      { title: "Pankreas Kanseri: Erken Belirtiler", titleEn: "Pancreatic Cancer: Early Signs", channel: "Mayo Clinic", videoId: "tHYlaSQqfIk", durationMin: 4 },
-      { title: "Pankreas Kanseri Tedavisi", titleEn: "Pancreatic Cancer Treatment", channel: "Memorial Sloan Kettering", videoId: "4cqJiMXfHf4", durationMin: 6 },
+      { title: "Pankreas Kanseri: Erken Belirtiler", titleEn: "Pancreatic Cancer: Early Signs", channel: "Mayo Clinic", searchQuery: "pancreatic cancer early signs Mayo Clinic", durationMin: 4 },
+      { title: "Pankreas Kanseri Tedavisi", titleEn: "Pancreatic Cancer Treatment", channel: "Memorial Sloan Kettering", searchQuery: "pancreatic cancer treatment Memorial Sloan Kettering", durationMin: 6 },
     ],
   },
   {
@@ -146,8 +146,8 @@ const EDU_DATA: CancerEdu[] = [
       { title: "Endometriyum Kanseri", titleEn: "Endometrial Cancer", source: "American Cancer Society", sourceType: "acs", description: "Rahim kanseri risk faktörleri, belirtiler ve tedavi rehberi.", descriptionEn: "Uterine cancer risk factors, symptoms, and treatment guide.", url: "https://www.cancer.org/cancer/types/endometrial-cancer.html" },
     ],
     videos: [
-      { title: "HPV ve Serviks Kanseri Açıklandı", titleEn: "HPV and Cervical Cancer Explained", channel: "Cancer Research UK", videoId: "dDWnZjh5V4Q", durationMin: 4 },
-      { title: "Endometriyum Kanseri: Belirtiler", titleEn: "Endometrial Cancer: Signs & Symptoms", channel: "Mayo Clinic", videoId: "Mz0Gkw_GHqM", durationMin: 3 },
+      { title: "HPV ve Serviks Kanseri Açıklandı", titleEn: "HPV and Cervical Cancer Explained", channel: "Cancer Research UK", searchQuery: "HPV cervical cancer explained Cancer Research UK", durationMin: 4 },
+      { title: "Endometriyum Kanseri: Belirtiler", titleEn: "Endometrial Cancer: Signs & Symptoms", channel: "Mayo Clinic", searchQuery: "endometrial cancer signs symptoms Mayo Clinic", durationMin: 3 },
     ],
   },
   {
@@ -160,8 +160,8 @@ const EDU_DATA: CancerEdu[] = [
       { title: "Lenfoma Bilgileri", titleEn: "Lymphoma Information", source: "NIH / NCI", sourceType: "nih", description: "NCI'dan Non-Hodgkin ve Hodgkin lenfoma evreleme, tedavi protokolleri.", descriptionEn: "Non-Hodgkin and Hodgkin lymphoma staging and treatment protocols from NCI.", url: "https://www.cancer.gov/types/lymphoma" },
     ],
     videos: [
-      { title: "Lenfoma Nedir? Genel Bakış", titleEn: "What Is Lymphoma? An Overview", channel: "Mayo Clinic", videoId: "Qe_Z2znjEpk", durationMin: 5 },
-      { title: "Non-Hodgkin Lenfoma Tedavisi", titleEn: "Non-Hodgkin Lymphoma Treatment", channel: "Memorial Sloan Kettering", videoId: "rqU9JXhg7T8", durationMin: 6 },
+      { title: "Lenfoma Nedir? Genel Bakış", titleEn: "What Is Lymphoma? An Overview", channel: "Mayo Clinic", searchQuery: "what is lymphoma overview Mayo Clinic", durationMin: 5 },
+      { title: "Non-Hodgkin Lenfoma Tedavisi", titleEn: "Non-Hodgkin Lymphoma Treatment", channel: "Memorial Sloan Kettering", searchQuery: "non-Hodgkin lymphoma treatment Memorial Sloan Kettering", durationMin: 6 },
     ],
   },
   {
@@ -174,7 +174,7 @@ const EDU_DATA: CancerEdu[] = [
       { title: "Mide Kanseri Bilgileri", titleEn: "Stomach Cancer Facts", source: "WHO", sourceType: "who", description: "WHO küresel mide kanseri istatistikleri ve H. pylori ile ilişkisi.", descriptionEn: "WHO global stomach cancer statistics and H. pylori link.", url: "https://www.who.int/news-room/fact-sheets/detail/stomach-cancer" },
     ],
     videos: [
-      { title: "Mide Kanseri: Risk ve Tanı", titleEn: "Stomach Cancer: Risk and Diagnosis", channel: "Mayo Clinic", videoId: "EsxIGRCsW_g", durationMin: 4 },
+      { title: "Mide Kanseri: Risk ve Tanı", titleEn: "Stomach Cancer: Risk and Diagnosis", channel: "Mayo Clinic", searchQuery: "stomach cancer risk diagnosis Mayo Clinic", durationMin: 4 },
     ],
   },
   {
@@ -187,8 +187,8 @@ const EDU_DATA: CancerEdu[] = [
       { title: "Multipl Miyelom Tedavisi", titleEn: "Multiple Myeloma Treatment", source: "NIH / NCI", sourceType: "nih", description: "NCI'dan multipl miyelom tedavi seçenekleri: kök hücre nakli ve hedefli tedaviler.", descriptionEn: "Multiple myeloma treatment options from NCI: stem cell transplant and targeted therapies.", url: "https://www.cancer.gov/types/myeloma" },
     ],
     videos: [
-      { title: "Multipl Miyelom Nedir?", titleEn: "What Is Multiple Myeloma?", channel: "Mayo Clinic", videoId: "lFGT7n9qMwM", durationMin: 5 },
-      { title: "Miyelom Tedavisi: Yeni Gelişmeler", titleEn: "Myeloma Treatment: New Advances", channel: "Memorial Sloan Kettering", videoId: "TvvbQq6jCfM", durationMin: 7 },
+      { title: "Multipl Miyelom Nedir?", titleEn: "What Is Multiple Myeloma?", channel: "Mayo Clinic", searchQuery: "what is multiple myeloma Mayo Clinic", durationMin: 5 },
+      { title: "Miyelom Tedavisi: Yeni Gelişmeler", titleEn: "Myeloma Treatment: New Advances", channel: "Memorial Sloan Kettering", searchQuery: "myeloma treatment new advances Memorial Sloan Kettering", durationMin: 7 },
     ],
   },
   {
@@ -201,7 +201,7 @@ const EDU_DATA: CancerEdu[] = [
       { title: "Böbrek Kanseri Bilgileri", titleEn: "Kidney Cancer Information", source: "American Cancer Society", sourceType: "acs", description: "Böbrek kanseri türleri, istatistikler, nefrektomi ve immünoterapi seçenekleri.", descriptionEn: "Kidney cancer types, statistics, nephrectomy and immunotherapy options.", url: "https://www.cancer.org/cancer/types/kidney-cancer.html" },
     ],
     videos: [
-      { title: "Böbrek Kanseri: Tanı ve Tedavi", titleEn: "Kidney Cancer: Diagnosis and Treatment", channel: "Mayo Clinic", videoId: "eIbpTQ4u3FE", durationMin: 5 },
+      { title: "Böbrek Kanseri: Tanı ve Tedavi", titleEn: "Kidney Cancer: Diagnosis and Treatment", channel: "Mayo Clinic", searchQuery: "kidney cancer diagnosis treatment Mayo Clinic", durationMin: 5 },
     ],
   },
   {
@@ -215,8 +215,8 @@ const EDU_DATA: CancerEdu[] = [
       { title: "Tiroid Kanseri: Küresel Yük", titleEn: "Thyroid Cancer: Global Burden", source: "WHO", sourceType: "who", description: "Dünya genelinde tiroid kanseri insidansı ve sağkalım oranları üzerine WHO verileri.", descriptionEn: "WHO data on global thyroid cancer incidence and survival rates.", url: "https://www.who.int/news-room/fact-sheets/detail/thyroid-cancer" },
     ],
     videos: [
-      { title: "Tiroid Kanseri: Türler ve Tedavi", titleEn: "Thyroid Cancer: Types and Treatment", channel: "Mayo Clinic", videoId: "6v6gTL1bCUM", durationMin: 5 },
-      { title: "Radyoaktif İyot Tedavisi Açıklandı", titleEn: "Radioactive Iodine Treatment Explained", channel: "Memorial Sloan Kettering", videoId: "XZpMBwO5bC8", durationMin: 4 },
+      { title: "Tiroid Kanseri: Türler ve Tedavi", titleEn: "Thyroid Cancer: Types and Treatment", channel: "Mayo Clinic", searchQuery: "thyroid cancer types treatment Mayo Clinic", durationMin: 5 },
+      { title: "Radyoaktif İyot Tedavisi Açıklandı", titleEn: "Radioactive Iodine Treatment Explained", channel: "Memorial Sloan Kettering", searchQuery: "radioactive iodine treatment thyroid cancer Memorial Sloan Kettering", durationMin: 4 },
     ],
   },
   {
@@ -230,8 +230,8 @@ const EDU_DATA: CancerEdu[] = [
       { title: "Over Kanseri Farkındalığı", titleEn: "Ovarian Cancer Awareness", source: "Cancer Research UK", sourceType: "cruk", description: "Over kanserinin görülme sıklığı, risk faktörleri ve güncel araştırmalar.", descriptionEn: "Ovarian cancer incidence, risk factors, and current research.", url: "https://www.cancerresearchuk.org/about-cancer/ovarian-cancer" },
     ],
     videos: [
-      { title: "Over Kanseri: Belirtiler ve Erken Tanı", titleEn: "Ovarian Cancer: Symptoms & Early Detection", channel: "Mayo Clinic", videoId: "sVVjBpVg2_4", durationMin: 4 },
-      { title: "BRCA Mutasyonu ve Over Kanseri", titleEn: "BRCA Mutation and Ovarian Cancer", channel: "Dana-Farber Cancer Institute", videoId: "mXW6OwD_hqs", durationMin: 6 },
+      { title: "Over Kanseri: Belirtiler ve Erken Tanı", titleEn: "Ovarian Cancer: Symptoms & Early Detection", channel: "Mayo Clinic", searchQuery: "ovarian cancer symptoms early detection Mayo Clinic", durationMin: 4 },
+      { title: "BRCA Mutasyonu ve Over Kanseri", titleEn: "BRCA Mutation and Ovarian Cancer", channel: "Dana-Farber Cancer Institute", searchQuery: "BRCA mutation ovarian cancer Dana-Farber", durationMin: 6 },
     ],
   },
   {
@@ -245,8 +245,8 @@ const EDU_DATA: CancerEdu[] = [
       { title: "Beyin Tümörü Araştırması", titleEn: "Brain Tumor Research", source: "Cancer Research UK", sourceType: "cruk", description: "Beyin tümörü türleri, yaşa göre insidans ve yeni tedavi yaklaşımları.", descriptionEn: "Brain tumor types, age-specific incidence, and new treatment approaches.", url: "https://www.cancerresearchuk.org/about-cancer/brain-tumours" },
     ],
     videos: [
-      { title: "Beyin Tümörü: Tanı ve Tedavi", titleEn: "Brain Tumor: Diagnosis and Treatment", channel: "Mayo Clinic", videoId: "FBcAr0dAGsQ", durationMin: 6 },
-      { title: "Glioblastom: Yeni Tedaviler", titleEn: "Glioblastoma: Emerging Treatments", channel: "Memorial Sloan Kettering", videoId: "nMjv-zHUcys", durationMin: 7 },
+      { title: "Beyin Tümörü: Tanı ve Tedavi", titleEn: "Brain Tumor: Diagnosis and Treatment", channel: "Mayo Clinic", searchQuery: "brain tumor diagnosis treatment Mayo Clinic", durationMin: 6 },
+      { title: "Glioblastom: Yeni Tedaviler", titleEn: "Glioblastoma: Emerging Treatments", channel: "Memorial Sloan Kettering", searchQuery: "glioblastoma emerging treatments Memorial Sloan Kettering", durationMin: 7 },
     ],
   },
 ];
@@ -377,29 +377,24 @@ function ArticleCard({ article, lang }: { article: Article; lang: "tr" | "en" })
 
 function VideoCard({ video, lang }: { video: EduVideo; lang: "tr" | "en" }) {
   const title = lang === "tr" ? video.title : video.titleEn;
-  const thumb = `https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`;
-  const url   = `https://www.youtube.com/watch?v=${video.videoId}`;
+  const url   = `https://www.youtube.com/results?search_query=${encodeURIComponent(video.searchQuery)}`;
   return (
     <a
       href={url} target="_blank" rel="noopener noreferrer"
       className="group flex flex-col rounded-xl border overflow-hidden bg-card hover:border-primary/30 hover:shadow-sm transition-all"
     >
-      <div className="relative overflow-hidden">
-        <img
-          src={thumb} alt={title} loading="lazy"
-          className="w-full object-cover aspect-video bg-muted group-hover:scale-[1.02] transition-transform duration-300"
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src =
-              "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180' viewBox='0 0 320 180'%3E%3Crect width='320' height='180' fill='%231a1a2e'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23555' font-size='13' font-family='sans-serif'%3EVideo%3C/text%3E%3C/svg%3E";
-          }}
-        />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-11 h-11 rounded-full bg-black/70 flex items-center justify-center group-hover:bg-red-600 transition-colors">
-            <Play className="w-5 h-5 text-white fill-white ml-0.5" />
-          </div>
+      {/* Thumbnail placeholder — gradient with play icon */}
+      <div className="relative aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden">
+        {/* YouTube logo watermark */}
+        <svg viewBox="0 0 90 20" className="absolute top-2 left-2 w-14 opacity-60" fill="white">
+          <path d="M27.9727 3.12324C27.6435 1.89455 26.6768 0.927803 25.4481 0.598613C23.2197 0 14.285 0 14.285 0C14.285 0 5.35042 0 3.12218 0.584989C1.89349 0.914178 0.926739 1.89455 0.597549 3.12324C0 5.35149 0 10 0 10C0 10 0 14.6485 0.597549 16.8768C0.926739 18.1055 1.89349 19.0722 3.12218 19.4014C5.36459 20 14.285 20 14.285 20C14.285 20 23.2197 20 25.4481 19.4152C26.6768 19.086 27.6435 18.1193 27.9727 16.8906C28.5703 14.6485 28.5703 10.0138 28.5703 10.0138C28.5703 10.0138 28.5841 5.35149 27.9727 3.12324Z" fill="#FF0000"/>
+          <path d="M11.4253 14.2854L18.8477 10.0136L11.4253 5.74182V14.2854Z" fill="white"/>
+        </svg>
+        <div className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center group-hover:bg-red-600 transition-colors">
+          <Play className="w-6 h-6 text-white fill-white ml-0.5" />
         </div>
         <span className="absolute bottom-2 right-2 bg-black/75 text-white text-[10px] font-mono px-1.5 py-0.5 rounded">
-          {video.durationMin} dk
+          ~{video.durationMin} dk
         </span>
       </div>
       <div className="p-3 space-y-1">

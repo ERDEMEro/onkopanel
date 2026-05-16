@@ -15,6 +15,7 @@ import VakaDoldur from "@/pages/VakaDoldur";
 import PsikolojikDestek from "@/pages/PsikolojikDestek";
 import BakiciRehberi from "@/pages/BakiciRehberi";
 import BeslenmeDanismani from "@/pages/BeslenmeDanismani";
+import BesinTakvimi from "@/pages/BesinTakvimi";
 import HatirlaticiTakip from "@/pages/HatirlaticiTakip";
 import BeliritGunlugu from "@/pages/BeliritGunlugu";
 import OnkoHaberler from "@/pages/OnkoHaberler";
@@ -29,7 +30,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider, useLang } from "@/context/LanguageContext";
 import { NarratorProvider } from "@/context/NarratorContext";
 import { NarratorWidget } from "@/components/Narrator";
-import { BarChart2, User, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList, Heart, Salad, Bell, NotebookPen, Newspaper, Star, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp, Pill } from "lucide-react";
+import { BarChart2, User, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList, Heart, Salad, Bell, NotebookPen, Newspaper, Star, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp, Pill, CalendarDays } from "lucide-react";
 
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth, AuthProvider } from "@workspace/replit-auth-web";
@@ -98,6 +99,7 @@ function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
         { path: "/egzersiz",    label: "Egzersiz",            icon: <Activity className="w-3.5 h-3.5" /> },
         { path: "/hatirlatici", label: "İlaç & Randevu",      icon: <Bell className="w-3.5 h-3.5" /> },
         { path: "/beslenme",    label: "Beslenme",            icon: <Salad className="w-3.5 h-3.5" /> },
+        { path: "/takvim",      label: "Takvim",              icon: <CalendarDays className="w-3.5 h-3.5" /> },
         { path: "/yasam",       label: "Yaşam Kalitesi",      icon: <Star className="w-3.5 h-3.5" /> },
         { path: "/destek",      label: "Psikolojik Destek",   icon: <Heart className="w-3.5 h-3.5" /> },
         { path: "/aile",        label: "Aile Rehberi",        icon: <Users className="w-3.5 h-3.5" /> },
@@ -276,6 +278,7 @@ function Router() {
           <Route path="/egzersiz"     component={isDoctor ? NotFound : EgzersizTakip} />
           <Route path="/hatirlatici"  component={isDoctor ? NotFound : HatirlaticiTakip} />
           <Route path="/beslenme"     component={isDoctor ? NotFound : BeslenmeDanismani} />
+          <Route path="/takvim"       component={isDoctor ? NotFound : BesinTakvimi} />
           <Route path="/yasam"        component={isDoctor ? NotFound : YasamKalitesi} />
           <Route path="/destek"       component={isDoctor ? NotFound : PsikolojikDestek} />
           <Route path="/aile"         component={isDoctor ? NotFound : BakiciRehberi} />

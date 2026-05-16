@@ -15,12 +15,17 @@ const EXERCISE_KEY     = "onko_exercise_plan";
 const SUPPORT_KEY      = "onko_psiko_plan";
 const MED_KEY          = "onko_med_reminders";
 const APPT_KEY         = "onko_appt_reminders";
+const EX_CHECKED_KEY   = "onko_ex_checked";       // Record<dateStr, Record<exIdx, bool>>
+const SUP_CHECKED_KEY  = "onko_sup_checked";      // Record<dateStr, Record<practiceIdx, bool>>
+const MED_CHECKED_KEY  = "onko_med_checked";      // Record<dateStr, Record<medId, bool>>
 
 /* ─── Types ─── */
 interface MealDay { dayName: string; kahvalti: string; araOgun1?: string; ogle: string; araOgun2?: string; aksam: string; tip?: string; }
 interface MealPlan { planTitle: string; days: MealDay[]; generalTips?: string[]; }
 interface WizardData { days: number; mealsPerDay: number; restrictions: string[]; }
-type CheckedMeals = Record<number, Record<string, boolean>>;
+type CheckedMeals    = Record<number, Record<string, boolean>>;
+type DateIndexChecks = Record<string, Record<number, boolean>>;  // keyed by dateStr → itemIdx
+type DateIdChecks    = Record<string, Record<string, boolean>>;  // keyed by dateStr → itemId
 
 interface ExerciseDay { dayName: string; rest?: boolean; exercises: { name: string; duration: string; note?: string }[]; tip?: string; }
 interface ExercisePlan { planTitle: string; level: string; days: ExerciseDay[]; generalTips: string[]; }
@@ -35,8 +40,11 @@ interface ApptReminder { id: string; doctor: string; location: string; date: str
 function load<T>(key: string, fallback: T): T {
   try { const s = localStorage.getItem(key); return s ? (JSON.parse(s) as T) : fallback; } catch { return fallback; }
 }
-function saveMealPlan(p: MealPlan) { try { localStorage.setItem(MEAL_PLAN_KEY, JSON.stringify(p)); } catch {} }
-function saveChecked(c: CheckedMeals) { try { localStorage.setItem(CHECKED_KEY, JSON.stringify(c)); } catch {} }
+function saveMealPlan(p: MealPlan)          { try { localStorage.setItem(MEAL_PLAN_KEY, JSON.stringify(p)); } catch {} }
+function saveChecked(c: CheckedMeals)       { try { localStorage.setItem(CHECKED_KEY,    JSON.stringify(c)); } catch {} }
+function saveExChecked(c: DateIndexChecks)  { try { localStorage.setItem(EX_CHECKED_KEY, JSON.stringify(c)); } catch {} }
+function saveSupChecked(c: DateIndexChecks) { try { localStorage.setItem(SUP_CHECKED_KEY,JSON.stringify(c)); } catch {} }
+function saveMedChecked(c: DateIdChecks)    { try { localStorage.setItem(MED_CHECKED_KEY,JSON.stringify(c)); } catch {} }
 
 async function callMealPlan(w: WizardData): Promise<MealPlan> {
   const res = await fetch(`${BASE}/api/meal-plan`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(w) });
@@ -303,6 +311,9 @@ export default function BesinTakvimi() {
   const [exWizardOpen, setExWizardOpen] = useState(false);
   const [generatingEx, setGeneratingEx] = useState(false);
   const [exError, setExError] = useState<string|null>(null);
+  const [exChecked,  setExChecked]  = useState<DateIndexChecks>(()=>load(EX_CHECKED_KEY,  {}));
+  const [supChecked, setSupChecked] = useState<DateIndexChecks>(()=>load(SUP_CHECKED_KEY, {}));
+  const [medChecked, setMedChecked] = useState<DateIdChecks>   (()=>load(MED_CHECKED_KEY, {}));
 
   // All plans from localStorage
   const [mealPlan, setMealPlan] = useState<MealPlan|null>(()=>load(MEAL_PLAN_KEY, null));
@@ -348,6 +359,27 @@ export default function BesinTakvimi() {
     setChecked(prev => {
       const next = { ...prev, [dayIdx]: { ...prev[dayIdx], [mealKey]: !prev[dayIdx]?.[mealKey] } };
       saveChecked(next); return next;
+    });
+  }
+
+  function toggleEx(dateStr: string, idx: number) {
+    setExChecked(prev => {
+      const next = { ...prev, [dateStr]: { ...prev[dateStr], [idx]: !prev[dateStr]?.[idx] } };
+      saveExChecked(next); return next;
+    });
+  }
+
+  function toggleSup(dateStr: string, idx: number) {
+    setSupChecked(prev => {
+      const next = { ...prev, [dateStr]: { ...prev[dateStr], [idx]: !prev[dateStr]?.[idx] } };
+      saveSupChecked(next); return next;
+    });
+  }
+
+  function toggleMed(dateStr: string, medId: string) {
+    setMedChecked(prev => {
+      const next = { ...prev, [dateStr]: { ...prev[dateStr], [medId]: !prev[dateStr]?.[medId] } };
+      saveMedChecked(next); return next;
     });
   }
 
@@ -566,18 +598,25 @@ export default function BesinTakvimi() {
                         <p className="text-xs font-semibold text-violet-700">{s.label}</p>
                       </div>
                       <div className="divide-y divide-slate-50">
-                        {s.list.map(m=>(
-                          <div key={m.id} className="flex items-center gap-3 px-4 py-3">
-                            <div className="w-7 h-7 rounded-full bg-violet-100 flex items-center justify-center shrink-0">
-                              <Pill className="w-3.5 h-3.5 text-violet-500"/>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-slate-800">{m.name}</p>
-                              <p className="text-xs text-slate-500">{m.dose&&`${m.dose} · `}{m.time}</p>
-                            </div>
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100 shrink-0">{m.frequency}</span>
-                          </div>
-                        ))}
+                        {s.list.map(m=>{
+                          const done = !!medChecked[selectedDate]?.[m.id];
+                          return (
+                            <button key={m.id} onClick={()=>toggleMed(selectedDate,m.id)}
+                              className={`w-full text-left flex items-center gap-3 px-4 py-3 transition-all duration-200 ${done?"bg-violet-500":"hover:bg-violet-50/40"}`}>
+                              <div className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${done?"bg-white/25":"border-2 border-slate-200"}`}>
+                                {done?<CheckCircle2 className="w-4 h-4 text-white"/>:<Circle className="w-4 h-4 text-slate-200"/>}
+                              </div>
+                              <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0">
+                                <Pill className={`w-3.5 h-3.5 ${done?"text-white/80":"text-violet-500"}`}/>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-sm font-semibold ${done?"text-white line-through decoration-white/50":"text-slate-800"}`}>{m.name}</p>
+                                <p className={`text-xs ${done?"text-white/70":"text-slate-500"}`}>{m.dose&&`${m.dose} · `}{m.time}</p>
+                              </div>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full border shrink-0 ${done?"bg-white/20 text-white border-white/30":"bg-violet-50 text-violet-600 border-violet-100"}`}>{m.frequency}</span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
@@ -586,12 +625,22 @@ export default function BesinTakvimi() {
                       <div className="px-4 py-2 bg-slate-50 border-b border-slate-100">
                         <p className="text-xs font-semibold text-slate-600">📅 Haftalık İlaçlar</p>
                       </div>
-                      {weeklyMeds.map(m=>(
-                        <div key={m.id} className="flex items-center gap-3 px-4 py-3 border-t border-slate-50 first:border-t-0">
-                          <div className="w-7 h-7 rounded-full bg-purple-100 flex items-center justify-center shrink-0"><Pill className="w-3.5 h-3.5 text-purple-500"/></div>
-                          <div className="flex-1"><p className="text-sm font-semibold text-slate-800">{m.name}</p><p className="text-xs text-slate-500">{m.dose&&`${m.dose} · `}Haftalık</p></div>
-                        </div>
-                      ))}
+                      {weeklyMeds.map(m=>{
+                        const done = !!medChecked[selectedDate]?.[m.id];
+                        return (
+                          <button key={m.id} onClick={()=>toggleMed(selectedDate,m.id)}
+                            className={`w-full text-left flex items-center gap-3 px-4 py-3 border-t border-slate-50 first:border-t-0 transition-all ${done?"bg-purple-500":"hover:bg-purple-50/40"}`}>
+                            <div className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${done?"bg-white/25":"border-2 border-slate-200"}`}>
+                              {done?<CheckCircle2 className="w-4 h-4 text-white"/>:<Circle className="w-4 h-4 text-slate-200"/>}
+                            </div>
+                            <div className="w-7 h-7 rounded-full bg-purple-100 flex items-center justify-center shrink-0"><Pill className={`w-3.5 h-3.5 ${done?"text-white":"text-purple-500"}`}/></div>
+                            <div className="flex-1">
+                              <p className={`text-sm font-semibold ${done?"text-white line-through decoration-white/50":"text-slate-800"}`}>{m.name}</p>
+                              <p className={`text-xs ${done?"text-white/70":"text-slate-500"}`}>{m.dose&&`${m.dose} · `}Haftalık</p>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -637,19 +686,36 @@ export default function BesinTakvimi() {
                     <span className="ml-auto text-[10px] text-slate-400">{exercisePlan.planTitle}</span>
                   </div>
                   {!exerciseDay.rest && exerciseDay.exercises.length>0 && (
-                    <div className="px-4 py-3 space-y-2">
-                      {exerciseDay.exercises.map((ex,ei)=>(
-                        <div key={ei} className="flex items-start gap-2">
-                          <ChevronRight className="w-3.5 h-3.5 text-teal-400 mt-0.5 shrink-0"/>
-                          <div>
-                            <span className="text-sm text-slate-800 font-medium">{ex.name}</span>
-                            <span className="text-xs text-slate-500 ml-2">{ex.duration}</span>
-                            {ex.note&&<p className="text-xs text-slate-400 mt-0.5">{ex.note}</p>}
+                    <div className="px-3 py-2.5 space-y-1.5">
+                      {exerciseDay.exercises.map((ex,ei)=>{
+                        const done = !!exChecked[selectedDate]?.[ei];
+                        return (
+                          <button key={ei} onClick={()=>toggleEx(selectedDate,ei)}
+                            className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all duration-200 ${
+                              done ? "bg-teal-500 border-teal-500 shadow-sm" : "bg-white border-slate-100 hover:border-teal-200 hover:shadow-sm"
+                            }`}>
+                            <div className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${done?"bg-white/25":"border-2 border-slate-200"}`}>
+                              {done ? <CheckCircle2 className="w-4 h-4 text-white"/> : <Circle className="w-4 h-4 text-slate-200"/>}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm font-medium ${done?"text-white line-through decoration-white/50":"text-slate-800"}`}>{ex.name}</p>
+                              <p className={`text-xs mt-0.5 ${done?"text-white/70":"text-slate-400"}`}>{ex.duration}{ex.note&&` · ${ex.note}`}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                      {(() => {
+                        const total = exerciseDay.exercises.length;
+                        const done  = exerciseDay.exercises.filter((_,ei)=>!!exChecked[selectedDate]?.[ei]).length;
+                        return total>0 && done===total ? (
+                          <div className="flex items-center gap-2 bg-teal-50 border border-teal-200 rounded-xl px-3 py-2 mt-1">
+                            <CheckCircle2 className="w-4 h-4 text-teal-500 shrink-0"/>
+                            <p className="text-xs font-medium text-teal-700">Bugünün egzersizleri tamamlandı! 💪</p>
                           </div>
-                        </div>
-                      ))}
+                        ) : null;
+                      })()}
                       {exerciseDay.tip&&(
-                        <p className="text-xs text-teal-600 bg-teal-50 rounded-lg px-3 py-2 mt-2 border border-teal-100">💡 {exerciseDay.tip}</p>
+                        <p className="text-xs text-teal-600 bg-teal-50 rounded-lg px-3 py-2 border border-teal-100">💡 {exerciseDay.tip}</p>
                       )}
                     </div>
                   )}
@@ -726,18 +792,37 @@ export default function BesinTakvimi() {
               <section>
                 <SectionHeader emoji="💜" title="Günlük Destek Pratikleri"/>
                 <div className="space-y-2">
-                  {supportPlan.dailyPractices.map((p,i)=>(
-                    <div key={i} className="bg-white border border-rose-100 rounded-xl px-4 py-3 flex items-start gap-3 shadow-sm">
-                      <span className="text-lg shrink-0 mt-0.5">{p.icon}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-semibold text-slate-800">{p.title}</p>
-                          <span className="text-[10px] bg-rose-50 text-rose-600 border border-rose-100 px-2 py-0.5 rounded-full">{p.duration}</span>
+                  {supportPlan.dailyPractices.map((p,i)=>{
+                    const done = !!supChecked[selectedDate]?.[i];
+                    return (
+                      <button key={i} onClick={()=>toggleSup(selectedDate,i)}
+                        className={`w-full text-left flex items-start gap-3 px-4 py-3 rounded-xl border transition-all duration-200 shadow-sm ${
+                          done ? "bg-rose-500 border-rose-500" : "bg-white border-rose-100 hover:border-rose-200 hover:shadow-md"
+                        }`}>
+                        <div className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5 ${done?"bg-white/25":"border-2 border-slate-200"}`}>
+                          {done?<CheckCircle2 className="w-4 h-4 text-white"/>:<Circle className="w-4 h-4 text-slate-200"/>}
                         </div>
-                        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{p.description}</p>
+                        <span className="text-lg shrink-0">{p.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className={`text-sm font-semibold ${done?"text-white line-through decoration-white/50":"text-slate-800"}`}>{p.title}</p>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full border ${done?"bg-white/20 text-white border-white/30":"bg-rose-50 text-rose-600 border-rose-100"}`}>{p.duration}</span>
+                          </div>
+                          <p className={`text-xs mt-0.5 leading-relaxed ${done?"text-white/70":"text-slate-500"}`}>{p.description}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                  {(() => {
+                    const total = supportPlan.dailyPractices.length;
+                    const doneCount = supportPlan.dailyPractices.filter((_,i)=>!!supChecked[selectedDate]?.[i]).length;
+                    return total>0 && doneCount===total ? (
+                      <div className="flex items-center gap-2 bg-rose-50 border border-rose-200 rounded-xl px-4 py-2">
+                        <CheckCircle2 className="w-4 h-4 text-rose-500 shrink-0"/>
+                        <p className="text-xs font-medium text-rose-700">Bugünün tüm destek pratikleri tamamlandı! 🌸</p>
                       </div>
-                    </div>
-                  ))}
+                    ) : null;
+                  })()}
                 </div>
               </section>
             )}

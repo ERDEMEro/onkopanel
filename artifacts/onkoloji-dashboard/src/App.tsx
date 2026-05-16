@@ -13,12 +13,16 @@ import EgitimMerkezi from "@/pages/EgitimMerkezi";
 import Ayarlar from "@/pages/Ayarlar";
 import VakaDoldur from "@/pages/VakaDoldur";
 import PsikolojikDestek from "@/pages/PsikolojikDestek";
+import BakiciRehberi from "@/pages/BakiciRehberi";
+import BeslenmeDanismani from "@/pages/BeslenmeDanismani";
+import HatirlaticiTakip from "@/pages/HatirlaticiTakip";
+import BeliritGunlugu from "@/pages/BeliritGunlugu";
 import AuthPage from "@/pages/AuthPage";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider, useLang } from "@/context/LanguageContext";
 import { NarratorProvider } from "@/context/NarratorContext";
 import { NarratorWidget } from "@/components/Narrator";
-import { BarChart2, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList, Heart } from "lucide-react";
+import { BarChart2, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList, Heart, Salad, Bell, NotebookPen } from "lucide-react";
 
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth, AuthProvider } from "@workspace/replit-auth-web";
@@ -52,7 +56,11 @@ function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
       ]
     : [
         { path: "/belirti",   label: t.nav.symptomChecker,  icon: <Stethoscope className="w-3.5 h-3.5" /> },
+        { path: "/gunluk",    label: "Belirti Günlüğü",     icon: <NotebookPen className="w-3.5 h-3.5" /> },
+        { path: "/hatirlatici", label: "İlaç & Randevu",    icon: <Bell className="w-3.5 h-3.5" /> },
+        { path: "/beslenme",  label: "Beslenme",            icon: <Salad className="w-3.5 h-3.5" /> },
         { path: "/destek",    label: "Psikolojik Destek",   icon: <Heart className="w-3.5 h-3.5" /> },
+        { path: "/aile",      label: "Aile Rehberi",        icon: <Users className="w-3.5 h-3.5" /> },
         { path: "/egitim",    label: t.nav.educationCenter, icon: <GraduationCap className="w-3.5 h-3.5" /> },
         { path: "/asistan",   label: t.nav.aiAssistant,     icon: <Sparkles className="w-3.5 h-3.5" /> },
       ];
@@ -191,10 +199,14 @@ function Router() {
             </Route>
           )}
           <Route path="/profil"    component={isDoctor ? PatientProfiler : NotFound} />
-          <Route path="/belirti"   component={SymptomChecker} />
-          <Route path="/destek"    component={isDoctor ? NotFound : PsikolojikDestek} />
-          <Route path="/kutuphane" component={isDoctor ? CancerLibrary : NotFound} />
-          <Route path="/egitim"    component={EgitimMerkezi} />
+          <Route path="/belirti"      component={SymptomChecker} />
+          <Route path="/gunluk"       component={isDoctor ? NotFound : BeliritGunlugu} />
+          <Route path="/hatirlatici"  component={isDoctor ? NotFound : HatirlaticiTakip} />
+          <Route path="/beslenme"     component={isDoctor ? NotFound : BeslenmeDanismani} />
+          <Route path="/destek"       component={isDoctor ? NotFound : PsikolojikDestek} />
+          <Route path="/aile"         component={isDoctor ? NotFound : BakiciRehberi} />
+          <Route path="/kutuphane"    component={isDoctor ? CancerLibrary : NotFound} />
+          <Route path="/egitim"       component={EgitimMerkezi} />
           <Route path="/asistan"   component={AiAsistan} />
           <Route path="/ayarlar"   component={Ayarlar} />
           <Route path="/vaka"      component={isDoctor ? VakaDoldur : NotFound} />

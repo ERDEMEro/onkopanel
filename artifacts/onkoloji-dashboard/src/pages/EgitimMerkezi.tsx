@@ -249,6 +249,22 @@ const EDU_DATA: CancerEdu[] = [
       { title: "Glioblastom: Yeni Tedaviler", titleEn: "Glioblastoma: Emerging Treatments", channel: "Memorial Sloan Kettering", videoId: "z2n3l_iZXBc", durationMin: 7 },
     ],
   },
+  {
+    key: "other", nameTr: "Diğer / Sınıflandırılmamış", nameEn: "Other / Unclassified",
+    descTr: "Henüz tam olarak sınıflandırılamamış, nadir görülen veya birden fazla tanı kategorisini kapsayan kanser kayıtlarını içerir. Bu hastalar için de güvenilir genel onkoloji kaynaklarına erişebilirsiniz.",
+    descEn: "Includes records not yet fully classified, rare cancers, or cases spanning multiple diagnostic categories. Reliable general oncology resources are available for these patients as well.",
+    color: "#546e7a", colorDark: "#37474f",
+    articles: [
+      { title: "Kanser: Genel Bilgi", titleEn: "Cancer: General Overview", source: "WHO", sourceType: "who", description: "Dünya Sağlık Örgütü'nün kanser türleri, risk faktörleri, önleme ve küresel yük üzerine kapsamlı genel kaynağı.", descriptionEn: "WHO's comprehensive general resource on cancer types, risk factors, prevention, and global burden.", url: "https://www.who.int/news-room/fact-sheets/detail/cancer" },
+      { title: "Kanser Türleri A-Z", titleEn: "Cancer Types A–Z", source: "American Cancer Society", sourceType: "acs", description: "ACS'nin alfabetik olarak sıralanmış tüm kanser türleri rehberi; her tür için belirtiler, tanı ve tedavi bilgileri.", descriptionEn: "ACS alphabetical guide to all cancer types, with symptoms, diagnosis, and treatment for each.", url: "https://www.cancer.org/cancer/types.html" },
+      { title: "NCI Kanser Türleri", titleEn: "NCI Cancer Types", source: "NIH / NCI", sourceType: "nih", description: "Ulusal Kanser Enstitüsü'nün tüm kanser türlerine göre organize edilmiş klinik bilgi, araştırma ve tedavi rehberleri.", descriptionEn: "National Cancer Institute's clinical information, research, and treatment guides organized by cancer type.", url: "https://www.cancer.gov/types" },
+      { title: "NCCN Hasta Rehberleri", titleEn: "NCCN Patient Guidelines", source: "NCCN", sourceType: "nccn", description: "Ulusal Kapsamlı Kanser Ağı'nın (NCCN) kanser türlerine göre hazırlanmış kanıta dayalı hasta rehberleri.", descriptionEn: "Evidence-based patient guidelines from the National Comprehensive Cancer Network (NCCN) organized by cancer type.", url: "https://www.nccn.org/patients/guidelines/cancers.aspx" },
+    ],
+    videos: [
+      { title: "Kanser Nedir? Temel Bilgiler", titleEn: "What Is Cancer? The Basics", channel: "Mayo Clinic", videoId: "82d5mB9s9j4", durationMin: 5 },
+      { title: "Kanser Araştırmalarında Son Gelişmeler", titleEn: "Latest Advances in Cancer Research", channel: "Dana-Farber Cancer Institute", videoId: "3Df4lQikxMI", durationMin: 7 },
+    ],
+  },
 ];
 
 // ─── Source badge ─────────────────────────────────────────────────────────────

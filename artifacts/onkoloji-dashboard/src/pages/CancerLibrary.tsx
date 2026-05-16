@@ -25,6 +25,7 @@ const COLOR_BY_KEY: Record<string, string> = {
   pancreatic: "#9C27B0", cervical: "#E91E63", lymphoma: "#00BCD4",
   stomach: "#FF5722",    myeloma: "#3F51B5",  kidney: "#009688",
   thyroid: "#00acc1",    ovarian: "#e91e63",  brain: "#673ab7",
+  leukemia: "#F44336",   skin: "#8D6E63",     sarcoma: "#FF7043",
   other: "#78909C",
 };
 
@@ -454,7 +455,7 @@ function DetailPanel({
       </div>
 
       {/* Info boxes: symptoms, risk, screening */}
-      {libEntry && (
+      {libEntry ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <InfoBox
             icon={AlertTriangle}
@@ -477,6 +478,24 @@ function DetailPanel({
             items={libEntry.treatments.slice(0, 5)}
             lang={lang}
           />
+        </div>
+      ) : detail.key === "other" && (
+        <div className="rounded-xl border bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800 p-4 flex gap-3">
+          <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+          <div className="space-y-1.5">
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+              {t(
+                "Bu Kategori Hakkında",
+                "About This Category"
+              )}
+            </p>
+            <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
+              {t(
+                "\"Diğer / Sınıflandırılmamış\" kategorisi; mevcut anahtar kelime listesiyle tam olarak eşleştirilemeyen, nadir görülen veya birden fazla tanı grubunu kapsayan hastaların kayıtlarını içerir. Bu hastalar klinik açıdan geçerlidir ve istatistiklerinize dahil edilmektedir. Tanı metinlerinde yeni tıbbi terimler gözlemlenirse sınıflandırma algoritması güncellenebilir.",
+                "The \"Other / Unclassified\" category contains records of patients whose diagnostic text could not be matched to an existing category — including rare cancers, ambiguous diagnoses, or cases spanning multiple cancer types. These patients are clinically valid and are included in your overall statistics. If new medical terms appear in diagnostic texts, the classification algorithm can be updated."
+              )}
+            </p>
+          </div>
         </div>
       )}
 

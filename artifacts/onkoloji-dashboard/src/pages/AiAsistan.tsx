@@ -205,10 +205,13 @@ export default function AiAsistan() {
           ) : (
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {history.map(session => (
-                <button
+                <div
                   key={session.id}
                   onClick={() => loadSession(session)}
-                  className="w-full text-left rounded-lg border bg-background hover:bg-muted/50 px-4 py-3 transition-all group"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={e => e.key === "Enter" && loadSession(session)}
+                  className="w-full text-left rounded-lg border bg-background hover:bg-muted/50 px-4 py-3 transition-all group cursor-pointer"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
@@ -221,7 +224,7 @@ export default function AiAsistan() {
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           )}

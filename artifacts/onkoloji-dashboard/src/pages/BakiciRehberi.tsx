@@ -188,10 +188,13 @@ export default function BakiciRehberi() {
             ) : (
               <div className="space-y-2">
                 {history.map(session => (
-                  <button
+                  <div
                     key={session.id}
                     onClick={() => loadSession(session)}
-                    className="w-full text-left rounded-xl border border-blue-100 bg-white hover:bg-blue-50 hover:border-blue-200 px-4 py-3 transition-all shadow-sm group"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={e => e.key === "Enter" && loadSession(session)}
+                    className="w-full text-left rounded-xl border border-blue-100 bg-white hover:bg-blue-50 hover:border-blue-200 px-4 py-3 transition-all shadow-sm group cursor-pointer"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
@@ -207,7 +210,7 @@ export default function BakiciRehberi() {
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             )}

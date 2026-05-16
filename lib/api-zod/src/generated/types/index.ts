@@ -7,10 +7,19 @@
  */
 
 export * from './admissionTypes';
+export * from './authorizationSessionHeaderParameter';
+export * from './authUser';
+export * from './authUserEnvelope';
+export * from './beginBrowserLoginParams';
 export * from './cancerTypeMeds';
+export * from './errorEnvelope';
 export * from './getPatientsParams';
+export * from './handleBrowserLoginCallbackParams';
 export * from './healthStatus';
 export * from './labelCount';
+export * from './logoutSuccess';
+export * from './mobileTokenExchangeRequest';
+export * from './mobileTokenExchangeSuccess';
 export * from './oncologySummary';
 export * from './patient';
 export * from './patientList';

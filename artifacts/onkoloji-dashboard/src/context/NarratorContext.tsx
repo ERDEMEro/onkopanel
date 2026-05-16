@@ -17,6 +17,7 @@ interface NarratorContextValue {
   voiceGender: "female" | "male" | "auto";
   toggle: () => void;
   speak: (text: string, lang?: string) => void;
+  readPage: () => void;
   stop: () => void;
   pause: () => void;
   resume: () => void;
@@ -31,31 +32,16 @@ const NarratorContext = createContext<NarratorContextValue>(
 const STORAGE_KEY = "onkoloji-narrator";
 const VOICE_GENDER_KEY = "onkoloji-narrator-voice-gender";
 
-// Known female voice name fragments (cross-browser/OS)
 const FEMALE_PATTERNS = [
   "female", "Female",
-  "Filiz",      // Turkish female – Microsoft Windows
-  "Zira",       // English female – Microsoft Windows
-  "Hazel",      // English female – Microsoft Windows
-  "Samantha",   // macOS English female
-  "Karen",      // macOS English female
-  "Moira",      // macOS Irish English female
-  "Tessa",      // macOS South African female
-  "Victoria",   // macOS English female
-  "Serena",     // macOS English female
-  "Yelda",      // Turkish female – some Android
+  "Filiz", "Zira", "Hazel", "Samantha", "Karen",
+  "Moira", "Tessa", "Victoria", "Serena", "Yelda",
   "Google UK English Female",
 ];
 
-// Known male voice name fragments
 const MALE_PATTERNS = [
   "male", "Male",
-  "Daniel",     // macOS/iOS English male
-  "Alex",       // macOS English male
-  "Tom",        // macOS English male
-  "Fred",       // macOS English male
-  "Oliver",     // macOS English male
-  "Arthur",     // macOS English male
+  "Daniel", "Alex", "Tom", "Fred", "Oliver", "Arthur",
   "Google UK English Male",
 ];
 
@@ -65,18 +51,42 @@ function pickVoice(
 ): SpeechSynthesisVoice | null {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return null;
   if (gender === "auto") return null;
-
   const voices = window.speechSynthesis.getVoices();
   const langPrefix = langCode.split("-")[0].toLowerCase();
-
-  // Prefer voices that match the language; fall back to all voices
   const langVoices = voices.filter((v) =>
     v.lang.toLowerCase().startsWith(langPrefix)
   );
   const pool = langVoices.length > 0 ? langVoices : voices;
-
   const patterns = gender === "female" ? FEMALE_PATTERNS : MALE_PATTERNS;
   return pool.find((v) => patterns.some((p) => v.name.includes(p))) ?? null;
+}
+
+/** Extract visible readable text from the page content area */
+function extractPageText(): string {
+  const el =
+    document.querySelector<HTMLElement>("[data-narrator-content]") ??
+    document.querySelector<HTMLElement>("main") ??
+    document.body;
+
+  // Walk text nodes, skip script/style/button/nav
+  const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "BUTTON", "NAV", "INPUT", "TEXTAREA", "SELECT", "OPTION", "NOSCRIPT"]);
+  const parts: string[] = [];
+
+  function walk(node: Node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = (node.textContent ?? "").trim();
+      if (text.length > 1) parts.push(text);
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const elem = node as HTMLElement;
+    if (SKIP_TAGS.has(elem.tagName)) return;
+    if (elem.getAttribute("aria-hidden") === "true") return;
+    for (const child of Array.from(node.childNodes)) walk(child);
+  }
+
+  walk(el);
+  return parts.join(". ").replace(/\.\s*\./g, ".").trim();
 }
 
 export function NarratorProvider({
@@ -109,11 +119,9 @@ export function NarratorProvider({
   const [isPaused, setIsPaused] = useState(false);
   const [currentText, setCurrentText] = useState("");
   const [rate, setRateState] = useState(1);
-  // voices list may load async on some browsers
   const [, setVoicesLoaded] = useState(0);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  // Reload voices list when browser fires voiceschanged
   useEffect(() => {
     if (!isSupported) return;
     function onVoicesChanged() {
@@ -136,7 +144,6 @@ export function NarratorProvider({
     }
   }, [isEnabled]);
 
-  // Cancel speech when lang changes
   useEffect(() => {
     window.speechSynthesis?.cancel();
     setIsSpeaking(false);
@@ -184,7 +191,6 @@ export function NarratorProvider({
       utterance.pitch = 1;
       utterance.volume = 1;
 
-      // Apply voice gender preference
       const picked = pickVoice(voiceGender, langCode);
       if (picked) utterance.voice = picked;
 
@@ -211,6 +217,13 @@ export function NarratorProvider({
     },
     [isSupported, isEnabled, lang, rate, voiceGender]
   );
+
+  /** Reads all visible text on the current page aloud */
+  const readPage = useCallback(() => {
+    if (!isSupported || !isEnabled) return;
+    const text = extractPageText();
+    if (text) speak(text);
+  }, [isSupported, isEnabled, speak]);
 
   const toggle = useCallback(() => {
     setIsEnabled((v) => !v);
@@ -242,6 +255,7 @@ export function NarratorProvider({
         voiceGender,
         toggle,
         speak,
+        readPage,
         stop,
         pause,
         resume,

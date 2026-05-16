@@ -15,8 +15,9 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider, useLang } from "@/context/LanguageContext";
 import { NarratorProvider } from "@/context/NarratorContext";
 import { NarratorWidget } from "@/components/Narrator";
-import { BarChart2, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity } from "lucide-react";
+import { BarChart2, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
+import { useAuth } from "@workspace/replit-auth-web";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +32,7 @@ function TabNav() {
   const [location, navigate] = useLocation();
   const { t } = useLang();
   const { isDark } = useTheme();
+  const { user, isLoading, isAuthenticated, login, logout } = useAuth();
 
   const mainTabs = [
     { path: "/",          label: t.nav.dashboard,       icon: <BarChart2 className="w-3.5 h-3.5" /> },
@@ -73,8 +75,8 @@ function TabNav() {
           ))}
         </div>
 
-        {/* Settings — pinned right */}
-        <div className="flex items-center h-full pl-2 border-l ml-2 shrink-0">
+        {/* Right side: Settings + Auth */}
+        <div className="flex items-center h-full pl-2 border-l ml-2 shrink-0 gap-1">
           <button
             onClick={() => navigate("/ayarlar")}
             className={tabCls(location === "/ayarlar")}
@@ -82,6 +84,48 @@ function TabNav() {
             <Settings className="w-3.5 h-3.5" />
             <span className="hidden lg:inline">{t.nav.settings}</span>
           </button>
+
+          {/* Auth user badge */}
+          {isLoading ? (
+            <div className="flex items-center px-2 h-full">
+              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+            </div>
+          ) : isAuthenticated && user ? (
+            <div className="flex items-center gap-2 px-2 h-full">
+              {user.profileImageUrl ? (
+                <img
+                  src={user.profileImageUrl}
+                  alt={[user.firstName, user.lastName].filter(Boolean).join(" ") || "Kullanıcı"}
+                  className="w-7 h-7 rounded-full ring-2 ring-primary/20 object-cover"
+                />
+              ) : (
+                <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[11px] font-bold">
+                  {(user.firstName ?? user.email ?? "?").charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span className="hidden lg:block text-[12px] font-medium text-foreground max-w-[100px] truncate">
+                {[user.firstName, user.lastName].filter(Boolean).join(" ") || user.email}
+              </span>
+              <button
+                onClick={logout}
+                aria-label="Çıkış yap"
+                title="Çıkış yap"
+                className="ml-0.5 flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden xl:inline">Çıkış</span>
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={login}
+              aria-label="Giriş yap"
+              className="flex items-center gap-1.5 px-3 py-1.5 mx-1 rounded-lg bg-primary text-primary-foreground text-[12px] font-semibold hover:bg-primary/90 transition-colors shadow-sm"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Giriş</span>
+            </button>
+          )}
         </div>
 
       </div>
@@ -92,7 +136,12 @@ function TabNav() {
 function PageTransition({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   return (
-    <div key={location} className="anim-fsu" style={{ animationDuration: "0.38s" }}>
+    <div
+      key={location}
+      data-narrator-content
+      className="anim-fsu"
+      style={{ animationDuration: "0.38s" }}
+    >
       {children}
     </div>
   );

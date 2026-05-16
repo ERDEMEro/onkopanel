@@ -1,13 +1,13 @@
 import { useState } from "react";
 import {
   Volume2, VolumeX, Pause, Play, Square, ChevronUp, ChevronDown,
-  Accessibility, Settings2,
+  Accessibility, Settings2, BookOpen,
 } from "lucide-react";
 import { useNarrator } from "@/context/NarratorContext";
 import { useLang } from "@/context/LanguageContext";
 
 export function NarratorWidget() {
-  const { isEnabled, isSupported, isSpeaking, isPaused, currentText, rate, toggle, pause, resume, stop, setRate, speak } = useNarrator();
+  const { isEnabled, isSupported, isSpeaking, isPaused, currentText, rate, toggle, pause, resume, stop, setRate, speak, readPage } = useNarrator();
   const { t, lang } = useLang();
   const n = t.narrator;
 
@@ -16,8 +16,8 @@ export function NarratorWidget() {
   if (!isSupported) return null;
 
   const presets = lang === "tr"
-    ? ["Sayfa içeriğini okuyun", "Merhaba! Onkoloji Veri Panosu'na hoş geldiniz."]
-    : ["Read page content", "Hello! Welcome to the Oncology Data Dashboard."];
+    ? ["Merhaba! Onkoloji Veri Panosu'na hoş geldiniz."]
+    : ["Hello! Welcome to the Oncology Data Dashboard."];
 
   return (
     <div
@@ -45,6 +45,31 @@ export function NarratorWidget() {
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronDown className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Read Page button */}
+          <div className="px-4 py-3 border-b border-border/50">
+            <button
+              onClick={() => isSpeaking ? stop() : readPage()}
+              aria-label={isSpeaking ? n.readPageStop : n.readPageLabel}
+              className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                isSpeaking
+                  ? "bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20"
+                  : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+              }`}
+            >
+              {isSpeaking ? (
+                <>
+                  <Square className="w-4 h-4" aria-hidden="true" />
+                  {n.readPageStop}
+                </>
+              ) : (
+                <>
+                  <BookOpen className="w-4 h-4" aria-hidden="true" />
+                  {n.readPage}
+                </>
+              )}
             </button>
           </div>
 

@@ -155,7 +155,7 @@ function SectionHeader({ icon, label }: { icon: React.ReactNode; label: string }
 export default function Ayarlar() {
   const { lang, setLang, t } = useLang();
   const { isDark, accentColor, barStyle, setIsDark, setAccentColor, setBarStyle } = useTheme();
-  const { isEnabled, isSupported, isSpeaking, rate, toggle, setRate, speak, stop } = useNarrator();
+  const { isEnabled, isSupported, isSpeaking, rate, voiceGender, toggle, setRate, setVoiceGender, speak, stop } = useNarrator();
   const s = t.settings;
 
   // Determine which preset is active
@@ -356,6 +356,38 @@ export default function Ayarlar() {
               {/* Controls (only when enabled) */}
               {isEnabled && (
                 <div className="space-y-4 pt-1">
+
+                  {/* Voice gender selector */}
+                  <div className="rounded-xl border bg-background px-5 py-4">
+                    <p className="text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-1.5">
+                      <Volume2 className="w-3.5 h-3.5" aria-hidden="true" />
+                      {s.voiceGender}
+                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(["female", "male", "auto"] as const).map((g) => {
+                        const active = voiceGender === g;
+                        const label = g === "female" ? s.voiceFemale : g === "male" ? s.voiceMale : s.voiceAuto;
+                        const desc  = g === "female" ? s.voiceFemaleDesc : g === "male" ? s.voiceMaleDesc : s.voiceAutoDesc;
+                        const emoji = g === "female" ? "♀" : g === "male" ? "♂" : "⚙";
+                        return (
+                          <button
+                            key={g}
+                            onClick={() => setVoiceGender(g)}
+                            aria-pressed={active}
+                            className={`flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl border-2 text-center transition-all ${
+                              active
+                                ? "border-primary bg-primary/8 text-primary"
+                                : "border-border hover:border-muted-foreground/40 hover:bg-muted/20 text-muted-foreground"
+                            }`}
+                          >
+                            <span className="text-lg leading-none" aria-hidden="true">{emoji}</span>
+                            <span className={`text-xs font-semibold ${active ? "text-primary" : "text-foreground"}`}>{label}</span>
+                            <span className="text-[10px] text-muted-foreground leading-tight">{desc}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
 
                   {/* Speed slider */}
                   <div className="rounded-xl border bg-background px-5 py-4">

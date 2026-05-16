@@ -297,6 +297,13 @@ const tr = {
     narratorSlow: "Yavaş",
     narratorFast: "Hızlı",
     narratorShortcut: "Klavye kısayolu:",
+    voiceGender: "Ses Tipi",
+    voiceFemale: "Kadın Sesi",
+    voiceMale: "Erkek Sesi",
+    voiceAuto: "Otomatik",
+    voiceFemaleDesc: "Kadın ses tercih et",
+    voiceMaleDesc: "Erkek ses tercih et",
+    voiceAutoDesc: "Varsayılan sistem sesi",
   },
 };
 
@@ -597,6 +604,13 @@ const en: typeof tr = {
     narratorSlow: "Slow",
     narratorFast: "Fast",
     narratorShortcut: "Keyboard shortcut:",
+    voiceGender: "Voice Type",
+    voiceFemale: "Female Voice",
+    voiceMale: "Male Voice",
+    voiceAuto: "Automatic",
+    voiceFemaleDesc: "Prefer a female voice",
+    voiceMaleDesc: "Prefer a male voice",
+    voiceAutoDesc: "Default system voice",
   },
 };
 

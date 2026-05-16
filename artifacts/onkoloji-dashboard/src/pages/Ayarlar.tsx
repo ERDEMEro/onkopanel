@@ -106,19 +106,33 @@ function ThemeMockup({ preset }: { preset: ThemePreset }) {
 // ─── Bar style preview ────────────────────────────────────────────────────────
 
 function BarStylePreview({ style }: { style: BarStyle }) {
-  const bars = [55, 80, 40, 65, 90];
-  const r = style === "cylinder" ? 4 : 1;
+  const bars = [55, 82, 38, 68, 92];
+  const isCylinder = style === "cylinder";
+
   return (
-    <div className="flex items-end gap-1 h-10 w-full">
+    <div className="flex items-end gap-1.5 h-12 w-full px-1">
       {bars.map((h, i) => (
-        <div
-          key={i}
-          className="flex-1 bg-primary/70"
-          style={{
-            height: `${h}%`,
-            borderRadius: `${r}px ${r}px 0 0`,
-          }}
-        />
+        <div key={i} className="flex-1 flex flex-col items-stretch" style={{ height: `${h}%` }}>
+          {isCylinder ? (
+            <>
+              {/* Ellipse "cap" on top */}
+              <div
+                className="w-full bg-primary/90 shrink-0"
+                style={{
+                  height: "10px",
+                  borderRadius: "50%",
+                  marginBottom: "-5px",
+                  zIndex: 1,
+                  position: "relative",
+                }}
+              />
+              {/* Cylinder body */}
+              <div className="flex-1 bg-primary/65" style={{ borderRadius: "0 0 3px 3px" }} />
+            </>
+          ) : (
+            <div className="flex-1 bg-primary/70" style={{ borderRadius: "2px 2px 0 0" }} />
+          )}
+        </div>
       ))}
     </div>
   );

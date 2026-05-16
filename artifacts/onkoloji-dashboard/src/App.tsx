@@ -21,12 +21,14 @@ import OnkoHaberler from "@/pages/OnkoHaberler";
 import YasamKalitesi from "@/pages/YasamKalitesi";
 import EgzersizTakip from "@/pages/EgzersizTakip";
 import OncelikPaneli from "@/pages/OncelikPaneli";
+import GelismisAnalitik from "@/pages/GelismisAnalitik";
+import IlacEtklesim from "@/pages/IlacEtklesim";
 import AuthPage from "@/pages/AuthPage";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider, useLang } from "@/context/LanguageContext";
 import { NarratorProvider } from "@/context/NarratorContext";
 import { NarratorWidget } from "@/components/Narrator";
-import { BarChart2, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList, Heart, Salad, Bell, NotebookPen, Newspaper, Star, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
+import { BarChart2, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList, Heart, Salad, Bell, NotebookPen, Newspaper, Star, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp, Pill } from "lucide-react";
 
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth, AuthProvider } from "@workspace/replit-auth-web";
@@ -100,6 +102,8 @@ function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
         { path: "/haberler",    label: "Haberler",            icon: <Newspaper className="w-3.5 h-3.5" /> },
         { path: "/egitim",      label: t.nav.educationCenter, icon: <GraduationCap className="w-3.5 h-3.5" /> },
         { path: "/asistan",     label: t.nav.aiAssistant,     icon: <Sparkles className="w-3.5 h-3.5" /> },
+        { path: "/analitik",    label: "Analitik ★",          icon: <TrendingUp className="w-3.5 h-3.5 text-amber-500" /> },
+        { path: "/ilac-etki",   label: "İlaç Etkileşim ★",   icon: <Pill className="w-3.5 h-3.5 text-amber-500" /> },
       ];
 
   const tabCls = (active: boolean) =>
@@ -282,6 +286,8 @@ function Router() {
           <Route path="/asistan"      component={AiAsistan} />
           <Route path="/ayarlar"      component={Ayarlar} />
           <Route path="/vaka"         component={isDoctor ? VakaDoldur : NotFound} />
+          <Route path="/analitik"     component={GelismisAnalitik} />
+          <Route path="/ilac-etki"    component={IlacEtklesim} />
           <Route component={NotFound} />
         </Switch>
       </PageTransition>

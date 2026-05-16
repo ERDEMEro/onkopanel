@@ -350,6 +350,7 @@ function DetailPanel({
   const genderData: DistItem[] = [
     { label: lang === "tr" ? "Kadın" : "Female", count: detail.genderF },
     { label: lang === "tr" ? "Erkek" : "Male",   count: detail.genderM },
+    ...(detail.genderOther > 0 ? [{ label: lang === "tr" ? "Diğer" : "Other", count: detail.genderOther }] : []),
   ].filter((d) => d.count > 0);
 
   const topCity = detail.cityDistribution[0]?.label ?? "-";
@@ -438,10 +439,10 @@ function DetailPanel({
           icon={Users}
           iconBg="#DB2777"
           label={t("Cinsiyet", "Gender")}
-          value={`${detail.genderF}♀  ${detail.genderM}♂`}
+          value={`${detail.genderF}♀  ${detail.genderM}♂${detail.genderOther > 0 ? `  ${detail.genderOther}⚧` : ""}`}
           sub={
-            detail.genderM > 0
-              ? `${Math.round((detail.genderF / (detail.genderF + detail.genderM)) * 100)}% ${t("kadın", "female")}`
+            detail.totalPatients > 0
+              ? `${Math.round((detail.genderF / detail.totalPatients) * 100)}% ${t("kadın", "female")}`
               : undefined
           }
         />

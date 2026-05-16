@@ -32,6 +32,7 @@ export interface CancerTypeDetail {
   mortalityRate: number;
   genderF: number;
   genderM: number;
+  genderOther: number;
   ageGroups: DistItem[];
   cityDistribution: DistItem[];
   totalVisitRecords: number;

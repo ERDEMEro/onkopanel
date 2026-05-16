@@ -832,6 +832,7 @@ router.get("/cancer-type-detail/:key", (req: Request, res: Response): void => {
   const deaths = matched.filter((p) => p.isDead).length;
   const genderF = matched.filter((p) => p.gender === "Kadın").length;
   const genderM = matched.filter((p) => p.gender === "Erkek").length;
+  const genderOther = totalPatients - genderF - genderM;
 
   const ageBuckets: Record<string, number> = {};
   for (const age of ages) {
@@ -898,6 +899,7 @@ router.get("/cancer-type-detail/:key", (req: Request, res: Response): void => {
     mortalityRate: Math.round((deaths / totalPatients) * 1000) / 10,
     genderF,
     genderM,
+    genderOther,
     ageGroups,
     cityDistribution,
     totalVisitRecords,

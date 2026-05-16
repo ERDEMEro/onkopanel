@@ -1,13 +1,15 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-export type AccentColor = "teal" | "blue" | "purple" | "rose" | "orange";
+export type AccentColor = "teal" | "blue" | "purple" | "rose" | "orange" | "emerald";
 export type FontSize = "sm" | "md" | "lg";
+export type BarStyle = "cylinder" | "flat";
 
 interface ThemeState {
   isDark: boolean;
   accentColor: AccentColor;
   fontSize: FontSize;
   compact: boolean;
+  barStyle: BarStyle;
 }
 
 interface ThemeContextValue extends ThemeState {
@@ -15,22 +17,25 @@ interface ThemeContextValue extends ThemeState {
   setAccentColor: (v: AccentColor) => void;
   setFontSize: (v: FontSize) => void;
   setCompact: (v: boolean) => void;
+  setBarStyle: (v: BarStyle) => void;
 }
 
 const ACCENT_LIGHT: Record<AccentColor, { h: number; s: number; l: number }> = {
-  teal:   { h: 173, s: 80, l: 31 },
-  blue:   { h: 217, s: 91, l: 52 },
-  purple: { h: 262, s: 83, l: 55 },
-  rose:   { h: 346, s: 77, l: 48 },
-  orange: { h: 25,  s: 95, l: 47 },
+  teal:    { h: 173, s: 80, l: 31 },
+  blue:    { h: 217, s: 91, l: 52 },
+  purple:  { h: 262, s: 83, l: 55 },
+  rose:    { h: 346, s: 77, l: 48 },
+  orange:  { h: 25,  s: 95, l: 47 },
+  emerald: { h: 158, s: 64, l: 39 },
 };
 
 const ACCENT_DARK: Record<AccentColor, { h: number; s: number; l: number }> = {
-  teal:   { h: 173, s: 80, l: 40 },
-  blue:   { h: 213, s: 94, l: 63 },
-  purple: { h: 263, s: 90, l: 65 },
-  rose:   { h: 346, s: 84, l: 60 },
-  orange: { h: 24,  s: 95, l: 55 },
+  teal:    { h: 173, s: 80, l: 40 },
+  blue:    { h: 213, s: 94, l: 63 },
+  purple:  { h: 263, s: 90, l: 65 },
+  rose:    { h: 346, s: 84, l: 60 },
+  orange:  { h: 24,  s: 95, l: 55 },
+  emerald: { h: 158, s: 64, l: 52 },
 };
 
 const FONT_SIZE_MAP: Record<FontSize, string> = {
@@ -41,16 +46,16 @@ const FONT_SIZE_MAP: Record<FontSize, string> = {
 
 const STORAGE_KEY = "onkoloji-theme";
 
+function defaultState(): ThemeState {
+  return { isDark: false, accentColor: "teal", fontSize: "md", compact: false, barStyle: "flat" };
+}
+
 function loadState(): ThemeState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return { ...defaultState(), ...JSON.parse(raw) };
   } catch {}
   return defaultState();
-}
-
-function defaultState(): ThemeState {
-  return { isDark: false, accentColor: "teal", fontSize: "md", compact: false };
 }
 
 function applyTheme(state: ThemeState) {
@@ -65,7 +70,6 @@ function applyTheme(state: ThemeState) {
   const hsl = `${accent.h} ${accent.s}% ${accent.l}%`;
   root.style.setProperty("--primary", hsl);
   root.style.setProperty("--ring", hsl);
-
   root.style.fontSize = FONT_SIZE_MAP[state.fontSize];
 }
 
@@ -88,10 +92,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     <ThemeContext.Provider
       value={{
         ...state,
-        setIsDark: (v) => update("isDark", v),
+        setIsDark:    (v) => update("isDark", v),
         setAccentColor: (v) => update("accentColor", v),
-        setFontSize: (v) => update("fontSize", v),
-        setCompact: (v) => update("compact", v),
+        setFontSize:  (v) => update("fontSize", v),
+        setCompact:   (v) => update("compact", v),
+        setBarStyle:  (v) => update("barStyle", v),
       }}
     >
       {children}

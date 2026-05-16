@@ -101,26 +101,45 @@ function CustomLegend({ payload }: any) {
   );
 }
 
-function KPICard({ title, value, loading, valueColor = CHART_COLORS.teal, icon }: {
-  title: string; value?: React.ReactNode; loading?: boolean; valueColor?: string; icon?: React.ReactNode;
+function KPICard({ title, value, loading, valueColor = CHART_COLORS.teal, icon, subtitle, delay = 0 }: {
+  title: string; value?: React.ReactNode; loading?: boolean; valueColor?: string;
+  icon?: React.ReactNode; subtitle?: string; delay?: number;
 }) {
   return (
-    <Card className="overflow-hidden relative group transition-shadow hover:shadow-md">
-      <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-lg" style={{ background: valueColor }} />
-      <CardContent className="p-4 pt-4">
-        {loading ? (
-          <><Skeleton className="h-3 w-20 mb-2.5" /><Skeleton className="h-7 w-24" /></>
-        ) : (
-          <>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">{title}</p>
-              {icon && <div className="opacity-40 group-hover:opacity-70 transition-opacity" style={{ color: valueColor }}>{icon}</div>}
+    <div className="anim-kpi" style={{ animationDelay: `${delay}ms` }}>
+      <Card
+        className="relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 cursor-default"
+        style={{ background: `color-mix(in srgb, ${valueColor} 6%, hsl(var(--card)))` }}
+      >
+        {/* Decorative circles */}
+        <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full pointer-events-none"
+          style={{ background: valueColor, opacity: 0.07 }} />
+        <div className="absolute right-4 top-6 w-16 h-16 rounded-full pointer-events-none"
+          style={{ background: valueColor, opacity: 0.04 }} />
+
+        <CardContent className="p-5 relative">
+          {loading ? (
+            <><Skeleton className="h-4 w-24 mb-3" /><Skeleton className="h-9 w-20" /></>
+          ) : (
+            <div className="flex items-start gap-4">
+              {icon && (
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                  style={{ background: `color-mix(in srgb, ${valueColor} 15%, transparent)` }}>
+                  <div style={{ color: valueColor, width: 22, height: 22 }}>{icon}</div>
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 leading-none">{title}</p>
+                <p className="text-3xl font-bold tracking-tight leading-none anim-count" style={{ color: valueColor, animationDelay: `${delay + 100}ms` }}>
+                  {value ?? "--"}
+                </p>
+                {subtitle && <p className="text-[11px] text-muted-foreground mt-2">{subtitle}</p>}
+              </div>
             </div>
-            <p className="text-2xl font-bold tracking-tight" style={{ color: valueColor }}>{value ?? "--"}</p>
-          </>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
@@ -200,7 +219,7 @@ export default function Dashboard() {
       <div className="max-w-[1400px] mx-auto px-6">
 
         {/* Hero header */}
-        <div className="relative mb-6 mt-5 rounded-2xl border overflow-hidden bg-card print:hidden">
+        <div className="relative mb-6 mt-5 rounded-2xl border overflow-hidden bg-card print:hidden anim-hero">
           <div className="absolute inset-0 pointer-events-none"
             style={{ background: "linear-gradient(135deg, hsl(var(--primary)/0.08) 0%, transparent 55%)" }} />
           <div className="absolute right-0 top-0 bottom-0 w-48 pointer-events-none"
@@ -268,23 +287,23 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
-          <KPICard title={d.kpi.totalPatients}   value={summaryQ.data?.totalPatients}    loading={summaryQ.isLoading || summaryQ.isFetching} icon={<Users2 className="w-4 h-4"/>} />
-          <KPICard title={d.kpi.totalAdmissions} value={summaryQ.data?.totalAdmissions}  loading={summaryQ.isLoading || summaryQ.isFetching} icon={<ClipboardList className="w-4 h-4"/>} />
-          <KPICard title={d.kpi.averageAge}      value={summaryQ.data?.averageAge ? Math.round(summaryQ.data.averageAge) : "--"} loading={summaryQ.isLoading || summaryQ.isFetching} icon={<CalendarDays className="w-4 h-4"/>} />
-          <KPICard title={d.kpi.departmentCount} value={summaryQ.data?.departmentCount}  loading={summaryQ.isLoading || summaryQ.isFetching} icon={<Building2 className="w-4 h-4"/>} />
-          <KPICard title={d.kpi.malePatients}    value={summaryQ.data?.maleCount}        loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.blue}   icon={<User className="w-4 h-4"/>} />
-          <KPICard title={d.kpi.femalePatients}  value={summaryQ.data?.femaleCount}      loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.purple} icon={<User className="w-4 h-4"/>} />
-          <KPICard title={d.kpi.geneticTests}    value={summaryQ.data?.withGeneticTest}  loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.teal}   icon={<Dna className="w-4 h-4"/>} />
-          <KPICard title={d.kpi.mortalityRate}   value={(summaryQ.data as any)?.mortalityRate !== undefined ? `%${(summaryQ.data as any).mortalityRate}` : "--"} loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.red} icon={<HeartPulse className="w-4 h-4"/>} />
+        {/* KPIs — 4-column reference-style grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <KPICard title={d.kpi.totalPatients}   value={summaryQ.data?.totalPatients}    loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.teal}   icon={<Users2 className="w-5 h-5"/>}       subtitle={lang === "tr" ? "kayıtlı hasta" : "registered patients"} delay={0} />
+          <KPICard title={d.kpi.totalAdmissions} value={summaryQ.data?.totalAdmissions}  loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.blue}   icon={<ClipboardList className="w-5 h-5"/>} subtitle={lang === "tr" ? "toplam başvuru" : "total admissions"}   delay={60} />
+          <KPICard title={d.kpi.averageAge}      value={summaryQ.data?.averageAge ? Math.round(summaryQ.data.averageAge) : "--"} loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.purple} icon={<CalendarDays className="w-5 h-5"/>} subtitle={lang === "tr" ? "7–102 yaş arası" : "age range 7–102"} delay={120} />
+          <KPICard title={d.kpi.mortalityRate}   value={(summaryQ.data as any)?.mortalityRate !== undefined ? `%${(summaryQ.data as any).mortalityRate}` : "--"} loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.red}    icon={<HeartPulse className="w-5 h-5"/>}   subtitle={lang === "tr" ? "vefat oranı"    : "mortality rate"}     delay={180} />
+          <KPICard title={d.kpi.malePatients}    value={summaryQ.data?.maleCount}        loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.blue}   icon={<User className="w-5 h-5"/>}         subtitle={lang === "tr" ? "erkek hasta"    : "male patients"}      delay={240} />
+          <KPICard title={d.kpi.femalePatients}  value={summaryQ.data?.femaleCount}      loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.pink}   icon={<User className="w-5 h-5"/>}         subtitle={lang === "tr" ? "kadın hasta"    : "female patients"}    delay={300} />
+          <KPICard title={d.kpi.geneticTests}    value={summaryQ.data?.withGeneticTest}  loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.green}  icon={<Dna className="w-5 h-5"/>}          subtitle={lang === "tr" ? "genetik test"   : "genetic test"}       delay={360} />
+          <KPICard title={d.kpi.departmentCount} value={summaryQ.data?.departmentCount}  loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.slate}  icon={<Building2 className="w-5 h-5"/>}    subtitle={lang === "tr" ? "aktif bölüm"    : "active departments"} delay={420} />
         </div>
 
         <KeyInsights />
         <ProblemSolutions />
 
         {/* Top Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 anim-fsu" style={{ animationDelay: "200ms" }}>
           <Card className="lg:col-span-2">
             <CardHeader className="px-5 pt-5 pb-3 flex-row items-center justify-between space-y-0">
               <CardTitle className="text-base font-semibold">{d.charts.admissionTrend}</CardTitle>

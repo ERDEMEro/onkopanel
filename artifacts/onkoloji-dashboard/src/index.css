@@ -249,3 +249,26 @@
   .overflow-auto, .overflow-y-auto, .overflow-scroll, .overflow-y-scroll { overflow: visible !important; max-height: none !important; }
   [style*="max-height"] { max-height: none !important; }
 }
+
+/* ── Animations ─────────────────────────────────────────────── */
+@keyframes kpiEnter {
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+@keyframes heroEnter {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.anim-kpi    { animation: kpiEnter    0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-hero   { animation: heroEnter   0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-fsu    { animation: fadeSlideUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-count  { animation: countUp     0.4s ease both; }

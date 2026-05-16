@@ -1,0 +1,94 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "Sora",
+      "role": "body"
+    }
+  ],
+  "colors": {
+    "primary": "#475569",
+    "secondary": "#64748B",
+    "accent": "#0F172A",
+    "background": "#FFFFFF",
+    "textPrimary": "#000000",
+    "link": "#0F172A"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "Sora",
+      "heading": "Sora"
+    },
+    "fontStacks": {
+      "heading": [
+        "Sora",
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "sans-serif"
+      ],
+      "body": [
+        "Sora",
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "sans-serif"
+      ],
+      "paragraph": [
+        "Sora",
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "sans-serif"
+      ]
+    },
+    "fontSizes": {
+      "h1": "30px",
+      "h2": "30px",
+      "body": "14px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "0px"
+  },
+  "components": {},
+  "images": {
+    "favicon": null,
+    "ogImage": null
+  },
+  "__llm_logo_reasoning": {
+    "selectedIndex": -1,
+    "reasoning": "No valid brand logo - all candidates are tiny UI icons without clear brand representation.",
+    "confidence": 0.3,
+    "rejected": true,
+    "source": "llm"
+  },
+  "personality": {
+    "tone": "professional",
+    "energy": "medium",
+    "targetAudience": "healthcare professionals"
+  },
+  "designSystem": {
+    "framework": "custom",
+    "componentLibrary": ""
+  },
+  "confidence": {
+    "buttons": 0,
+    "colors": 0.9,
+    "overall": 0.45
+  },
+  "__llm_metadata": {
+    "logoSelection": {
+      "llmCalled": true,
+      "llmSucceeded": true,
+      "finalSource": "llm",
+      "rawLogoSelection": {
+        "selectedLogoIndex": -1,
+        "selectedLogoReasoning": "No valid brand logo - all candidates are tiny UI icons without clear brand representation.",
+        "confidence": 0.3
+      }
+    },
+    "buttonClassification": {
+      "llmCalled": false,
+      "llmSucceeded": false
+    }
+  }
+}

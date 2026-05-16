@@ -9,6 +9,16 @@ export interface CancerTypeListItem {
   count: number;
 }
 
+export interface DistItem { label: string; count: number }
+export interface LabParam {
+  key: string;
+  count: number;
+  median: number;
+  min: number;
+  max: number;
+  refRange: string;
+}
+
 export interface CancerTypeDetail {
   key: string;
   labelTr: string;
@@ -22,8 +32,16 @@ export interface CancerTypeDetail {
   mortalityRate: number;
   genderF: number;
   genderM: number;
-  ageGroups: { label: string; count: number }[];
-  cityDistribution: { label: string; count: number }[];
+  ageGroups: DistItem[];
+  cityDistribution: DistItem[];
+  totalVisitRecords: number;
+  arrivalTypes: DistItem[];
+  visitTypes: DistItem[];
+  hospitalizationTypes: DistItem[];
+  procedureTypes: DistItem[];
+  topMedications: DistItem[];
+  topAtcCodes: DistItem[];
+  labParameters: LabParam[];
 }
 
 export function useCancerTypeList() {

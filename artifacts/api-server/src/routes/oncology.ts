@@ -567,6 +567,148 @@ interface PatientInfo {
   city: string;
 }
 
+// ─── Rows index (lazy, for detail queries) ────────────────────────────────────
+
+let _rowsIndex: Map<string, RawRow[]> | null = null;
+
+function buildRowsIndex(): Map<string, RawRow[]> {
+  if (_rowsIndex) return _rowsIndex;
+  _rowsIndex = new Map();
+  for (const row of loadData()) {
+    if (!row.client_id) continue;
+    if (!_rowsIndex.has(row.client_id)) _rowsIndex.set(row.client_id, []);
+    _rowsIndex.get(row.client_id)!.push(row);
+  }
+  return _rowsIndex;
+}
+
+function extractListVals(raw: string): string[] {
+  return (raw.match(/\[([^\]]+)\]/g) || [])
+    .map((m) => m.slice(1, -1).trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function capFirst(s: string): string {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+
+function computeDistribution(
+  clientIds: string[],
+  rowsIdx: Map<string, RawRow[]>,
+  field: string,
+  limit = 8
+): { label: string; count: number }[] {
+  const map = new Map<string, Set<string>>();
+  for (const cid of clientIds) {
+    const seen = new Set<string>();
+    for (const r of rowsIdx.get(cid) || []) {
+      for (const v of extractListVals((r as any)[field] || "")) seen.add(v);
+    }
+    for (const v of seen) {
+      if (!map.has(v)) map.set(v, new Set());
+      map.get(v)!.add(cid);
+    }
+  }
+  return [...map.entries()]
+    .map(([label, pts]) => ({ label: capFirst(label), count: pts.size }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
+}
+
+function computeTopItems(
+  clientIds: string[],
+  rowsIdx: Map<string, RawRow[]>,
+  field: string,
+  transform: (v: string) => string,
+  limit = 10
+): { label: string; count: number }[] {
+  const map = new Map<string, Set<string>>();
+  for (const cid of clientIds) {
+    const seen = new Set<string>();
+    for (const r of rowsIdx.get(cid) || []) {
+      for (const v of extractListVals((r as any)[field] || "")) {
+        const t = transform(v);
+        if (t) seen.add(t);
+      }
+    }
+    for (const t of seen) {
+      if (!map.has(t)) map.set(t, new Set());
+      map.get(t)!.add(cid);
+    }
+  }
+  return [...map.entries()]
+    .map(([label, pts]) => ({ label, count: pts.size }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
+}
+
+const LAB_PARAMS: Array<{ key: string; patterns: string[]; refRange: string }> = [
+  { key: "HGB",       patterns: ["hemoglobin", "hgb"],               refRange: "12–17 g/dL" },
+  { key: "WBC",       patterns: ["lökosit", "wbc"],                  refRange: "4–11 K/µL" },
+  { key: "PLT",       patterns: ["trombosit", "plt"],                refRange: "150–450 K/µL" },
+  { key: "KREATİNİN", patterns: ["kreatinin"],                        refRange: "0.5–1.2 mg/dL" },
+  { key: "POTASYUM",  patterns: ["potasyum"],                         refRange: "3.5–5.0 mEq/L" },
+  { key: "SODYUM",    patterns: ["sodyum"],                           refRange: "136–145 mEq/L" },
+  { key: "KALSİYUM",  patterns: ["kalsiyum"],                        refRange: "8.5–10.5 mg/dL" },
+  { key: "BİLİRÜBİN", patterns: ["bilirubin"],                       refRange: "0.2–1.2 mg/dL" },
+  { key: "BUN",       patterns: ["bun"],                              refRange: "7–25 mg/dL" },
+  { key: "LDH",       patterns: ["ldh"],                              refRange: "140–280 U/L" },
+  { key: "ALBUMİN",   patterns: ["albumin"],                          refRange: "3.5–5.0 g/dL" },
+  { key: "GGT",       patterns: ["ggt", "gamma-gt"],                  refRange: "10–71 U/L" },
+  { key: "ALT",       patterns: ["alt (sgpt)", "alt(sgpt)"],          refRange: "7–56 U/L" },
+  { key: "AST",       patterns: ["ast (sgot)", "ast(sgot)"],          refRange: "10–40 U/L" },
+  { key: "ALP",       patterns: ["alp:","alp "],                     refRange: "44–147 U/L" },
+  { key: "CRP",       patterns: ["crp (kantitatif)", "crp:"],        refRange: "<5 mg/L" },
+];
+
+function parseLabValue(labText: string, patterns: string[]): number | null {
+  const t = labText.toLowerCase();
+  for (const pat of patterns) {
+    const idx = t.indexOf(pat);
+    if (idx < 0) continue;
+    const after = t.slice(idx + pat.length, idx + pat.length + 30);
+    const m = after.match(/^[\s:=(]*([0-9]+(?:[.,][0-9]+)?)/);
+    if (m) {
+      const val = parseFloat(m[1].replace(",", "."));
+      if (!isNaN(val) && val > 0) return val;
+    }
+  }
+  return null;
+}
+
+function computeLabParams(
+  clientIds: string[],
+  rowsIdx: Map<string, RawRow[]>
+): Array<{ key: string; count: number; median: number; min: number; max: number; refRange: string }> {
+  const out: Array<{ key: string; count: number; median: number; min: number; max: number; refRange: string }> = [];
+  for (const param of LAB_PARAMS) {
+    const vals: number[] = [];
+    for (const cid of clientIds) {
+      for (const r of rowsIdx.get(cid) || []) {
+        const lab = (r as any)["lab_sonuclari"] || "";
+        if (!lab) continue;
+        const v = parseLabValue(lab, param.patterns);
+        if (v !== null && v > 0 && v < 100000) { vals.push(v); break; }
+      }
+    }
+    if (vals.length < 3) continue;
+    vals.sort((a, b) => a - b);
+    const mid = Math.floor(vals.length / 2);
+    const median = vals.length % 2 === 0
+      ? (vals[mid - 1] + vals[mid]) / 2
+      : vals[mid];
+    out.push({
+      key: param.key,
+      count: vals.length,
+      median: Math.round(median * 10) / 10,
+      min: Math.round(vals[0] * 10) / 10,
+      max: Math.round(vals[vals.length - 1] * 10) / 10,
+      refRange: param.refRange,
+    });
+  }
+  return out;
+}
+
 let _patientCache: Map<string, PatientInfo> | null = null;
 
 function buildPatientCache(): Map<string, PatientInfo> {
@@ -642,6 +784,43 @@ router.get("/cancer-type-detail/:key", (req: Request, res: Response): void => {
     .sort((a, b) => b[1] - a[1])
     .map(([label, count]) => ({ label, count }));
 
+  // ── Extended detail data ──────────────────────────────────────────────────
+  const rowsIdx = buildRowsIndex();
+  const matchedIds = [...cache.entries()]
+    .filter(([, p]) => p.cancerKey === key)
+    .map(([cid]) => cid);
+
+  const totalVisitRecords = matchedIds.reduce(
+    (sum, cid) => sum + (rowsIdx.get(cid)?.length || 0), 0
+  );
+
+  const arrivalTypes        = computeDistribution(matchedIds, rowsIdx, "geliş tipi", 6);
+  const visitTypes          = computeDistribution(matchedIds, rowsIdx, "başvuru tipi", 8);
+  const hospitalizationTypes = computeDistribution(matchedIds, rowsIdx, "yatış tipi", 6);
+  const procedureTypes      = computeDistribution(matchedIds, rowsIdx, "işlem tipi", 8);
+
+  const topMedications = computeTopItems(
+    matchedIds, rowsIdx, "order ilaç",
+    (v) => {
+      const words = v.replace(/%[\d,]+\s*/g, "").split(/\s+/).filter(Boolean);
+      return words.slice(0, 4).join(" ").slice(0, 35);
+    },
+    10
+  );
+
+  const topAtcCodes = computeTopItems(
+    matchedIds, rowsIdx, "order atc",
+    (v) => {
+      const parts = v.split(" - ");
+      const code = parts[0].trim().toUpperCase();
+      const name = parts[1]?.trim().slice(0, 22) || "";
+      return name ? `${code} · ${name}` : code;
+    },
+    10
+  );
+
+  const labParameters = computeLabParams(matchedIds, rowsIdx);
+
   res.json({
     key,
     labelTr: typeInfo.labelTr,
@@ -657,6 +836,14 @@ router.get("/cancer-type-detail/:key", (req: Request, res: Response): void => {
     genderM,
     ageGroups,
     cityDistribution,
+    totalVisitRecords,
+    arrivalTypes,
+    visitTypes,
+    hospitalizationTypes,
+    procedureTypes,
+    topMedications,
+    topAtcCodes,
+    labParameters,
   });
 });
 

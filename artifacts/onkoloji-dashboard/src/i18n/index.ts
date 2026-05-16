@@ -269,6 +269,7 @@ const en: typeof tr = {
     dashboard: "Data Dashboard",
     patientProfiler: "Patient Profiler",
     symptomChecker: "Symptom Checker",
+    library: "Cancer Library",
     aiAssistant: "AI Assistant",
     theme: "Theme",
   },

@@ -114,71 +114,105 @@ async function callExercisePlan(cancerType: string, treatmentPhase: string, fitn
 function saveExercisePlan(p: ExercisePlan) { try { localStorage.setItem(EXERCISE_KEY, JSON.stringify(p)); } catch {} }
 
 /* ─── Exercise Wizard ─── */
-function ExerciseWizard({ onClose, onDone, loading }: { onClose:()=>void; onDone:(cancerType:string, treatmentPhase:string, fitnessLevel:string, restrictions:string[])=>void; loading:boolean }) {
-  const [cancerType, setCancerType] = useState(CANCER_TYPES[0]);
-  const [treatmentPhase, setTreatmentPhase] = useState(TREATMENT_PHASES[0]);
+function ExerciseWizard({ onClose, onDone, loading }: {
+  onClose: () => void;
+  onDone: (cancerType: string, treatmentPhase: string, fitnessLevel: string, restrictions: string[]) => void;
+  loading: boolean;
+}) {
   const [fitnessLevel, setFitnessLevel] = useState(FITNESS_LEVELS[1].value);
+  const [phase, setPhase]               = useState(TREATMENT_PHASES[0]);
   const [restrictions, setRestrictions] = useState<string[]>([]);
-  function toggleR(r: string) { setRestrictions(p => p.includes(r) ? p.filter(x=>x!==r) : [...p,r]); }
+  function toggleR(r: string) { setRestrictions(p => p.includes(r) ? p.filter(x => x !== r) : [...p, r]); }
+
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl border border-teal-100 shadow-xl overflow-hidden">
+
+        {/* Header */}
         <div className="bg-gradient-to-r from-teal-500 to-emerald-600 px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <Dumbbell className="w-5 h-5 text-white"/>
-            <div><h2 className="text-sm font-semibold text-white">Egzersiz Planı Oluştur</h2><p className="text-[11px] text-teal-100">Kişiselleştirilmiş 7 günlük plan</p></div>
+            <Dumbbell className="w-5 h-5 text-white" />
+            <div>
+              <h2 className="text-sm font-semibold text-white">Egzersiz Planı Oluştur</h2>
+              <p className="text-[11px] text-teal-100">Yapay zeka ile kişisel 7 günlük plan</p>
+            </div>
           </div>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-white/20 text-white"><X className="w-4 h-4"/></button>
+          <button onClick={onClose} className="p-1 rounded-full hover:bg-white/20 text-white"><X className="w-4 h-4" /></button>
         </div>
-        <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
-          {/* Cancer type */}
-          <div>
-            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2 block">Kanser Türü</label>
-            <select value={cancerType} onChange={e=>setCancerType(e.target.value)}
-              className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-300 text-slate-700 bg-white">
-              {CANCER_TYPES.map(c=><option key={c}>{c}</option>)}
-            </select>
-          </div>
-          {/* Treatment phase */}
-          <div>
-            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2 block">Tedavi Aşaması</label>
-            <select value={treatmentPhase} onChange={e=>setTreatmentPhase(e.target.value)}
-              className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-300 text-slate-700 bg-white">
-              {TREATMENT_PHASES.map(t=><option key={t}>{t}</option>)}
-            </select>
-          </div>
+
+        <div className="p-5 space-y-5">
           {/* Fitness level */}
           <div>
-            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2 block">Fiziksel Kapasite</label>
+            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2.5 block">
+              Fiziksel durumunuz nasıl?
+            </label>
             <div className="space-y-2">
-              {FITNESS_LEVELS.map(f=>(
-                <button key={f.value} onClick={()=>setFitnessLevel(f.value)}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl border text-sm transition-all ${fitnessLevel===f.value?"bg-teal-500 border-teal-500 text-white":"border-slate-200 text-slate-700 hover:border-teal-200 hover:bg-teal-50"}`}>
+              {FITNESS_LEVELS.map(f => (
+                <button key={f.value} onClick={() => setFitnessLevel(f.value)}
+                  className={`w-full text-left px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+                    fitnessLevel === f.value
+                      ? "bg-teal-500 border-teal-500 text-white shadow-md shadow-teal-200"
+                      : "border-slate-200 text-slate-600 hover:border-teal-200 hover:bg-teal-50"
+                  }`}>
                   {f.label}
                 </button>
               ))}
             </div>
           </div>
-          {/* Restrictions */}
+
+          {/* Treatment phase */}
           <div>
-            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2 block">
-              Fiziksel Kısıtlamalar <span className="normal-case font-normal text-slate-400">(opsiyonel)</span>
+            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2.5 block">
+              Tedavi süreci
             </label>
             <div className="flex flex-wrap gap-2">
-              {EX_RESTRICTIONS.map(r=>(
-                <button key={r} onClick={()=>toggleR(r)}
-                  className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-xl border transition-all ${restrictions.includes(r)?"bg-teal-500 border-teal-500 text-white":"border-slate-200 text-slate-600 hover:border-teal-200 hover:bg-teal-50"}`}>
-                  {restrictions.includes(r)&&<Check className="w-3 h-3"/>}{r}
+              {TREATMENT_PHASES.map(t => (
+                <button key={t} onClick={() => setPhase(t)}
+                  className={`text-xs px-3 py-1.5 rounded-xl border font-medium transition-all ${
+                    phase === t
+                      ? "bg-teal-500 border-teal-500 text-white"
+                      : "border-slate-200 text-slate-600 hover:border-teal-200 hover:bg-teal-50"
+                  }`}>
+                  {t}
                 </button>
               ))}
             </div>
           </div>
-          <button onClick={()=>onDone(cancerType,treatmentPhase,fitnessLevel,restrictions)} disabled={loading}
-            className="w-full py-3 rounded-xl bg-teal-500 hover:bg-teal-600 disabled:opacity-60 text-white text-sm font-semibold transition-colors shadow-md shadow-teal-200 flex items-center justify-center gap-2">
-            {loading?<><Loader2 className="w-4 h-4 animate-spin"/>Plan hazırlanıyor…</>:<><Sparkles className="w-4 h-4"/>Egzersiz Planı Oluştur</>}
+
+          {/* Restrictions */}
+          <div>
+            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2.5 block">
+              Fiziksel kısıtlama <span className="normal-case font-normal text-slate-400">(opsiyonel)</span>
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {EX_RESTRICTIONS.map(r => (
+                <button key={r} onClick={() => toggleR(r)}
+                  className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-xl border transition-all ${
+                    restrictions.includes(r)
+                      ? "bg-teal-500 border-teal-500 text-white"
+                      : "border-slate-200 text-slate-600 hover:border-teal-200 hover:bg-teal-50"
+                  }`}>
+                  {restrictions.includes(r) && <Check className="w-3 h-3" />}{r}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={() => onDone("Belirtmek istemiyorum", phase, fitnessLevel, restrictions)}
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-teal-500 hover:bg-teal-600 disabled:opacity-60 text-white text-sm font-semibold transition-colors shadow-md shadow-teal-200 flex items-center justify-center gap-2"
+          >
+            {loading
+              ? <><Loader2 className="w-4 h-4 animate-spin" /> Yapay zeka planı hazırlıyor…</>
+              : <><Sparkles className="w-4 h-4" /> Egzersiz Planı Oluştur</>
+            }
           </button>
         </div>
-        <p className="text-[11px] text-slate-400 text-center py-3 border-t border-slate-50">Doktorunuzla veya fizyoterapistinizle paylaşmanız önerilir.</p>
+
+        <p className="text-[11px] text-slate-400 text-center pb-4">
+          Plan EgzersizTakip sayfanızla senkron tutulur · Fizyoterapistinizle paylaşın
+        </p>
       </div>
     </div>
   );

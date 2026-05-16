@@ -96,7 +96,6 @@ function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
     : [
         { path: "/",            label: "Sağlık Panelim",      icon: <User className="w-3.5 h-3.5" /> },
         { path: "/belirti",     label: t.nav.symptomChecker,  icon: <Stethoscope className="w-3.5 h-3.5" /> },
-        { path: "/beslenme",    label: "Beslenme Danışmanı",  icon: <Salad className="w-3.5 h-3.5" /> },
         { path: "/aile",        label: "Aile Rehberi",        icon: <Users className="w-3.5 h-3.5" /> },
         { path: "/haberler",    label: "Haberler",            icon: <Newspaper className="w-3.5 h-3.5" /> },
         { path: "/egitim",      label: t.nav.educationCenter, icon: <GraduationCap className="w-3.5 h-3.5" /> },

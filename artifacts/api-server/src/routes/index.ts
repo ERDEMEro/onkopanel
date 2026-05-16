@@ -9,6 +9,8 @@ import casesRouter from "./cases";
 import griefSupportRouter from "./grief-support";
 import caregiverSupportRouter from "./caregiver-support";
 import nutritionAdvisorRouter from "./nutrition-advisor";
+import oncologyNewsRouter from "./oncology-news";
+import priorityPanelRouter from "./priority-panel";
 
 const router: IRouter = Router();
 
@@ -22,5 +24,7 @@ router.use(casesRouter);
 router.use(griefSupportRouter);
 router.use(caregiverSupportRouter);
 router.use(nutritionAdvisorRouter);
+router.use(oncologyNewsRouter);
+router.use(priorityPanelRouter);
 
 export default router;

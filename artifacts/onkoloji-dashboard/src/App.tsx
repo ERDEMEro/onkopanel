@@ -17,12 +17,16 @@ import BakiciRehberi from "@/pages/BakiciRehberi";
 import BeslenmeDanismani from "@/pages/BeslenmeDanismani";
 import HatirlaticiTakip from "@/pages/HatirlaticiTakip";
 import BeliritGunlugu from "@/pages/BeliritGunlugu";
+import OnkoHaberler from "@/pages/OnkoHaberler";
+import YasamKalitesi from "@/pages/YasamKalitesi";
+import EgzersizTakip from "@/pages/EgzersizTakip";
+import OncelikPaneli from "@/pages/OncelikPaneli";
 import AuthPage from "@/pages/AuthPage";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider, useLang } from "@/context/LanguageContext";
 import { NarratorProvider } from "@/context/NarratorContext";
 import { NarratorWidget } from "@/components/Narrator";
-import { BarChart2, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList, Heart, Salad, Bell, NotebookPen } from "lucide-react";
+import { BarChart2, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList, Heart, Salad, Bell, NotebookPen, Newspaper, Star, AlertTriangle } from "lucide-react";
 
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth, AuthProvider } from "@workspace/replit-auth-web";
@@ -48,21 +52,25 @@ function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
 
   const mainTabs = isDoctor
     ? [
-        { path: "/",          label: t.nav.dashboard,       icon: <BarChart2 className="w-3.5 h-3.5" /> },
-        { path: "/profil",    label: t.nav.patientProfiler, icon: <Users className="w-3.5 h-3.5" /> },
-        { path: "/kutuphane", label: t.nav.library,         icon: <BookOpen className="w-3.5 h-3.5" /> },
-        { path: "/asistan",   label: t.nav.aiAssistant,     icon: <Sparkles className="w-3.5 h-3.5" /> },
-        { path: "/vaka",      label: "Vaka Doldur",         icon: <ClipboardList className="w-3.5 h-3.5" /> },
+        { path: "/",            label: t.nav.dashboard,       icon: <BarChart2 className="w-3.5 h-3.5" /> },
+        { path: "/profil",      label: t.nav.patientProfiler, icon: <Users className="w-3.5 h-3.5" /> },
+        { path: "/kutuphane",   label: t.nav.library,         icon: <BookOpen className="w-3.5 h-3.5" /> },
+        { path: "/oncelik",     label: "Öncelik Paneli",      icon: <AlertTriangle className="w-3.5 h-3.5" /> },
+        { path: "/asistan",     label: t.nav.aiAssistant,     icon: <Sparkles className="w-3.5 h-3.5" /> },
+        { path: "/vaka",        label: "Vaka Doldur",         icon: <ClipboardList className="w-3.5 h-3.5" /> },
       ]
     : [
-        { path: "/belirti",   label: t.nav.symptomChecker,  icon: <Stethoscope className="w-3.5 h-3.5" /> },
-        { path: "/gunluk",    label: "Belirti Günlüğü",     icon: <NotebookPen className="w-3.5 h-3.5" /> },
-        { path: "/hatirlatici", label: "İlaç & Randevu",    icon: <Bell className="w-3.5 h-3.5" /> },
-        { path: "/beslenme",  label: "Beslenme",            icon: <Salad className="w-3.5 h-3.5" /> },
-        { path: "/destek",    label: "Psikolojik Destek",   icon: <Heart className="w-3.5 h-3.5" /> },
-        { path: "/aile",      label: "Aile Rehberi",        icon: <Users className="w-3.5 h-3.5" /> },
-        { path: "/egitim",    label: t.nav.educationCenter, icon: <GraduationCap className="w-3.5 h-3.5" /> },
-        { path: "/asistan",   label: t.nav.aiAssistant,     icon: <Sparkles className="w-3.5 h-3.5" /> },
+        { path: "/belirti",     label: t.nav.symptomChecker,  icon: <Stethoscope className="w-3.5 h-3.5" /> },
+        { path: "/gunluk",      label: "Belirti Günlüğü",     icon: <NotebookPen className="w-3.5 h-3.5" /> },
+        { path: "/egzersiz",    label: "Egzersiz",            icon: <Activity className="w-3.5 h-3.5" /> },
+        { path: "/hatirlatici", label: "İlaç & Randevu",      icon: <Bell className="w-3.5 h-3.5" /> },
+        { path: "/beslenme",    label: "Beslenme",            icon: <Salad className="w-3.5 h-3.5" /> },
+        { path: "/yasam",       label: "Yaşam Kalitesi",      icon: <Star className="w-3.5 h-3.5" /> },
+        { path: "/destek",      label: "Psikolojik Destek",   icon: <Heart className="w-3.5 h-3.5" /> },
+        { path: "/aile",        label: "Aile Rehberi",        icon: <Users className="w-3.5 h-3.5" /> },
+        { path: "/haberler",    label: "Haberler",            icon: <Newspaper className="w-3.5 h-3.5" /> },
+        { path: "/egitim",      label: t.nav.educationCenter, icon: <GraduationCap className="w-3.5 h-3.5" /> },
+        { path: "/asistan",     label: t.nav.aiAssistant,     icon: <Sparkles className="w-3.5 h-3.5" /> },
       ];
 
   const tabCls = (active: boolean) =>
@@ -201,15 +209,19 @@ function Router() {
           <Route path="/profil"    component={isDoctor ? PatientProfiler : NotFound} />
           <Route path="/belirti"      component={SymptomChecker} />
           <Route path="/gunluk"       component={isDoctor ? NotFound : BeliritGunlugu} />
+          <Route path="/egzersiz"     component={isDoctor ? NotFound : EgzersizTakip} />
           <Route path="/hatirlatici"  component={isDoctor ? NotFound : HatirlaticiTakip} />
           <Route path="/beslenme"     component={isDoctor ? NotFound : BeslenmeDanismani} />
+          <Route path="/yasam"        component={isDoctor ? NotFound : YasamKalitesi} />
           <Route path="/destek"       component={isDoctor ? NotFound : PsikolojikDestek} />
           <Route path="/aile"         component={isDoctor ? NotFound : BakiciRehberi} />
+          <Route path="/haberler"     component={isDoctor ? NotFound : OnkoHaberler} />
           <Route path="/kutuphane"    component={isDoctor ? CancerLibrary : NotFound} />
+          <Route path="/oncelik"      component={isDoctor ? OncelikPaneli : NotFound} />
           <Route path="/egitim"       component={EgitimMerkezi} />
-          <Route path="/asistan"   component={AiAsistan} />
-          <Route path="/ayarlar"   component={Ayarlar} />
-          <Route path="/vaka"      component={isDoctor ? VakaDoldur : NotFound} />
+          <Route path="/asistan"      component={AiAsistan} />
+          <Route path="/ayarlar"      component={Ayarlar} />
+          <Route path="/vaka"         component={isDoctor ? VakaDoldur : NotFound} />
           <Route component={NotFound} />
         </Switch>
       </PageTransition>

@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { NotebookPen, Plus, ChevronLeft, ChevronRight, TrendingUp, Sparkles, Send, Loader2, Bot } from "lucide-react";
+
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
@@ -120,7 +122,7 @@ export default function BeliritGunlugu() {
     const updated = [...chatMsgs, userMsg];
     setChatMsgs(updated); saveChat(updated); setChatInput(""); setChatLoading(true);
     try {
-      const res = await fetch("/api/ai-advisor", {
+      const res = await fetch(`${BASE}/api/ai-advisor`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "symptom", messages: updated, context: contextNote }),

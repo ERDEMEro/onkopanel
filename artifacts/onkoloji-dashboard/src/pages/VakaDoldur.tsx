@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@workspace/replit-auth-web";
+
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 import {
   Bot, Send, User2, CheckCircle2, Loader2, AlertCircle,
   ClipboardList, RotateCcw, PenLine, Sparkles,
@@ -129,7 +131,7 @@ function AiChatMode({ onSaved }: { onSaved: (data: ExtractedCase) => void }) {
     setSending(true);
     setError("");
     try {
-      const res  = await fetch("/api/cases/ai-chat", {
+      const res  = await fetch(`${BASE}/api/cases/ai-chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -152,7 +154,7 @@ function AiChatMode({ onSaved }: { onSaved: (data: ExtractedCase) => void }) {
     setSaving(true);
     setError("");
     try {
-      const extractRes = await fetch("/api/cases/extract", {
+      const extractRes = await fetch(`${BASE}/api/cases/extract`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -162,7 +164,7 @@ function AiChatMode({ onSaved }: { onSaved: (data: ExtractedCase) => void }) {
       if (!extractRes.ok) throw new Error(extractData.error ?? "Veri çıkarma başarısız.");
       const extracted = extractData.extracted ?? {};
 
-      const saveRes = await fetch("/api/cases", {
+      const saveRes = await fetch(`${BASE}/api/cases`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -298,7 +300,7 @@ function ManualFormMode({ onSaved }: { onSaved: (data: ExtractedCase) => void })
         deathStatus:   !!form.deathStatus,
         notes:         form.notes || null,
       };
-      const res = await fetch("/api/cases", {
+      const res = await fetch(`${BASE}/api/cases`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

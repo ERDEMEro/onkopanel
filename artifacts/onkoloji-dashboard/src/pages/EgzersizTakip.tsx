@@ -26,6 +26,7 @@ interface ExercisePlan {
   generalTips: string[];
 }
 
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const STORAGE_KEY = "onko_exercise_logs";
 const CHAT_KEY = "onko_chat_egzersiz";
 const PLAN_KEY = "onko_exercise_plan";
@@ -117,7 +118,7 @@ export default function EgzersizTakip() {
   async function generatePlan() {
     setWizardStep("loading"); setPlanError("");
     try {
-      const res = await fetch("/api/exercise-plan", {
+      const res = await fetch(`${BASE}/api/exercise-plan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cancerType, treatmentPhase, fitnessLevel, restrictions: selectedRestrictions }),
@@ -136,7 +137,7 @@ export default function EgzersizTakip() {
     const updated = [...chatMsgs, userMsg];
     setChatMsgs(updated); saveChat(updated); setChatInput(""); setChatLoading(true);
     try {
-      const res = await fetch("/api/ai-advisor", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "exercise", messages: updated }) });
+      const res = await fetch(`${BASE}/api/ai-advisor`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "exercise", messages: updated }) });
       const data = (await res.json()) as { reply?: string; error?: string };
       const reply: ChatMsg = { role: "assistant", content: data.reply ?? data.error ?? "Yanıt alınamadı." };
       const final = [...updated, reply]; setChatMsgs(final); saveChat(final);

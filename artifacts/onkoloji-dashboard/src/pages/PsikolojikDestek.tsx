@@ -188,7 +188,7 @@ export default function PsikolojikDestek() {
   async function generatePlan() {
     setPlanStep("loading"); setPlanError("");
     try {
-      const res=await fetch("/api/support-plan",{method:"POST",headers:{"Content-Type":"application/json"},
+      const res=await fetch(`${BASE}/api/support-plan`,{method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({challenges:selectedChallenges,moodLevel,preferences:selectedPrefs})});
       const data=(await res.json()) as SupportPlan & {error?:string};
       if (data.error) { setPlanError(data.error); setPlanStep("wizard"); return; }

@@ -32,6 +32,7 @@ interface ExercisePlan { planTitle: string; level: string; days: ExerciseDay[]; 
 interface Practice { title: string; description: string; duration: string; icon: string; }
 interface SupportPlan { planTitle: string; dailyPractices: Practice[]; weeklyGoals: string[]; affirmations: string[]; }
 
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const STORAGE_MED = "onko_med_reminders";
 const STORAGE_APPT = "onko_appt_reminders";
 const CHAT_KEY = "onko_chat_ilac";
@@ -145,7 +146,7 @@ export default function HatirlaticiTakip() {
     const updated=[...chatMsgs,userMsg];
     setChatMsgs(updated); saveChat(updated); setChatInput(""); setChatLoading(true);
     try {
-      const res=await fetch("/api/ai-advisor",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"medication",messages:updated})});
+      const res=await fetch(`${BASE}/api/ai-advisor`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"medication",messages:updated})});
       const data=(await res.json()) as {reply?:string;error?:string};
       const reply:ChatMsg={role:"assistant",content:data.reply??data.error??"Yanıt alınamadı."};
       const final=[...updated,reply]; setChatMsgs(final); saveChat(final);

@@ -12,12 +12,13 @@ import CancerLibrary from "@/pages/CancerLibrary";
 import EgitimMerkezi from "@/pages/EgitimMerkezi";
 import Ayarlar from "@/pages/Ayarlar";
 import VakaDoldur from "@/pages/VakaDoldur";
+import PsikolojikDestek from "@/pages/PsikolojikDestek";
 import AuthPage from "@/pages/AuthPage";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider, useLang } from "@/context/LanguageContext";
 import { NarratorProvider } from "@/context/NarratorContext";
 import { NarratorWidget } from "@/components/Narrator";
-import { BarChart2, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList } from "lucide-react";
+import { BarChart2, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList, Heart } from "lucide-react";
 
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth, AuthProvider } from "@workspace/replit-auth-web";
@@ -51,6 +52,7 @@ function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
       ]
     : [
         { path: "/belirti",   label: t.nav.symptomChecker,  icon: <Stethoscope className="w-3.5 h-3.5" /> },
+        { path: "/destek",    label: "Psikolojik Destek",   icon: <Heart className="w-3.5 h-3.5" /> },
         { path: "/egitim",    label: t.nav.educationCenter, icon: <GraduationCap className="w-3.5 h-3.5" /> },
         { path: "/asistan",   label: t.nav.aiAssistant,     icon: <Sparkles className="w-3.5 h-3.5" /> },
       ];
@@ -190,6 +192,7 @@ function Router() {
           )}
           <Route path="/profil"    component={isDoctor ? PatientProfiler : NotFound} />
           <Route path="/belirti"   component={SymptomChecker} />
+          <Route path="/destek"    component={isDoctor ? NotFound : PsikolojikDestek} />
           <Route path="/kutuphane" component={isDoctor ? CancerLibrary : NotFound} />
           <Route path="/egitim"    component={EgitimMerkezi} />
           <Route path="/asistan"   component={AiAsistan} />

@@ -12,6 +12,7 @@ import CancerLibrary from "@/pages/CancerLibrary";
 import EgitimMerkezi from "@/pages/EgitimMerkezi";
 import Ayarlar from "@/pages/Ayarlar";
 import VakaDoldur from "@/pages/VakaDoldur";
+import AuthPage from "@/pages/AuthPage";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider, useLang } from "@/context/LanguageContext";
 import { NarratorProvider } from "@/context/NarratorContext";
@@ -169,6 +170,12 @@ function PageTransition({ children }: { children: ReactNode }) {
 
 function Router() {
   const [loginOpen, setLoginOpen] = useState(false);
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (!isLoading && !isAuthenticated) {
+    return <AuthPage />;
+  }
+
   return (
     <>
       <TabNav onLoginClick={() => setLoginOpen(true)} />

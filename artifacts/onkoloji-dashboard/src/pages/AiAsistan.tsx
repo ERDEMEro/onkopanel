@@ -145,7 +145,7 @@ export default function AiAsistan() {
   return (
     <div className="max-w-[900px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-4" style={{ minHeight: "calc(100vh - 44px)" }}>
       {/* Header */}
-      <div>
+      <div className="anim-fsu" style={{ animationDelay: "0ms" }}>
         <div className="flex items-center gap-2 mb-1">
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-800">
             <Sparkles className="w-3 h-3" />
@@ -157,13 +157,13 @@ export default function AiAsistan() {
       </div>
 
       {/* Warning */}
-      <div className="flex gap-2.5 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 px-4 py-3 text-xs text-amber-800 dark:text-amber-300">
+      <div className="flex gap-2.5 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 px-4 py-3 text-xs text-amber-800 dark:text-amber-300 anim-fsu" style={{ animationDelay: "60ms" }}>
         <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
         <span>{a.warning}</span>
       </div>
 
       {/* Example questions */}
-      <div>
+      <div className="anim-fsu" style={{ animationDelay: "120ms" }}>
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{a.examplesTitle}</p>
         <div className="flex flex-wrap gap-2">
           {a.examples.map((ex, i) => (

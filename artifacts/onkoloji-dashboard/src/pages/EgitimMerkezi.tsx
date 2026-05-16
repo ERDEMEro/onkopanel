@@ -538,7 +538,7 @@ export default function EgitimMerkezi() {
       <div className="max-w-[1300px] mx-auto px-6 py-6 space-y-6">
 
         {/* ── Page header ── */}
-        <div className="space-y-3">
+        <div className="space-y-3 anim-fsu" style={{ animationDelay: "0ms" }}>
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
               <GraduationCap className="w-3.5 h-3.5" />

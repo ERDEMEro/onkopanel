@@ -632,7 +632,7 @@ export default function CancerLibrary() {
   }, [list, search]);
 
   return (
-    <div className="flex h-[calc(100dvh-56px)] overflow-hidden">
+    <div className="flex h-[calc(100dvh-56px)] overflow-hidden anim-fsu" style={{ animationDelay: "0ms" }}>
 
       {/* ── Left sidebar ───────────────────────────────────────────────── */}
       <aside className="w-64 xl:w-72 shrink-0 border-r flex flex-col bg-card overflow-hidden">

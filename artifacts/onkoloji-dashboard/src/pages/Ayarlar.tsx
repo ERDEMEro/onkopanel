@@ -171,7 +171,7 @@ export default function Ayarlar() {
       <div className="max-w-3xl mx-auto px-6 py-8 space-y-10">
 
         {/* ── Page header ── */}
-        <div>
+        <div className="anim-fsu" style={{ animationDelay: "0ms" }}>
           <div className="flex items-center gap-1.5 mb-3">
             <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
               <Settings className="w-3.5 h-3.5" />
@@ -183,7 +183,7 @@ export default function Ayarlar() {
         </div>
 
         {/* ── Language ── */}
-        <section className="rounded-2xl border bg-card p-6">
+        <section className="rounded-2xl border bg-card p-6 anim-fsu" style={{ animationDelay: "60ms" }}>
           <SectionHeader icon={<Globe className="w-4 h-4" />} label={s.langSection} />
           <div className="grid grid-cols-2 gap-3">
             {(["tr", "en"] as const).map((l) => {
@@ -218,7 +218,7 @@ export default function Ayarlar() {
         </section>
 
         {/* ── Theme presets ── */}
-        <section className="rounded-2xl border bg-card p-6">
+        <section className="rounded-2xl border bg-card p-6 anim-fsu" style={{ animationDelay: "120ms" }}>
           <SectionHeader icon={<Palette className="w-4 h-4" />} label={s.themeSection} />
           <div className="grid grid-cols-3 gap-3">
             {PRESETS.map((preset) => {
@@ -255,7 +255,7 @@ export default function Ayarlar() {
         </section>
 
         {/* ── Chart bar style ── */}
-        <section className="rounded-2xl border bg-card p-6">
+        <section className="rounded-2xl border bg-card p-6 anim-fsu" style={{ animationDelay: "180ms" }}>
           <SectionHeader icon={<BarChart2 className="w-4 h-4" />} label={s.barStyleSection} />
           <div className="grid grid-cols-2 gap-3">
             {(["cylinder", "flat"] as BarStyle[]).map((bs) => {

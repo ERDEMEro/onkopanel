@@ -139,7 +139,7 @@ export default function PatientProfiler() {
       <div className="max-w-[1200px] mx-auto">
 
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 anim-fsu" style={{ animationDelay: "0ms" }}>
           <div className="inline-flex items-center gap-2 text-xs font-semibold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-900 rounded-full px-3 py-1 mb-3">
             <Users className="w-3.5 h-3.5" /> {p.badge}
           </div>
@@ -148,7 +148,7 @@ export default function PatientProfiler() {
         </div>
 
         {/* Info card */}
-        <div className="rounded-xl border bg-blue-50/60 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900 p-5 mb-8 flex gap-4">
+        <div className="rounded-xl border bg-blue-50/60 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900 p-5 mb-8 flex gap-4 anim-fsu" style={{ animationDelay: "60ms" }}>
           <div className="shrink-0 w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center mt-0.5">
             <ClipboardList className="w-4 h-4" />
           </div>
@@ -159,7 +159,7 @@ export default function PatientProfiler() {
         </div>
 
         {/* Filters */}
-        <div className="bg-card border rounded-xl p-5 mb-8">
+        <div className="bg-card border rounded-xl p-5 mb-8 anim-fsu" style={{ animationDelay: "120ms" }}>
           <div className="flex flex-wrap gap-6 items-start">
             <div>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5">{p.ageGroup}</p>

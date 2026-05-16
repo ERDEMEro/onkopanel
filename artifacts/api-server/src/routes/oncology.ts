@@ -577,6 +577,7 @@ const LIBRARY_CANCER_DETECT: Array<{ key: string; labelTr: string; labelEn: stri
   { key: "lymphoma",   labelTr: "Lenfoma",                       labelEn: "Lymphoma",              keywords: ["lenfoma", "hodgkin", "diffuse large", "non-hodgkin", "lenf bezi kanseri", "lenf bezi malign"] },
   { key: "stomach",    labelTr: "Mide Kanseri",                  labelEn: "Stomach Cancer",        keywords: ["mide karsinomu", "mide kanseri", "gastrik karsinom", "mide tümörü", "gastrik kanser", "mide malign", "mide malign neoplazmı"] },
   { key: "myeloma",    labelTr: "Multipl Miyelom",               labelEn: "Multiple Myeloma",      keywords: ["multipl miyelom", "miyelom", "plazmosit"] },
+  { key: "other",      labelTr: "Diğer / Sınıflandırılmamış",   labelEn: "Other / Unclassified",  keywords: [] },
 ];
 
 const CITY_MAP: Record<string, string> = {
@@ -591,16 +592,16 @@ function extractCity(clientId: string): string {
   return "Diğer";
 }
 
-function detectLibraryCancerType(text: string): string | null {
+function detectLibraryCancerType(text: string): string {
   const t = text.toLowerCase();
   for (const { key, keywords } of LIBRARY_CANCER_DETECT) {
-    if (keywords.some((kw) => t.includes(kw))) return key;
+    if (keywords.length && keywords.some((kw) => t.includes(kw))) return key;
   }
-  return null;
+  return "other";
 }
 
 interface PatientInfo {
-  cancerKey: string | null;
+  cancerKey: string;
   age: number | null;
   gender: string;
   isDead: boolean;
@@ -785,12 +786,16 @@ router.get("/cancer-type-list", (_req: Request, res: Response): void => {
   const cache = buildPatientCache();
   const counts: Record<string, number> = {};
   for (const { cancerKey } of cache.values()) {
-    if (cancerKey) counts[cancerKey] = (counts[cancerKey] || 0) + 1;
+    counts[cancerKey] = (counts[cancerKey] || 0) + 1;
   }
   const result = LIBRARY_CANCER_DETECT
     .filter(({ key }) => counts[key])
     .map(({ key, labelTr, labelEn }) => ({ key, labelTr, labelEn, count: counts[key] || 0 }))
-    .sort((a, b) => b.count - a.count);
+    .sort((a, b) => {
+      if (a.key === "other") return 1;
+      if (b.key === "other") return -1;
+      return b.count - a.count;
+    });
   res.json(result);
 });
 

@@ -25,6 +25,7 @@ const COLOR_BY_KEY: Record<string, string> = {
   pancreatic: "#9C27B0", cervical: "#E91E63", lymphoma: "#00BCD4",
   stomach: "#FF5722",    myeloma: "#3F51B5",  kidney: "#009688",
   thyroid: "#00acc1",    ovarian: "#e91e63",  brain: "#673ab7",
+  other: "#78909C",
 };
 
 const PALETTE = [
@@ -701,7 +702,7 @@ export default function CancerLibrary() {
           <div className="p-3 border-t">
             <p className="text-[10px] text-muted-foreground">
               {list.length} {lib.resultsFound} &middot;{" "}
-              {(summary?.totalPatients ?? list.reduce((s, i) => s + i.count, 0)).toLocaleString("tr-TR")} hasta
+              {list.reduce((s, i) => s + i.count, 0).toLocaleString("tr-TR")} hasta
             </p>
           </div>
         )}

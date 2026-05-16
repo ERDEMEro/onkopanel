@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import {
   Calendar, ChevronLeft, ChevronRight, Sparkles, X, Check,
-  CheckCircle2, Circle, Loader2, Salad, RefreshCw,
+  CheckCircle2, Circle, Loader2, Salad,
   Pill, CalendarDays, Dumbbell, BedDouble, Heart,
-  AlertCircle, Plus,
+  AlertCircle, Plus, Activity,
 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -66,6 +66,24 @@ const MEAL_SLOTS = [
 ] as const;
 const RESTRICTION_OPTIONS = ["Gluten-siz","Vegan","Vejetaryen","Laktozsuz","Tuzsuz","Düşük Şeker","Lifli Ağırlıklı"];
 
+/* ─── Exercise wizard constants ─── */
+const CANCER_TYPES = [
+  "Belirtmek istemiyorum","Meme Kanseri","Akciğer Kanseri","Kolon Kanseri",
+  "Prostat Kanseri","Mide Kanseri","Lösemi","Lenfoma","Over Kanseri",
+  "Pankreas Kanseri","Beyin Tümörü","Böbrek Kanseri","Diğer",
+];
+const TREATMENT_PHASES = [
+  "Belirtmek istemiyorum","Kemoterapi sürecinde","Radyoterapi sürecinde",
+  "Cerrahi sonrası iyileşme","Remisyon","Bakımsal tedavi",
+];
+const FITNESS_LEVELS = [
+  { value:"cok_dusuk", label:"Çok düşük — Çoğu zaman yatağa bağlıyım" },
+  { value:"dusuk",     label:"Düşük — Kısa yürüyüş yapabiliyorum" },
+  { value:"orta",      label:"Orta — Günlük aktivitelerimi yapabiliyorum" },
+  { value:"iyi",       label:"İyi — Düzenli hafif spor yapabiliyorum" },
+];
+const EX_RESTRICTIONS = ["Diz ağrısı","Sırt ağrısı","Lenfödem","Denge sorunu","Nefes darlığı","Ağrılı eklemler"];
+
 function getWeekDates(weekOffset: number = 0): string[] {
   const today = new Date();
   const dow = (today.getDay()+6)%7;
@@ -82,6 +100,88 @@ function toDateStr(d: Date): string {
 function weekRangeLabel(dates: string[]): string {
   const fmt = (s: string) => new Date(s+"T12:00:00").toLocaleDateString("tr-TR",{day:"numeric",month:"short"});
   return `${fmt(dates[0])} – ${fmt(dates[6])}`;
+}
+
+/* ─── Exercise API helper ─── */
+async function callExercisePlan(cancerType: string, treatmentPhase: string, fitnessLevel: string, restrictions: string[]): Promise<ExercisePlan> {
+  const res = await fetch(`${BASE}/api/exercise-plan`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ cancerType, treatmentPhase, fitnessLevel, restrictions }),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error((e as { error?: string }).error ?? "Hata"); }
+  return res.json() as Promise<ExercisePlan>;
+}
+function saveExercisePlan(p: ExercisePlan) { try { localStorage.setItem(EXERCISE_KEY, JSON.stringify(p)); } catch {} }
+
+/* ─── Exercise Wizard ─── */
+function ExerciseWizard({ onClose, onDone, loading }: { onClose:()=>void; onDone:(cancerType:string, treatmentPhase:string, fitnessLevel:string, restrictions:string[])=>void; loading:boolean }) {
+  const [cancerType, setCancerType] = useState(CANCER_TYPES[0]);
+  const [treatmentPhase, setTreatmentPhase] = useState(TREATMENT_PHASES[0]);
+  const [fitnessLevel, setFitnessLevel] = useState(FITNESS_LEVELS[1].value);
+  const [restrictions, setRestrictions] = useState<string[]>([]);
+  function toggleR(r: string) { setRestrictions(p => p.includes(r) ? p.filter(x=>x!==r) : [...p,r]); }
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white rounded-2xl border border-teal-100 shadow-xl overflow-hidden">
+        <div className="bg-gradient-to-r from-teal-500 to-emerald-600 px-5 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <Dumbbell className="w-5 h-5 text-white"/>
+            <div><h2 className="text-sm font-semibold text-white">Egzersiz Planı Oluştur</h2><p className="text-[11px] text-teal-100">Kişiselleştirilmiş 7 günlük plan</p></div>
+          </div>
+          <button onClick={onClose} className="p-1 rounded-full hover:bg-white/20 text-white"><X className="w-4 h-4"/></button>
+        </div>
+        <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+          {/* Cancer type */}
+          <div>
+            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2 block">Kanser Türü</label>
+            <select value={cancerType} onChange={e=>setCancerType(e.target.value)}
+              className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-300 text-slate-700 bg-white">
+              {CANCER_TYPES.map(c=><option key={c}>{c}</option>)}
+            </select>
+          </div>
+          {/* Treatment phase */}
+          <div>
+            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2 block">Tedavi Aşaması</label>
+            <select value={treatmentPhase} onChange={e=>setTreatmentPhase(e.target.value)}
+              className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-300 text-slate-700 bg-white">
+              {TREATMENT_PHASES.map(t=><option key={t}>{t}</option>)}
+            </select>
+          </div>
+          {/* Fitness level */}
+          <div>
+            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2 block">Fiziksel Kapasite</label>
+            <div className="space-y-2">
+              {FITNESS_LEVELS.map(f=>(
+                <button key={f.value} onClick={()=>setFitnessLevel(f.value)}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl border text-sm transition-all ${fitnessLevel===f.value?"bg-teal-500 border-teal-500 text-white":"border-slate-200 text-slate-700 hover:border-teal-200 hover:bg-teal-50"}`}>
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {/* Restrictions */}
+          <div>
+            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2 block">
+              Fiziksel Kısıtlamalar <span className="normal-case font-normal text-slate-400">(opsiyonel)</span>
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {EX_RESTRICTIONS.map(r=>(
+                <button key={r} onClick={()=>toggleR(r)}
+                  className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-xl border transition-all ${restrictions.includes(r)?"bg-teal-500 border-teal-500 text-white":"border-slate-200 text-slate-600 hover:border-teal-200 hover:bg-teal-50"}`}>
+                  {restrictions.includes(r)&&<Check className="w-3 h-3"/>}{r}
+                </button>
+              ))}
+            </div>
+          </div>
+          <button onClick={()=>onDone(cancerType,treatmentPhase,fitnessLevel,restrictions)} disabled={loading}
+            className="w-full py-3 rounded-xl bg-teal-500 hover:bg-teal-600 disabled:opacity-60 text-white text-sm font-semibold transition-colors shadow-md shadow-teal-200 flex items-center justify-center gap-2">
+            {loading?<><Loader2 className="w-4 h-4 animate-spin"/>Plan hazırlanıyor…</>:<><Sparkles className="w-4 h-4"/>Egzersiz Planı Oluştur</>}
+          </button>
+        </div>
+        <p className="text-[11px] text-slate-400 text-center py-3 border-t border-slate-50">Doktorunuzla veya fizyoterapistinizle paylaşmanız önerilir.</p>
+      </div>
+    </div>
+  );
 }
 
 /* ─── Meal Wizard ─── */
@@ -166,6 +266,9 @@ export default function BesinTakvimi() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [genError, setGenError] = useState<string|null>(null);
+  const [exWizardOpen, setExWizardOpen] = useState(false);
+  const [generatingEx, setGeneratingEx] = useState(false);
+  const [exError, setExError] = useState<string|null>(null);
 
   // All plans from localStorage
   const [mealPlan, setMealPlan] = useState<MealPlan|null>(()=>load(MEAL_PLAN_KEY, null));
@@ -196,6 +299,15 @@ export default function BesinTakvimi() {
       saveMealPlan(p); setMealPlan(p); setChecked({}); saveChecked({}); setWizardOpen(false);
     } catch(e) { setGenError(e instanceof Error ? e.message : "Plan oluşturulamadı."); }
     finally { setGenerating(false); }
+  }
+
+  async function handleGenerateExercise(cancerType: string, treatmentPhase: string, fitnessLevel: string, restrictions: string[]) {
+    setGeneratingEx(true); setExError(null);
+    try {
+      const p = await callExercisePlan(cancerType, treatmentPhase, fitnessLevel, restrictions);
+      saveExercisePlan(p); setExercisePlan(p); setExWizardOpen(false);
+    } catch(e) { setExError(e instanceof Error ? e.message : "Egzersiz planı oluşturulamadı."); }
+    finally { setGeneratingEx(false); }
   }
 
   function toggleMeal(dayIdx: number, mealKey: string) {
@@ -238,7 +350,8 @@ export default function BesinTakvimi() {
 
   return (
     <>
-      {wizardOpen && <MealWizard onClose={()=>setWizardOpen(false)} onGenerate={handleGenerate} loading={generating}/>}
+      {wizardOpen   && <MealWizard     onClose={()=>setWizardOpen(false)}   onGenerate={handleGenerate} loading={generating}/>}
+      {exWizardOpen && <ExerciseWizard onClose={()=>setExWizardOpen(false)} onDone={handleGenerateExercise} loading={generatingEx}/>}
 
       <div className="min-h-[calc(100vh-52px)] bg-gradient-to-br from-slate-50/60 via-white to-emerald-50/20">
 
@@ -254,11 +367,18 @@ export default function BesinTakvimi() {
                 <p className="text-[11px] text-slate-400">Tüm planlarınız tek görünümde</p>
               </div>
             </div>
-            <button onClick={()=>setWizardOpen(true)}
-              className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-emerald-600 px-2.5 py-1.5 rounded-lg hover:bg-emerald-50 border border-transparent hover:border-emerald-100 transition-all">
-              <Salad className="w-3.5 h-3.5"/>
-              {mealPlan?"Beslenme Yenile":"Beslenme Ekle"}
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button onClick={()=>setExWizardOpen(true)}
+                className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-teal-600 px-2.5 py-1.5 rounded-lg hover:bg-teal-50 border border-transparent hover:border-teal-100 transition-all">
+                <Activity className="w-3.5 h-3.5"/>
+                {exercisePlan?"Egzersiz Yenile":"Egzersiz Ekle"}
+              </button>
+              <button onClick={()=>setWizardOpen(true)}
+                className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-emerald-600 px-2.5 py-1.5 rounded-lg hover:bg-emerald-50 border border-transparent hover:border-emerald-100 transition-all">
+                <Salad className="w-3.5 h-3.5"/>
+                {mealPlan?"Beslenme Yenile":"Beslenme Ekle"}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -444,10 +564,33 @@ export default function BesinTakvimi() {
               </section>
             )}
 
+            {/* Exercise — no plan prompt */}
+            {!exercisePlan && hasAnything && (
+              <section>
+                <SectionHeader emoji="🏃" title="Egzersiz Planı"/>
+                <button onClick={()=>setExWizardOpen(true)}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-teal-200 text-teal-500 hover:border-teal-300 hover:bg-teal-50/50 text-sm font-medium transition-all">
+                  <Plus className="w-4 h-4"/> Egzersiz Planı Oluştur
+                </button>
+                {exError&&<p className="text-xs text-red-500 mt-1.5">{exError}</p>}
+              </section>
+            )}
+
             {/* Exercise */}
             {exercisePlan && exerciseDay && (
               <section>
-                <SectionHeader emoji="🏃" title="Egzersiz Planı" badge={exercisePlan.level}/>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">🏃</span>
+                    <p className="text-xs font-bold text-slate-600 uppercase tracking-wide">Egzersiz Planı</p>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">{exercisePlan.level}</span>
+                  </div>
+                  <button onClick={()=>setExWizardOpen(true)}
+                    className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-teal-600 transition-colors px-1.5 py-0.5 rounded hover:bg-teal-50">
+                    <Activity className="w-3 h-3"/>Yenile
+                  </button>
+                </div>
+                {exError&&<p className="text-xs text-red-500 mb-2">{exError}</p>}
                 <div className={`bg-white rounded-xl border shadow-sm overflow-hidden ${exerciseDay.rest?"border-slate-100":"border-teal-100"}`}>
                   <div className={`flex items-center gap-2 px-4 py-2.5 ${exerciseDay.rest?"bg-slate-50 border-b border-slate-100":"bg-teal-50/60 border-b border-teal-100"}`}>
                     {exerciseDay.rest

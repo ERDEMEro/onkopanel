@@ -77,11 +77,16 @@ export default function GelismisAnalitik() {
 
   const radarData = useMemo(() => {
     if (!deptRaw) return [];
-    const total = deptRaw.reduce((s, d) => s + d.count, 0);
-    return deptRaw.slice(0, 7).map(d => ({
-      bölüm: d.department.length > 12 ? d.department.slice(0, 12) + "…" : d.department,
-      oran: Math.round((d.count / total) * 100),
-    }));
+    const valid = deptRaw.filter(d => d.department != null);
+    const total = valid.reduce((s, d) => s + d.count, 0);
+    if (total === 0) return [];
+    return valid.slice(0, 7).map(d => {
+      const name = String(d.department);
+      return {
+        bölüm: name.length > 12 ? name.slice(0, 12) + "…" : name,
+        oran: Math.round((d.count / total) * 100),
+      };
+    });
   }, [deptRaw]);
 
   const kanserData = useMemo(() => {

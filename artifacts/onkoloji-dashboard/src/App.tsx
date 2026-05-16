@@ -25,6 +25,7 @@ import OncelikPaneli from "@/pages/OncelikPaneli";
 import GelismisAnalitik from "@/pages/GelismisAnalitik";
 import IlacEtklesim from "@/pages/IlacEtklesim";
 import HastaAnaSayfa from "@/pages/HastaAnaSayfa";
+import SaglikPanelim from "@/pages/SaglikPanelim";
 import AuthPage from "@/pages/AuthPage";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider, useLang } from "@/context/LanguageContext";
@@ -93,15 +94,9 @@ function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
         { path: "/vaka",        label: "Vaka Doldur",         icon: <ClipboardList className="w-3.5 h-3.5" /> },
       ]
     : [
-        { path: "/",            label: "Ana Sayfa",            icon: <User className="w-3.5 h-3.5" /> },
+        { path: "/",            label: "Sağlık Panelim",      icon: <User className="w-3.5 h-3.5" /> },
         { path: "/belirti",     label: t.nav.symptomChecker,  icon: <Stethoscope className="w-3.5 h-3.5" /> },
-        { path: "/gunluk",      label: "Belirti Günlüğü",     icon: <NotebookPen className="w-3.5 h-3.5" /> },
-        { path: "/egzersiz",    label: "Egzersiz",            icon: <Activity className="w-3.5 h-3.5" /> },
-        { path: "/hatirlatici", label: "İlaç & Randevu",      icon: <Bell className="w-3.5 h-3.5" /> },
-        { path: "/beslenme",    label: "Beslenme",            icon: <Salad className="w-3.5 h-3.5" /> },
-        { path: "/takvim",      label: "Takvim",              icon: <CalendarDays className="w-3.5 h-3.5" /> },
-        { path: "/yasam",       label: "Yaşam Kalitesi",      icon: <Star className="w-3.5 h-3.5" /> },
-        { path: "/destek",      label: "Psikolojik Destek",   icon: <Heart className="w-3.5 h-3.5" /> },
+        { path: "/beslenme",    label: "Beslenme Danışmanı",  icon: <Salad className="w-3.5 h-3.5" /> },
         { path: "/aile",        label: "Aile Rehberi",        icon: <Users className="w-3.5 h-3.5" /> },
         { path: "/haberler",    label: "Haberler",            icon: <Newspaper className="w-3.5 h-3.5" /> },
         { path: "/egitim",      label: t.nav.educationCenter, icon: <GraduationCap className="w-3.5 h-3.5" /> },
@@ -270,7 +265,7 @@ function Router() {
           {isDoctor ? (
             <Route path="/" component={Dashboard} />
           ) : (
-            <Route path="/" component={HastaAnaSayfa} />
+            <Route path="/" component={SaglikPanelim} />
           )}
           <Route path="/profil"    component={isDoctor ? PatientProfiler : NotFound} />
           <Route path="/belirti"      component={SymptomChecker} />

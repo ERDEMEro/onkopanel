@@ -113,7 +113,10 @@ function KPICard({ title, value, loading, valueColor = CHART_COLORS.teal }: { ti
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
-  const { isDark } = useTheme();
+  const { isDark, barStyle } = useTheme();
+  // Radius arrays based on barStyle
+  const rV: [number,number,number,number] = barStyle === "cylinder" ? [10,10,0,0] : [2,2,0,0]; // vertical bars
+  const rH: [number,number,number,number] = barStyle === "cylinder" ? [0,10,10,0] : [0,2,2,0]; // horizontal bars (layout="vertical")
   const { lang, t } = useLang();
   const d = t.dashboard;
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -338,7 +341,7 @@ export default function Dashboard() {
                     <XAxis dataKey="label" tick={{ fontSize: 12, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} dy={10} />
                     <YAxis tick={{ fontSize: 12, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} dx={-10} />
                     <Tooltip content={<CustomTooltip />} isAnimationActive={false} cursor={{ fill: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)" }} />
-                    <Bar dataKey="count" name={patientLabel} fill={mainChartColor} fillOpacity={0.9} radius={[3, 3, 0, 0]} isAnimationActive={false} activeBar={{ fillOpacity: 1 }} />
+                    <Bar dataKey="count" name={patientLabel} fill={mainChartColor} fillOpacity={0.9} radius={rV} isAnimationActive={false} activeBar={{ fillOpacity: 1 }} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -363,7 +366,7 @@ export default function Dashboard() {
                     <XAxis type="number" tick={{ fontSize: 12, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
                     <YAxis dataKey="label" type="category" width={140} tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
                     <Tooltip content={<CustomTooltip />} isAnimationActive={false} cursor={{ fill: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)" }} />
-                    <Bar dataKey="count" name={admissionLabel} fill={CHART_COLORS.purple} fillOpacity={0.9} radius={[0, 3, 3, 0]} isAnimationActive={false} barSize={20} />
+                    <Bar dataKey="count" name={admissionLabel} fill={CHART_COLORS.purple} fillOpacity={0.9} radius={rH} isAnimationActive={false} barSize={20} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -390,7 +393,7 @@ export default function Dashboard() {
                     <XAxis type="number" tick={{ fontSize: 12, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
                     <YAxis dataKey="label" type="category" width={140} tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
                     <Tooltip content={<CustomTooltip />} isAnimationActive={false} cursor={{ fill: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)" }} />
-                    <Bar dataKey="count" name={procedureLabel} fill={CHART_COLORS.pink} fillOpacity={0.9} radius={[0, 3, 3, 0]} isAnimationActive={false} barSize={20} />
+                    <Bar dataKey="count" name={procedureLabel} fill={CHART_COLORS.pink} fillOpacity={0.9} radius={rH} isAnimationActive={false} barSize={20} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -415,7 +418,7 @@ export default function Dashboard() {
                     <XAxis type="number" tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
                     <YAxis dataKey="label" type="category" width={140} tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
                     <Tooltip content={<CustomTooltip />} isAnimationActive={false} cursor={{ fill: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)" }} />
-                    <Bar dataKey="count" name={testLabel} fill={CHART_COLORS.slate} fillOpacity={0.9} radius={[0, 3, 3, 0]} isAnimationActive={false} barSize={14} />
+                    <Bar dataKey="count" name={testLabel} fill={CHART_COLORS.slate} fillOpacity={0.9} radius={rH} isAnimationActive={false} barSize={14} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -444,7 +447,7 @@ export default function Dashboard() {
                       tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v} />
                     <YAxis dataKey="label" type="category" width={120} tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
                     <Tooltip content={<CustomTooltip />} isAnimationActive={false} cursor={{ fill: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)" }} />
-                    <Bar dataKey="count" name={freqLabel} fill={CHART_COLORS.blue} fillOpacity={0.9} radius={[0, 3, 3, 0]} isAnimationActive={false} barSize={16} />
+                    <Bar dataKey="count" name={freqLabel} fill={CHART_COLORS.blue} fillOpacity={0.9} radius={rH} isAnimationActive={false} barSize={16} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -471,7 +474,7 @@ export default function Dashboard() {
                         tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v} />
                       <YAxis dataKey="label" type="category" width={90} tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
                       <Tooltip content={<CustomTooltip />} isAnimationActive={false} cursor={{ fill: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)" }} />
-                      <Bar dataKey="count" name={recordLabel} fill={CHART_COLORS.teal} fillOpacity={0.85} radius={[0, 3, 3, 0]} isAnimationActive={false} barSize={22} />
+                      <Bar dataKey="count" name={recordLabel} fill={CHART_COLORS.teal} fillOpacity={0.85} radius={rH} isAnimationActive={false} barSize={22} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -497,7 +500,7 @@ export default function Dashboard() {
                         tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v} />
                       <YAxis dataKey="label" type="category" width={130} tick={{ fontSize: 11, fill: tickColor }} stroke={tickColor} tickLine={false} axisLine={false} />
                       <Tooltip content={<CustomTooltip />} isAnimationActive={false} cursor={{ fill: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)" }} />
-                      <Bar dataKey="count" name={recordLabel} fill={CHART_COLORS.blue} fillOpacity={0.85} radius={[0, 3, 3, 0]} isAnimationActive={false} barSize={18} />
+                      <Bar dataKey="count" name={recordLabel} fill={CHART_COLORS.blue} fillOpacity={0.85} radius={rH} isAnimationActive={false} barSize={18} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -592,7 +595,7 @@ export default function Dashboard() {
                       name={d.charts.frequency}
                       fill={CHART_COLORS.teal}
                       fillOpacity={0.9}
-                      radius={[0, 4, 4, 0]}
+                      radius={rH}
                       isAnimationActive={false}
                       barSize={22}
                       label={{ position: "right", fontSize: 11, fill: tickColor, formatter: (v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}K` : String(v) }}

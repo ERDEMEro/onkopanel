@@ -20,7 +20,7 @@ import { NarratorWidget } from "@/components/Narrator";
 import { BarChart2, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList } from "lucide-react";
 
 import { useTheme } from "@/context/ThemeContext";
-import { useAuth } from "@workspace/replit-auth-web";
+import { useAuth, AuthProvider } from "@workspace/replit-auth-web";
 import { LoginModal } from "@/components/LoginModal";
 import { useState } from "react";
 
@@ -218,7 +218,9 @@ function App() {
   return (
     <ThemeProvider>
       <LanguageProvider>
-        <AppInner />
+        <AuthProvider>
+          <AppInner />
+        </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>
   );

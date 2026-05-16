@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useContext, createContext, createElement } from "react";
+import type { ReactNode } from "react";
 import type { AuthUser } from "@workspace/api-client-react";
 
 export type { AuthUser };
@@ -14,7 +15,9 @@ interface AuthState {
   loginWithReplit: () => void;
 }
 
-export function useAuth(): AuthState {
+const AuthContext = createContext<AuthState | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -31,9 +34,7 @@ export function useAuth(): AuthState {
     }
   }, []);
 
-  useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
+  useEffect(() => { fetchUser(); }, [fetchUser]);
 
   const refresh = useCallback(async () => {
     setIsLoading(true);
@@ -86,7 +87,7 @@ export function useAuth(): AuthState {
     window.location.href = `/api/login?returnTo=${encodeURIComponent(base)}`;
   }, []);
 
-  return {
+  const value: AuthState = {
     user,
     isLoading,
     isAuthenticated: !!user,
@@ -96,4 +97,12 @@ export function useAuth(): AuthState {
     logout,
     loginWithReplit,
   };
+
+  return createElement(AuthContext.Provider, { value }, children);
+}
+
+export function useAuth(): AuthState {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used inside <AuthProvider>");
+  return ctx;
 }

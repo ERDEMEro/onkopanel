@@ -23,12 +23,13 @@ import EgzersizTakip from "@/pages/EgzersizTakip";
 import OncelikPaneli from "@/pages/OncelikPaneli";
 import GelismisAnalitik from "@/pages/GelismisAnalitik";
 import IlacEtklesim from "@/pages/IlacEtklesim";
+import HastaAnaSayfa from "@/pages/HastaAnaSayfa";
 import AuthPage from "@/pages/AuthPage";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider, useLang } from "@/context/LanguageContext";
 import { NarratorProvider } from "@/context/NarratorContext";
 import { NarratorWidget } from "@/components/Narrator";
-import { BarChart2, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList, Heart, Salad, Bell, NotebookPen, Newspaper, Star, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp, Pill } from "lucide-react";
+import { BarChart2, User, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList, Heart, Salad, Bell, NotebookPen, Newspaper, Star, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp, Pill } from "lucide-react";
 
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth, AuthProvider } from "@workspace/replit-auth-web";
@@ -91,6 +92,7 @@ function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
         { path: "/vaka",        label: "Vaka Doldur",         icon: <ClipboardList className="w-3.5 h-3.5" /> },
       ]
     : [
+        { path: "/",            label: "Ana Sayfa",            icon: <User className="w-3.5 h-3.5" /> },
         { path: "/belirti",     label: t.nav.symptomChecker,  icon: <Stethoscope className="w-3.5 h-3.5" /> },
         { path: "/gunluk",      label: "Belirti Günlüğü",     icon: <NotebookPen className="w-3.5 h-3.5" /> },
         { path: "/egzersiz",    label: "Egzersiz",            icon: <Activity className="w-3.5 h-3.5" /> },
@@ -266,9 +268,7 @@ function Router() {
           {isDoctor ? (
             <Route path="/" component={Dashboard} />
           ) : (
-            <Route path="/">
-              <Redirect to="/belirti" />
-            </Route>
+            <Route path="/" component={HastaAnaSayfa} />
           )}
           <Route path="/profil"    component={isDoctor ? PatientProfiler : NotFound} />
           <Route path="/belirti"      component={SymptomChecker} />

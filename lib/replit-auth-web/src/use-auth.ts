@@ -7,54 +7,93 @@ interface AuthState {
   user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: () => void;
-  logout: () => void;
+  refresh: () => Promise<void>;
+  loginWithPassword: (email: string, password: string) => Promise<{ error?: string }>;
+  registerWithPassword: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ error?: string }>;
+  logout: () => Promise<void>;
+  loginWithReplit: () => void;
 }
 
 export function useAuth(): AuthState {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchUser = useCallback(async () => {
+    try {
+      const res = await fetch("/api/auth/user", { credentials: "include" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = (await res.json()) as { user: AuthUser | null };
+      setUser(data.user ?? null);
+    } catch {
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    let cancelled = false;
+    fetchUser();
+  }, [fetchUser]);
 
-    fetch("/api/auth/user", { credentials: "include" })
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json() as Promise<{ user: AuthUser | null }>;
-      })
-      .then((data) => {
-        if (!cancelled) {
-          setUser(data.user ?? null);
-          setIsLoading(false);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setUser(null);
-          setIsLoading(false);
-        }
+  const refresh = useCallback(async () => {
+    setIsLoading(true);
+    await fetchUser();
+  }, [fetchUser]);
+
+  const loginWithPassword = useCallback(async (email: string, password: string): Promise<{ error?: string }> => {
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
       });
-
-    return () => {
-      cancelled = true;
-    };
+      const data = await res.json() as { user?: AuthUser; error?: string };
+      if (!res.ok) return { error: data.error ?? "Giriş başarısız." };
+      setUser(data.user ?? null);
+      return {};
+    } catch {
+      return { error: "Sunucuya bağlanılamadı." };
+    }
   }, []);
 
-  const login = useCallback(() => {
-    const base = import.meta.env.BASE_URL.replace(/\/+$/, "") || "/";
+  const registerWithPassword = useCallback(async (email: string, password: string, firstName?: string, lastName?: string): Promise<{ error?: string }> => {
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password, firstName, lastName }),
+      });
+      const data = await res.json() as { user?: AuthUser; error?: string };
+      if (!res.ok) return { error: data.error ?? "Kayıt başarısız." };
+      setUser(data.user ?? null);
+      return {};
+    } catch {
+      return { error: "Sunucuya bağlanılamadı." };
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    } catch {}
+    setUser(null);
+  }, []);
+
+  const loginWithReplit = useCallback(() => {
+    const base = (import.meta.env.BASE_URL ?? "/").replace(/\/+$/, "") || "/";
     window.location.href = `/api/login?returnTo=${encodeURIComponent(base)}`;
-  }, []);
-
-  const logout = useCallback(() => {
-    window.location.href = "/api/logout";
   }, []);
 
   return {
     user,
     isLoading,
     isAuthenticated: !!user,
-    login,
+    refresh,
+    loginWithPassword,
+    registerWithPassword,
     logout,
+    loginWithReplit,
   };
 }

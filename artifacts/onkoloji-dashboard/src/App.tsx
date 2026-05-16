@@ -18,6 +18,8 @@ import { NarratorWidget } from "@/components/Narrator";
 import { BarChart2, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@workspace/replit-auth-web";
+import { LoginModal } from "@/components/LoginModal";
+import { useState } from "react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,11 +30,11 @@ const queryClient = new QueryClient({
   },
 });
 
-function TabNav() {
+function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
   const [location, navigate] = useLocation();
   const { t } = useLang();
   const { isDark } = useTheme();
-  const { user, isLoading, isAuthenticated, login, logout } = useAuth();
+  const { user, isLoading, isAuthenticated, logout } = useAuth();
 
   const mainTabs = [
     { path: "/",          label: t.nav.dashboard,       icon: <BarChart2 className="w-3.5 h-3.5" /> },
@@ -107,7 +109,7 @@ function TabNav() {
                 {[user.firstName, user.lastName].filter(Boolean).join(" ") || user.email}
               </span>
               <button
-                onClick={logout}
+                onClick={() => logout()}
                 aria-label="Çıkış yap"
                 title="Çıkış yap"
                 className="ml-0.5 flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
@@ -118,7 +120,7 @@ function TabNav() {
             </div>
           ) : (
             <button
-              onClick={login}
+              onClick={onLoginClick}
               aria-label="Giriş yap"
               className="flex items-center gap-1.5 px-3 py-1.5 mx-1 rounded-lg bg-primary text-primary-foreground text-[12px] font-semibold hover:bg-primary/90 transition-colors shadow-sm"
             >
@@ -148,9 +150,11 @@ function PageTransition({ children }: { children: ReactNode }) {
 }
 
 function Router() {
+  const [loginOpen, setLoginOpen] = useState(false);
   return (
     <>
-      <TabNav />
+      <TabNav onLoginClick={() => setLoginOpen(true)} />
+      <LoginModal open={loginOpen} onOpenChange={setLoginOpen} />
       <PageTransition>
         <Switch>
           <Route path="/"          component={Dashboard} />

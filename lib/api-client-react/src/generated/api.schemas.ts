@@ -76,6 +76,22 @@ export interface AuthUserEnvelope {
   user: AuthUser | null;
 }
 
+export interface RegisterRequest {
+  /** @minLength 1 */
+  email: string;
+  /** @minLength 6 */
+  password: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+export interface LoginRequest {
+  /** @minLength 1 */
+  email: string;
+  /** @minLength 1 */
+  password: string;
+}
+
 export interface MobileTokenExchangeRequest {
   /** @minLength 1 */
   code: string;

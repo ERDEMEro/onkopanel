@@ -1,24 +1,31 @@
-import { useState, useEffect } from "react";
-import { NotebookPen, Plus, ChevronLeft, ChevronRight, TrendingUp } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { NotebookPen, Plus, ChevronLeft, ChevronRight, TrendingUp, Sparkles, Send, Loader2, Bot } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
 
 interface DayLog {
-  date: string; // YYYY-MM-DD
-  pain: number;       // 0-10
-  fatigue: number;    // 0-10
-  appetite: number;   // 0-10
-  mood: number;       // 0-10
+  date: string;
+  pain: number;
+  fatigue: number;
+  appetite: number;
+  mood: number;
   notes: string;
 }
 
+interface ChatMsg { role: "user" | "assistant"; content: string; }
+
 const STORAGE_KEY = "onko_symptom_journal";
+const CHAT_KEY = "onko_chat_semptom";
 
 function loadLogs(): DayLog[] {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]"); } catch { return []; }
 }
 function saveLogs(d: DayLog[]) { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+function loadChat(): ChatMsg[] {
+  try { return JSON.parse(localStorage.getItem(CHAT_KEY) ?? "[]"); } catch { return []; }
+}
+function saveChat(d: ChatMsg[]) { localStorage.setItem(CHAT_KEY, JSON.stringify(d)); }
 
 function todayStr() {
   const d = new Date();
@@ -34,6 +41,13 @@ const METRICS: { key: keyof Omit<DayLog, "date" | "notes">; label: string; color
   { key: "fatigue",  label: "Yorgunluk",color: "#fb923c", desc: "0 = hiç yok, 10 = bitkin" },
   { key: "appetite", label: "İştah",    color: "#34d399", desc: "0 = hiç yok, 10 = çok iyi" },
   { key: "mood",     label: "Ruh Hali", color: "#818cf8", desc: "0 = çok kötü, 10 = mükemmel" },
+];
+
+const STARTER_QUESTIONS = [
+  "Yüksek yorgunluk skorlarımla nasıl başa çıkabilirim?",
+  "Ağrı ne zaman ciddi bir belirtidir?",
+  "İştahsızlık için pratik öneriler nelerdir?",
+  "Ruh halimi nasıl iyileştirebilirim?",
 ];
 
 function Slider({
@@ -61,12 +75,18 @@ function Slider({
 
 export default function BeliritGunlugu() {
   const [logs, setLogs] = useState<DayLog[]>([]);
-  const [view, setView] = useState<"log" | "chart">("log");
+  const [view, setView] = useState<"log" | "chart" | "ai">("log");
   const [showForm, setShowForm] = useState(false);
   const [chartDays, setChartDays] = useState(14);
   const [form, setForm] = useState<Omit<DayLog, "date">>({ pain: 0, fatigue: 0, appetite: 5, mood: 5, notes: "" });
 
-  useEffect(() => { setLogs(loadLogs()); }, []);
+  const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setLogs(loadLogs()); setChatMsgs(loadChat()); }, []);
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatMsgs]);
 
   const today = todayStr();
   const todayLog = logs.find((l) => l.date === today);
@@ -88,7 +108,36 @@ export default function BeliritGunlugu() {
     setShowForm(true);
   }
 
-  // Chart data
+  async function sendChat(text: string) {
+    if (!text.trim() || chatLoading) return;
+    const recentLogs = logs.slice(-7);
+    const contextNote = recentLogs.length > 0
+      ? `Son ${recentLogs.length} günlük belirti özeti: ${recentLogs.map((l) =>
+          `${fmtDate(l.date)}: Ağrı=${l.pain}, Yorgunluk=${l.fatigue}, İştah=${l.appetite}, RuhHali=${l.mood}`
+        ).join(" | ")}`
+      : "";
+    const userMsg: ChatMsg = { role: "user", content: text.trim() };
+    const updated = [...chatMsgs, userMsg];
+    setChatMsgs(updated); saveChat(updated); setChatInput(""); setChatLoading(true);
+    try {
+      const res = await fetch("/api/ai-advisor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "symptom", messages: updated, context: contextNote }),
+      });
+      const data = (await res.json()) as { reply?: string; error?: string };
+      const reply: ChatMsg = { role: "assistant", content: data.reply ?? data.error ?? "Yanıt alınamadı." };
+      const final = [...updated, reply];
+      setChatMsgs(final); saveChat(final);
+    } catch {
+      const err: ChatMsg = { role: "assistant", content: "Bağlantı hatası. Lütfen tekrar deneyin." };
+      const final = [...updated, err];
+      setChatMsgs(final); saveChat(final);
+    } finally {
+      setChatLoading(false);
+    }
+  }
+
   const chartData = logs.slice(-chartDays).map((l) => ({
     date: fmtDate(l.date),
     Ağrı: l.pain,
@@ -113,7 +162,7 @@ export default function BeliritGunlugu() {
           </div>
           {/* View toggle */}
           <div className="flex gap-1 p-1 bg-slate-100 rounded-xl">
-            {(["log", "chart"] as const).map((v) => (
+            {(["log", "chart", "ai"] as const).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
@@ -121,8 +170,10 @@ export default function BeliritGunlugu() {
                   view === v ? "bg-white shadow-sm text-slate-800" : "text-slate-500 hover:text-slate-700"
                 }`}
               >
-                {v === "log" ? <NotebookPen className="w-3.5 h-3.5" /> : <TrendingUp className="w-3.5 h-3.5" />}
-                {v === "log" ? "Günlük" : "Grafik"}
+                {v === "log" ? <NotebookPen className="w-3.5 h-3.5" /> :
+                 v === "chart" ? <TrendingUp className="w-3.5 h-3.5" /> :
+                 <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
+                {v === "log" ? "Günlük" : v === "chart" ? "Grafik" : "SemptomBot"}
               </button>
             ))}
           </div>
@@ -271,6 +322,99 @@ export default function BeliritGunlugu() {
                   ))}
                 </LineChart>
               </ResponsiveContainer>
+            )}
+          </div>
+        )}
+
+        {/* AI Chat view */}
+        {view === "ai" && (
+          <div className="flex flex-col gap-3">
+            <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-4 flex items-center gap-3 text-white shadow-md shadow-amber-100">
+              <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                <Bot className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">SemptomBot</p>
+                <p className="text-xs text-amber-100">Belirti analizi ve başa çıkma rehberi</p>
+              </div>
+            </div>
+
+            {logs.length > 0 && (
+              <div className="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5 flex items-center gap-2">
+                <span className="text-xs text-amber-700">
+                  Son {Math.min(logs.length, 7)} günlük verileriniz sohbet bağlamına eklendi
+                </span>
+              </div>
+            )}
+
+            <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden flex flex-col" style={{ minHeight: 340 }}>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ maxHeight: 400 }}>
+                {chatMsgs.length === 0 && (
+                  <div className="space-y-3">
+                    <p className="text-xs text-slate-400 text-center">Belirtileriniz veya semptomlarınız hakkında sorun</p>
+                    <div className="grid grid-cols-1 gap-2">
+                      {STARTER_QUESTIONS.map((q) => (
+                        <button key={q} onClick={() => sendChat(q)}
+                          className="text-left text-xs bg-amber-50 hover:bg-amber-100 border border-amber-100 rounded-lg px-3 py-2.5 text-amber-700 transition-colors">
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {chatMsgs.map((m, i) => (
+                  <div key={i} className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                    {m.role === "assistant" && (
+                      <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <Bot className="w-3.5 h-3.5 text-amber-600" />
+                      </div>
+                    )}
+                    <div className={`max-w-[80%] rounded-xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap ${
+                      m.role === "user"
+                        ? "bg-amber-500 text-white rounded-br-sm"
+                        : "bg-slate-50 text-slate-700 border border-slate-100 rounded-bl-sm"
+                    }`}>
+                      {m.content}
+                    </div>
+                  </div>
+                ))}
+                {chatLoading && (
+                  <div className="flex gap-2 justify-start">
+                    <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                      <Bot className="w-3.5 h-3.5 text-amber-600" />
+                    </div>
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl rounded-bl-sm px-3 py-2">
+                      <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
+                    </div>
+                  </div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
+
+              <div className="border-t border-slate-100 p-3 flex gap-2">
+                <input
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void sendChat(chatInput); } }}
+                  placeholder="Belirtileriniz hakkında sorun…"
+                  className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200"
+                  disabled={chatLoading}
+                />
+                <button
+                  onClick={() => void sendChat(chatInput)}
+                  disabled={!chatInput.trim() || chatLoading}
+                  className="w-9 h-9 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-40 flex items-center justify-center text-white transition-colors shrink-0"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {chatMsgs.length > 0 && (
+              <button onClick={() => { setChatMsgs([]); saveChat([]); }}
+                className="text-xs text-slate-400 hover:text-slate-600 text-center transition-colors">
+                Sohbeti temizle
+              </button>
             )}
           </div>
         )}

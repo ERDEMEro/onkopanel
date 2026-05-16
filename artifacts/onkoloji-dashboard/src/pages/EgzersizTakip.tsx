@@ -1,17 +1,20 @@
-import { useState, useEffect } from "react";
-import { Activity, Plus, Trash2, TrendingUp, Info } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Activity, Plus, Trash2, TrendingUp, Info, Sparkles, Send, Loader2, Bot } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface ExerciseLog {
   id: string;
   date: string;
   type: string;
-  duration: number; // minutes
+  duration: number;
   intensity: "hafif" | "orta" | "yorucu";
   notes: string;
 }
 
+interface ChatMsg { role: "user" | "assistant"; content: string; }
+
 const STORAGE_KEY = "onko_exercise_logs";
+const CHAT_KEY = "onko_chat_egzersiz";
 
 const EXERCISE_TYPES = [
   "Yürüyüş", "Hafif Germe / Esneme", "Yoga / Meditasyon", "Bisiklet", "Yüzme",
@@ -32,10 +35,21 @@ const TIPS = [
   { icon: "⚠️", title: "Dikkat edilmesi gerekenler", text: "Ateşiniz varsa, kan değerleriniz düşükse veya kendinizi çok halsiz hissediyorsanız o gün dinlenmeyi tercih edin. Her egzersiz planı için onkoloji ekibinize danışın." },
 ];
 
+const STARTER_QUESTIONS = [
+  "Kemoterapi sırasında hangi egzersizler güvenli?",
+  "Yorgunlukla mücadelede egzersiz nasıl yardımcı olur?",
+  "Haftada kaç gün egzersiz yapmalıyım?",
+  "Egzersiz sonrası kas ağrısı normalmi?",
+];
+
 function loadLogs(): ExerciseLog[] {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]"); } catch { return []; }
 }
 function saveLogs(d: ExerciseLog[]) { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+function loadChat(): ChatMsg[] {
+  try { return JSON.parse(localStorage.getItem(CHAT_KEY) ?? "[]"); } catch { return []; }
+}
+function saveChat(d: ChatMsg[]) { localStorage.setItem(CHAT_KEY, JSON.stringify(d)); }
 function uid() { return Math.random().toString(36).slice(2, 10); }
 
 function todayStr() {
@@ -45,7 +59,7 @@ function todayStr() {
 
 export default function EgzersizTakip() {
   const [logs, setLogs] = useState<ExerciseLog[]>([]);
-  const [view, setView] = useState<"log" | "chart" | "tips">("log");
+  const [view, setView] = useState<"log" | "chart" | "tips" | "ai">("log");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     type: EXERCISE_TYPES[0],
@@ -54,7 +68,13 @@ export default function EgzersizTakip() {
     notes: "",
   });
 
-  useEffect(() => { setLogs(loadLogs()); }, []);
+  const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setLogs(loadLogs()); setChatMsgs(loadChat()); }, []);
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatMsgs]);
 
   function addLog() {
     const entry: ExerciseLog = { id: uid(), date: todayStr(), ...form };
@@ -68,15 +88,37 @@ export default function EgzersizTakip() {
     setLogs(updated); saveLogs(updated);
   }
 
-  // Weekly chart: last 14 days, sum duration per day
+  async function sendChat(text: string) {
+    if (!text.trim() || chatLoading) return;
+    const userMsg: ChatMsg = { role: "user", content: text.trim() };
+    const updated = [...chatMsgs, userMsg];
+    setChatMsgs(updated); saveChat(updated); setChatInput(""); setChatLoading(true);
+    try {
+      const res = await fetch("/api/ai-advisor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "exercise", messages: updated }),
+      });
+      const data = (await res.json()) as { reply?: string; error?: string };
+      const reply: ChatMsg = { role: "assistant", content: data.reply ?? data.error ?? "Yanıt alınamadı." };
+      const final = [...updated, reply];
+      setChatMsgs(final); saveChat(final);
+    } catch {
+      const err: ChatMsg = { role: "assistant", content: "Bağlantı hatası. Lütfen tekrar deneyin." };
+      const final = [...updated, err];
+      setChatMsgs(final); saveChat(final);
+    } finally {
+      setChatLoading(false);
+    }
+  }
+
   const last14 = Array.from({ length: 14 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() - 13 + i);
     const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     const dayLogs = logs.filter((l) => l.date === dateStr);
-    const total = dayLogs.reduce((s, l) => s + l.duration, 0);
     return {
       date: d.toLocaleDateString("tr-TR", { day: "numeric", month: "short" }),
-      dakika: total,
+      dakika: dayLogs.reduce((s, l) => s + l.duration, 0),
     };
   });
 
@@ -115,7 +157,7 @@ export default function EgzersizTakip() {
 
         {/* Tabs */}
         <div className="flex gap-1 p-1 bg-slate-100 rounded-xl mb-5">
-          {(["log", "chart", "tips"] as const).map((v) => (
+          {(["log", "chart", "tips", "ai"] as const).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
@@ -125,7 +167,8 @@ export default function EgzersizTakip() {
             >
               {v === "log" ? <><Activity className="w-3.5 h-3.5" />Günlük</> :
                v === "chart" ? <><TrendingUp className="w-3.5 h-3.5" />Grafik</> :
-               <><Info className="w-3.5 h-3.5" />Bilgi</>}
+               v === "tips" ? <><Info className="w-3.5 h-3.5" />Bilgi</> :
+               <><Sparkles className="w-3.5 h-3.5 text-teal-500" />EgzersizBot</>}
             </button>
           ))}
         </div>
@@ -244,6 +287,91 @@ export default function EgzersizTakip() {
               <p className="text-xs text-amber-700 font-medium mb-1">Önemli Hatırlatma</p>
               <p className="text-xs text-amber-600">Egzersiz programına başlamadan önce mutlaka onkoloji ekibinizle görüşün. Her hastanın durumu farklıdır.</p>
             </div>
+          </div>
+        )}
+
+        {/* AI Chat view */}
+        {view === "ai" && (
+          <div className="flex flex-col gap-3">
+            <div className="bg-gradient-to-r from-teal-500 to-emerald-500 rounded-xl p-4 flex items-center gap-3 text-white shadow-md shadow-teal-100">
+              <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                <Bot className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">EgzersizBot</p>
+                <p className="text-xs text-teal-100">Kanser sürecinde güvenli hareket rehberi</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden flex flex-col" style={{ minHeight: 340 }}>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ maxHeight: 400 }}>
+                {chatMsgs.length === 0 && (
+                  <div className="space-y-3">
+                    <p className="text-xs text-slate-400 text-center">Egzersiz konusunda merak ettiklerinizi sorun</p>
+                    <div className="grid grid-cols-1 gap-2">
+                      {STARTER_QUESTIONS.map((q) => (
+                        <button key={q} onClick={() => sendChat(q)}
+                          className="text-left text-xs bg-teal-50 hover:bg-teal-100 border border-teal-100 rounded-lg px-3 py-2.5 text-teal-700 transition-colors">
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {chatMsgs.map((m, i) => (
+                  <div key={i} className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                    {m.role === "assistant" && (
+                      <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <Bot className="w-3.5 h-3.5 text-teal-600" />
+                      </div>
+                    )}
+                    <div className={`max-w-[80%] rounded-xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap ${
+                      m.role === "user"
+                        ? "bg-teal-500 text-white rounded-br-sm"
+                        : "bg-slate-50 text-slate-700 border border-slate-100 rounded-bl-sm"
+                    }`}>
+                      {m.content}
+                    </div>
+                  </div>
+                ))}
+                {chatLoading && (
+                  <div className="flex gap-2 justify-start">
+                    <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
+                      <Bot className="w-3.5 h-3.5 text-teal-600" />
+                    </div>
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl rounded-bl-sm px-3 py-2">
+                      <Loader2 className="w-4 h-4 text-teal-400 animate-spin" />
+                    </div>
+                  </div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
+
+              <div className="border-t border-slate-100 p-3 flex gap-2">
+                <input
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void sendChat(chatInput); } }}
+                  placeholder="Egzersiz konusunda bir şey sorun…"
+                  className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200"
+                  disabled={chatLoading}
+                />
+                <button
+                  onClick={() => void sendChat(chatInput)}
+                  disabled={!chatInput.trim() || chatLoading}
+                  className="w-9 h-9 rounded-lg bg-teal-500 hover:bg-teal-600 disabled:opacity-40 flex items-center justify-center text-white transition-colors shrink-0"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {chatMsgs.length > 0 && (
+              <button onClick={() => { setChatMsgs([]); saveChat([]); }}
+                className="text-xs text-slate-400 hover:text-slate-600 text-center transition-colors">
+                Sohbeti temizle
+              </button>
+            )}
           </div>
         )}
       </div>

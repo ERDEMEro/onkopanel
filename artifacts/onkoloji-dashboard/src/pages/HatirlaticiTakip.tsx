@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Bell, Plus, Trash2, Pill, CalendarDays, Clock, CheckCircle2, AlertCircle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Bell, Plus, Trash2, Pill, CalendarDays, Clock, CheckCircle2, AlertCircle, Sparkles, Send, Loader2, Bot } from "lucide-react";
 
 interface MedReminder {
   id: string;
@@ -19,8 +19,11 @@ interface ApptReminder {
   notes: string;
 }
 
+interface ChatMsg { role: "user" | "assistant"; content: string; }
+
 const STORAGE_MED = "onko_med_reminders";
 const STORAGE_APPT = "onko_appt_reminders";
+const CHAT_KEY = "onko_chat_ilac";
 
 function loadMeds(): MedReminder[] {
   try { return JSON.parse(localStorage.getItem(STORAGE_MED) ?? "[]"); } catch { return []; }
@@ -30,6 +33,10 @@ function loadApts(): ApptReminder[] {
 }
 function saveMeds(d: MedReminder[]) { localStorage.setItem(STORAGE_MED, JSON.stringify(d)); }
 function saveApts(d: ApptReminder[]) { localStorage.setItem(STORAGE_APPT, JSON.stringify(d)); }
+function loadChat(): ChatMsg[] {
+  try { return JSON.parse(localStorage.getItem(CHAT_KEY) ?? "[]"); } catch { return []; }
+}
+function saveChat(d: ChatMsg[]) { localStorage.setItem(CHAT_KEY, JSON.stringify(d)); }
 
 function uid() { return Math.random().toString(36).slice(2, 10); }
 
@@ -47,17 +54,29 @@ function ApptBadge({ days }: { days: number }) {
   return <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700">{days} gün kaldı</span>;
 }
 
+const STARTER_QUESTIONS = [
+  "Kemoterapinin yaygın yan etkileri nelerdir?",
+  "İlaçlarımı aç mı tok mu almalıyım?",
+  "Randevu öncesi doktora hangi soruları sormalıyım?",
+  "İlaç atladığımda ne yapmalıyım?",
+];
+
 export default function HatirlaticiTakip() {
-  const [tab, setTab] = useState<"ilac" | "randevu">("ilac");
+  const [tab, setTab] = useState<"ilac" | "randevu" | "ai">("ilac");
   const [meds, setMeds] = useState<MedReminder[]>([]);
   const [apts, setApts] = useState<ApptReminder[]>([]);
   const [showMedForm, setShowMedForm] = useState(false);
   const [showAptForm, setShowAptForm] = useState(false);
-
   const [medForm, setMedForm] = useState({ name: "", dose: "", time: "08:00", frequency: "Günlük" as MedReminder["frequency"] });
   const [aptForm, setAptForm] = useState({ doctor: "", location: "", date: "", time: "09:00", notes: "" });
 
-  useEffect(() => { setMeds(loadMeds()); setApts(loadApts()); }, []);
+  const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setMeds(loadMeds()); setApts(loadApts()); setChatMsgs(loadChat()); }, []);
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatMsgs]);
 
   function addMed() {
     if (!medForm.name.trim()) return;
@@ -82,6 +101,30 @@ export default function HatirlaticiTakip() {
     const updated = apts.filter((a) => a.id !== id); setApts(updated); saveApts(updated);
   }
 
+  async function sendChat(text: string) {
+    if (!text.trim() || chatLoading) return;
+    const userMsg: ChatMsg = { role: "user", content: text.trim() };
+    const updated = [...chatMsgs, userMsg];
+    setChatMsgs(updated); saveChat(updated); setChatInput(""); setChatLoading(true);
+    try {
+      const res = await fetch("/api/ai-advisor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "medication", messages: updated }),
+      });
+      const data = (await res.json()) as { reply?: string; error?: string };
+      const reply: ChatMsg = { role: "assistant", content: data.reply ?? data.error ?? "Yanıt alınamadı." };
+      const final = [...updated, reply];
+      setChatMsgs(final); saveChat(final);
+    } catch {
+      const err: ChatMsg = { role: "assistant", content: "Bağlantı hatası. Lütfen tekrar deneyin." };
+      const final = [...updated, err];
+      setChatMsgs(final); saveChat(final);
+    } finally {
+      setChatLoading(false);
+    }
+  }
+
   return (
     <div className="min-h-[calc(100vh-52px)] bg-gradient-to-br from-violet-50/30 via-white to-purple-50/20 p-6">
       <div className="max-w-2xl mx-auto">
@@ -98,16 +141,17 @@ export default function HatirlaticiTakip() {
 
         {/* Tabs */}
         <div className="flex gap-1 p-1 bg-slate-100 rounded-xl mb-6">
-          {(["ilac", "randevu"] as const).map((t) => (
+          {(["ilac", "randevu", "ai"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-lg transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-medium rounded-lg transition-all ${
                 tab === t ? "bg-white shadow-sm text-slate-800" : "text-slate-500 hover:text-slate-700"
               }`}
             >
-              {t === "ilac" ? <Pill className="w-4 h-4" /> : <CalendarDays className="w-4 h-4" />}
-              {t === "ilac" ? "İlaçlarım" : "Randevularım"}
+              {t === "ilac" ? <><Pill className="w-3.5 h-3.5" />İlaçlarım</> :
+               t === "randevu" ? <><CalendarDays className="w-3.5 h-3.5" />Randevularım</> :
+               <><Sparkles className="w-3.5 h-3.5 text-violet-500" />İlaçBot</>}
             </button>
           ))}
         </div>
@@ -291,6 +335,91 @@ export default function HatirlaticiTakip() {
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-purple-200 text-purple-500 hover:border-purple-300 hover:bg-purple-50/50 text-sm font-medium transition-all"
               >
                 <Plus className="w-4 h-4" /> Randevu Ekle
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* AI Chat tab */}
+        {tab === "ai" && (
+          <div className="flex flex-col gap-3">
+            <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-xl p-4 flex items-center gap-3 text-white shadow-md shadow-violet-100">
+              <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                <Bot className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">İlaçBot</p>
+                <p className="text-xs text-violet-100">İlaç bilgisi ve randevu hazırlık rehberi</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden flex flex-col" style={{ minHeight: 340 }}>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ maxHeight: 400 }}>
+                {chatMsgs.length === 0 && (
+                  <div className="space-y-3">
+                    <p className="text-xs text-slate-400 text-center">İlaçlarınız veya randevularınız hakkında merak ettiklerinizi sorun</p>
+                    <div className="grid grid-cols-1 gap-2">
+                      {STARTER_QUESTIONS.map((q) => (
+                        <button key={q} onClick={() => sendChat(q)}
+                          className="text-left text-xs bg-violet-50 hover:bg-violet-100 border border-violet-100 rounded-lg px-3 py-2.5 text-violet-700 transition-colors">
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {chatMsgs.map((m, i) => (
+                  <div key={i} className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                    {m.role === "assistant" && (
+                      <div className="w-6 h-6 rounded-full bg-violet-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <Bot className="w-3.5 h-3.5 text-violet-600" />
+                      </div>
+                    )}
+                    <div className={`max-w-[80%] rounded-xl px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap ${
+                      m.role === "user"
+                        ? "bg-violet-500 text-white rounded-br-sm"
+                        : "bg-slate-50 text-slate-700 border border-slate-100 rounded-bl-sm"
+                    }`}>
+                      {m.content}
+                    </div>
+                  </div>
+                ))}
+                {chatLoading && (
+                  <div className="flex gap-2 justify-start">
+                    <div className="w-6 h-6 rounded-full bg-violet-100 flex items-center justify-center shrink-0">
+                      <Bot className="w-3.5 h-3.5 text-violet-600" />
+                    </div>
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl rounded-bl-sm px-3 py-2">
+                      <Loader2 className="w-4 h-4 text-violet-400 animate-spin" />
+                    </div>
+                  </div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
+
+              <div className="border-t border-slate-100 p-3 flex gap-2">
+                <input
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void sendChat(chatInput); } }}
+                  placeholder="İlaç veya randevu hakkında sorun…"
+                  className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200"
+                  disabled={chatLoading}
+                />
+                <button
+                  onClick={() => void sendChat(chatInput)}
+                  disabled={!chatInput.trim() || chatLoading}
+                  className="w-9 h-9 rounded-lg bg-violet-500 hover:bg-violet-600 disabled:opacity-40 flex items-center justify-center text-white transition-colors shrink-0"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {chatMsgs.length > 0 && (
+              <button onClick={() => { setChatMsgs([]); saveChat([]); }}
+                className="text-xs text-slate-400 hover:text-slate-600 text-center transition-colors">
+                Sohbeti temizle
               </button>
             )}
           </div>

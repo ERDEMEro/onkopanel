@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Activity, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { Activity, Eye, EyeOff, Loader2, AlertCircle, Stethoscope } from "lucide-react";
 import { useAuth } from "@workspace/replit-auth-web";
 
 interface LoginModalProps {
@@ -20,7 +20,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
   const [showPass, setShowPass] = useState(false);
 
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
-  const [regForm, setRegForm] = useState({ email: "", password: "", firstName: "", lastName: "" });
+  const [regForm, setRegForm] = useState({ email: "", password: "", firstName: "", lastName: "", isDoctor: false });
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -49,13 +49,14 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
       regForm.password,
       regForm.firstName || undefined,
       regForm.lastName || undefined,
+      regForm.isDoctor,
     );
     setLoading(false);
     if (result.error) {
       setError(result.error);
     } else {
       onOpenChange(false);
-      setRegForm({ email: "", password: "", firstName: "", lastName: "" });
+      setRegForm({ email: "", password: "", firstName: "", lastName: "", isDoctor: false });
     }
   }
 
@@ -212,6 +213,36 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                     {error}
                   </div>
                 )}
+
+                {/* Doctor toggle */}
+                <button
+                  type="button"
+                  onClick={() => setRegForm((f) => ({ ...f, isDoctor: !f.isDoctor }))}
+                  className={`w-full flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all ${
+                    regForm.isDoctor
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/40"
+                  }`}
+                >
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                    regForm.isDoctor ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                  }`}>
+                    <Stethoscope className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className={`text-sm font-semibold ${regForm.isDoctor ? "text-primary" : "text-foreground"}`}>
+                      Doktor olarak kayıt ol
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {regForm.isDoctor ? "Seçili — Vaka Doldur aracına erişebilirsiniz" : "Tıklayın — yalnızca sağlık profesyonelleri için"}
+                    </p>
+                  </div>
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                    regForm.isDoctor ? "border-primary bg-primary" : "border-muted-foreground/30"
+                  }`}>
+                    {regForm.isDoctor && <div className="w-2 h-2 rounded-full bg-white" />}
+                  </div>
+                </button>
 
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}

@@ -70,6 +70,7 @@ export interface AuthUser {
   lastName: string | null;
   /** @nullable */
   profileImageUrl: string | null;
+  isDoctor: boolean;
 }
 
 export interface AuthUserEnvelope {
@@ -83,6 +84,39 @@ export interface RegisterRequest {
   password: string;
   firstName?: string;
   lastName?: string;
+  isDoctor?: boolean;
+}
+
+export interface CaseRecord {
+  id: string;
+  doctorId: string;
+  /** @nullable */
+  gender?: string | null;
+  /** @nullable */
+  birthDate?: string | null;
+  /** @nullable */
+  age?: number | null;
+  /** @nullable */
+  department?: string | null;
+  /** @nullable */
+  admissionDate?: string | null;
+  /** @nullable */
+  diagnosis?: string | null;
+  /** @nullable */
+  medications?: string | null;
+  /** @nullable */
+  procedures?: string | null;
+  /** @nullable */
+  hasGeneticTest?: boolean | null;
+  /** @nullable */
+  admissionType?: string | null;
+  /** @nullable */
+  arrivalType?: string | null;
+  /** @nullable */
+  deathStatus?: boolean | null;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
 }
 
 export interface LoginRequest {

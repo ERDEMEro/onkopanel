@@ -12,6 +12,7 @@ export * from './authUser';
 export * from './authUserEnvelope';
 export * from './beginBrowserLoginParams';
 export * from './cancerTypeMeds';
+export * from './caseRecord';
 export * from './errorEnvelope';
 export * from './getPatientsParams';
 export * from './handleBrowserLoginCallbackParams';

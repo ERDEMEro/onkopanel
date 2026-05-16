@@ -547,7 +547,7 @@ components:
 
     AuthUser:
       type: object
-      required: [id, email, firstName, lastName, profileImageUrl]
+      required: [id, email, firstName, lastName, profileImageUrl, isDoctor]
       properties:
         id:
           type: string
@@ -560,6 +560,8 @@ components:
           type: [string, "null"]
         profileImageUrl:
           type: [string, "null"]
+        isDoctor:
+          type: boolean
     AuthUserEnvelope:
       type: object
       required: [user]
@@ -582,6 +584,45 @@ components:
         firstName:
           type: string
         lastName:
+          type: string
+        isDoctor:
+          type: boolean
+
+    CaseRecord:
+      type: object
+      required: [id, doctorId, createdAt]
+      properties:
+        id:
+          type: string
+        doctorId:
+          type: string
+        gender:
+          type: [string, "null"]
+        birthDate:
+          type: [string, "null"]
+        age:
+          type: [integer, "null"]
+        department:
+          type: [string, "null"]
+        admissionDate:
+          type: [string, "null"]
+        diagnosis:
+          type: [string, "null"]
+        medications:
+          type: [string, "null"]
+        procedures:
+          type: [string, "null"]
+        hasGeneticTest:
+          type: [boolean, "null"]
+        admissionType:
+          type: [string, "null"]
+        arrivalType:
+          type: [string, "null"]
+        deathStatus:
+          type: [boolean, "null"]
+        notes:
+          type: [string, "null"]
+        createdAt:
           type: string
     LoginRequest:
       type: object

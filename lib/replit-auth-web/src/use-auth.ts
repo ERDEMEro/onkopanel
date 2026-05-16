@@ -57,13 +57,13 @@ export function useAuth(): AuthState {
     }
   }, []);
 
-  const registerWithPassword = useCallback(async (email: string, password: string, firstName?: string, lastName?: string): Promise<{ error?: string }> => {
+  const registerWithPassword = useCallback(async (email: string, password: string, firstName?: string, lastName?: string, isDoctor?: boolean): Promise<{ error?: string }> => {
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ email, password, firstName, lastName }),
+        body: JSON.stringify({ email, password, firstName, lastName, isDoctor }),
       });
       const data = await res.json() as { user?: AuthUser; error?: string };
       if (!res.ok) return { error: data.error ?? "Kayıt başarısız." };

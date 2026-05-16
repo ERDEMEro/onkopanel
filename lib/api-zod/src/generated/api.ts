@@ -190,7 +190,8 @@ export const GetCurrentAuthUserResponse = zod.object({
   "email": zod.string().email().nullable(),
   "firstName": zod.string().nullable(),
   "lastName": zod.string().nullable(),
-  "profileImageUrl": zod.string().nullable()
+  "profileImageUrl": zod.string().nullable(),
+  "isDoctor": zod.boolean()
 }),zod.null()])
 })
 
@@ -233,7 +234,8 @@ export const RegisterWithPasswordBody = zod.object({
   "email": zod.string().email().min(1),
   "password": zod.string().min(registerWithPasswordBodyPasswordMin),
   "firstName": zod.string().optional(),
-  "lastName": zod.string().optional()
+  "lastName": zod.string().optional(),
+  "isDoctor": zod.boolean().optional()
 })
 
 export const RegisterWithPasswordResponse = zod.object({
@@ -242,7 +244,8 @@ export const RegisterWithPasswordResponse = zod.object({
   "email": zod.string().email().nullable(),
   "firstName": zod.string().nullable(),
   "lastName": zod.string().nullable(),
-  "profileImageUrl": zod.string().nullable()
+  "profileImageUrl": zod.string().nullable(),
+  "isDoctor": zod.boolean()
 }),zod.null()])
 })
 
@@ -265,7 +268,8 @@ export const LoginWithPasswordResponse = zod.object({
   "email": zod.string().email().nullable(),
   "firstName": zod.string().nullable(),
   "lastName": zod.string().nullable(),
-  "profileImageUrl": zod.string().nullable()
+  "profileImageUrl": zod.string().nullable(),
+  "isDoctor": zod.boolean()
 }),zod.null()])
 })
 

@@ -100,7 +100,7 @@ router.post("/auth/register", async (req: Request, res: Response) => {
     res.status(400).json({ error: "E-posta ve en az 6 karakterli şifre giriniz." });
     return;
   }
-  const { email, password, firstName, lastName } = parsed.data;
+  const { email, password, firstName, lastName, isDoctor } = parsed.data;
 
   const existing = await db
     .select({ id: usersTable.id })
@@ -115,7 +115,7 @@ router.post("/auth/register", async (req: Request, res: Response) => {
   const passwordHash = await bcrypt.hash(password, 12);
   const [user] = await db
     .insert(usersTable)
-    .values({ email, passwordHash, firstName: firstName ?? null, lastName: lastName ?? null })
+    .values({ email, passwordHash, firstName: firstName ?? null, lastName: lastName ?? null, isDoctor: isDoctor ?? false })
     .returning();
 
   const sessionData: SessionData = {
@@ -125,6 +125,7 @@ router.post("/auth/register", async (req: Request, res: Response) => {
       firstName: user.firstName,
       lastName: user.lastName,
       profileImageUrl: user.profileImageUrl,
+      isDoctor: user.isDoctor,
     },
     access_token: "",
     refresh_token: undefined,
@@ -167,6 +168,7 @@ router.post("/auth/login", async (req: Request, res: Response) => {
       firstName: user.firstName,
       lastName: user.lastName,
       profileImageUrl: user.profileImageUrl,
+      isDoctor: user.isDoctor,
     },
     access_token: "",
     refresh_token: undefined,

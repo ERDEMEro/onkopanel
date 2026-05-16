@@ -10,6 +10,8 @@ import SymptomChecker from "@/pages/SymptomChecker";
 import AiAsistan from "@/pages/AiAsistan";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider, useLang } from "@/context/LanguageContext";
+import { NarratorProvider } from "@/context/NarratorContext";
+import { NarratorWidget } from "@/components/Narrator";
 import { ThemePanel } from "@/components/ThemePanel";
 import { BarChart2, Users, Stethoscope, Palette, Sparkles } from "lucide-react";
 
@@ -115,18 +117,28 @@ function Router() {
   );
 }
 
+function AppInner() {
+  const { lang } = useLang();
+  return (
+    <NarratorProvider lang={lang}>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Router />
+          </WouterRouter>
+          <NarratorWidget />
+          <Toaster />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </NarratorProvider>
+  );
+}
+
 function App() {
   return (
     <ThemeProvider>
       <LanguageProvider>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-              <Router />
-            </WouterRouter>
-            <Toaster />
-          </TooltipProvider>
-        </QueryClientProvider>
+        <AppInner />
       </LanguageProvider>
     </ThemeProvider>
   );

@@ -66,13 +66,22 @@ const MEAL_SLOTS = [
 ] as const;
 const RESTRICTION_OPTIONS = ["Gluten-siz","Vegan","Vejetaryen","Laktozsuz","Tuzsuz","Düşük Şeker","Lifli Ağırlıklı"];
 
-function getWeekDates(): string[] {
+function getWeekDates(weekOffset: number = 0): string[] {
   const today = new Date();
   const dow = (today.getDay()+6)%7;
   return Array.from({length:7},(_,i)=>{
-    const d=new Date(today); d.setDate(today.getDate()-dow+i);
+    const d=new Date(today); d.setDate(today.getDate()-dow+i+weekOffset*7);
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   });
+}
+
+function toDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+function weekRangeLabel(dates: string[]): string {
+  const fmt = (s: string) => new Date(s+"T12:00:00").toLocaleDateString("tr-TR",{day:"numeric",month:"short"});
+  return `${fmt(dates[0])} – ${fmt(dates[6])}`;
 }
 
 /* ─── Meal Wizard ─── */
@@ -149,9 +158,10 @@ function SectionHeader({ emoji, title, badge }: { emoji: string; title: string; 
 
 /* ─── Main ─── */
 export default function BesinTakvimi() {
+  const todayStr = toDateStr(new Date());
   const todayDow = (new Date().getDay()+6)%7;
-  const weekDates = getWeekDates();
 
+  const [weekOffset, setWeekOffset] = useState(0);
   const [selectedDay, setSelectedDay] = useState(todayDow);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -195,8 +205,9 @@ export default function BesinTakvimi() {
     });
   }
 
+  const weekDates = getWeekDates(weekOffset);
   const selectedDate = weekDates[selectedDay];
-  const isToday = selectedDay === todayDow;
+  const isToday = selectedDate === todayStr;
 
   // Meal data for selected day
   const mealDay = mealPlan?.days[selectedDay];
@@ -252,8 +263,30 @@ export default function BesinTakvimi() {
         </div>
 
         {/* Week strip */}
-        <div className="bg-white border-b border-slate-100 px-6 py-3">
+        <div className="bg-white border-b border-slate-100 px-4 py-3">
           <div className="max-w-2xl mx-auto">
+            {/* Week navigation header */}
+            <div className="flex items-center justify-between mb-2">
+              <button
+                onClick={()=>setWeekOffset(o=>o-1)}
+                className="flex items-center gap-1 text-xs text-slate-500 hover:text-emerald-600 px-2 py-1 rounded-lg hover:bg-emerald-50 transition-all"
+              >
+                <ChevronLeft className="w-3.5 h-3.5"/> Önceki
+              </button>
+              <div className="text-center">
+                <p className="text-[11px] font-semibold text-slate-600">{weekRangeLabel(weekDates)}</p>
+                {weekOffset===0 && <p className="text-[10px] text-emerald-500">Bu Hafta</p>}
+                {weekOffset<0  && <p className="text-[10px] text-slate-400">{Math.abs(weekOffset)} hafta önce</p>}
+                {weekOffset>0  && <p className="text-[10px] text-slate-400">{weekOffset} hafta sonra</p>}
+              </div>
+              <button
+                onClick={()=>setWeekOffset(o=>o+1)}
+                className="flex items-center gap-1 text-xs text-slate-500 hover:text-emerald-600 px-2 py-1 rounded-lg hover:bg-emerald-50 transition-all"
+              >
+                Sonraki <ChevronRight className="w-3.5 h-3.5"/>
+              </button>
+            </div>
+            {/* Day buttons */}
             <div className="grid grid-cols-7 gap-1">
               {WEEK_DAYS.map((d,i)=>{
                 const dateStr=weekDates[i];
@@ -261,11 +294,11 @@ export default function BesinTakvimi() {
                 const hasMed=dailyMeds.length>0;
                 const hasExercise=exercisePlan?!exercisePlan.days[i]?.rest:false;
                 const hasMeal=!!(mealPlan?.days[i]);
-                const isTod=i===todayDow;
+                const isTod=dateStr===todayStr;
                 const isSel=i===selectedDay;
                 return (
                   <button key={d} onClick={()=>setSelectedDay(i)}
-                    className={`flex flex-col items-center py-2 rounded-xl transition-all ${isSel?"bg-emerald-500 text-white shadow-md shadow-emerald-100":"hover:bg-slate-50"}`}>
+                    className={`flex flex-col items-center py-2 rounded-xl transition-all ${isSel?"bg-emerald-500 text-white shadow-md shadow-emerald-100":isTod?"ring-2 ring-emerald-200 bg-emerald-50":"hover:bg-slate-50"}`}>
                     <span className={`text-[10px] font-semibold mb-1 ${isSel?"text-emerald-100":isTod?"text-emerald-600":"text-slate-400"}`}>{d}</span>
                     <span className={`text-sm font-bold ${isSel?"text-white":isTod?"text-emerald-700":"text-slate-700"}`}>
                       {new Date(dateStr+"T12:00:00").getDate()}
@@ -281,6 +314,12 @@ export default function BesinTakvimi() {
               })}
             </div>
             <div className="flex items-center gap-4 justify-center mt-2 pt-2 border-t border-slate-50">
+              {weekOffset!==0&&(
+                <button onClick={()=>{setWeekOffset(0);setSelectedDay(todayDow);}}
+                  className="text-[10px] text-emerald-600 hover:underline font-medium mr-2">
+                  Bugüne Dön
+                </button>
+              )}
               {[["bg-emerald-400","Yemek"],["bg-violet-400","İlaç"],["bg-teal-400","Egzersiz"],["bg-amber-400","Randevu"]].map(([c,l])=>(
                 <span key={l} className="flex items-center gap-1 text-[10px] text-slate-400">
                   <span className={`w-1.5 h-1.5 rounded-full ${c} inline-block`}/>{l}
@@ -293,19 +332,29 @@ export default function BesinTakvimi() {
         {/* Day title */}
         <div className="max-w-2xl mx-auto px-6 pt-5 pb-1 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <button onClick={()=>setSelectedDay(d=>Math.max(0,d-1))} disabled={selectedDay===0}
-              className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-30 text-slate-500 transition-colors">
+            <button
+              onClick={()=>{
+                if(selectedDay===0){setWeekOffset(o=>o-1);setSelectedDay(6);}
+                else setSelectedDay(d=>d-1);
+              }}
+              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
+            >
               <ChevronLeft className="w-4 h-4"/>
             </button>
             <div>
               <h2 className="text-base font-bold text-slate-800">{FULL_DAYS[selectedDay]}</h2>
               <p className="text-xs text-slate-400">
-                {new Date(selectedDate+"T12:00:00").toLocaleDateString("tr-TR",{day:"numeric",month:"long"})}
+                {new Date(selectedDate+"T12:00:00").toLocaleDateString("tr-TR",{day:"numeric",month:"long",year:"numeric"})}
                 {isToday&&<span className="ml-2 text-emerald-600 font-semibold">· Bugün</span>}
               </p>
             </div>
-            <button onClick={()=>setSelectedDay(d=>Math.min(6,d+1))} disabled={selectedDay===6}
-              className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-30 text-slate-500 transition-colors">
+            <button
+              onClick={()=>{
+                if(selectedDay===6){setWeekOffset(o=>o+1);setSelectedDay(0);}
+                else setSelectedDay(d=>d+1);
+              }}
+              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
+            >
               <ChevronRight className="w-4 h-4"/>
             </button>
           </div>

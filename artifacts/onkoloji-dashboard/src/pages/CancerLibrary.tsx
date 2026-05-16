@@ -15,6 +15,7 @@ import {
   useCancerTypeList, useCancerTypeDetail,
   type CancerTypeDetail, type DistItem,
 } from "@/hooks/useCancerLibraryData";
+import { useGetOncologySummary } from "@workspace/api-client-react";
 
 // ─── Color maps ───────────────────────────────────────────────────────────────
 
@@ -614,6 +615,7 @@ export default function CancerLibrary() {
   const [search, setSearch] = useState("");
 
   const { data: list = [], isLoading: listLoading } = useCancerTypeList();
+  const { data: summary } = useGetOncologySummary();
 
   // Auto-select first item when list loads
   const firstKey = list[0]?.key ?? null;
@@ -699,7 +701,7 @@ export default function CancerLibrary() {
           <div className="p-3 border-t">
             <p className="text-[10px] text-muted-foreground">
               {list.length} {lib.resultsFound} &middot;{" "}
-              {list.reduce((s, i) => s + i.count, 0)} hasta
+              {(summary?.totalPatients ?? list.reduce((s, i) => s + i.count, 0)).toLocaleString("tr-TR")} hasta
             </p>
           </div>
         )}

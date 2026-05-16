@@ -1,6 +1,7 @@
-import { Settings, Globe, Palette, BarChart2, Check } from "lucide-react";
+import { Settings, Globe, Palette, BarChart2, Check, Accessibility, Volume2, VolumeX, Play, Settings2, AlertTriangle } from "lucide-react";
 import { useLang } from "@/context/LanguageContext";
 import { useTheme, AccentColor, BarStyle } from "@/context/ThemeContext";
+import { useNarrator } from "@/context/NarratorContext";
 
 // ─── Theme presets ────────────────────────────────────────────────────────────
 
@@ -154,6 +155,7 @@ function SectionHeader({ icon, label }: { icon: React.ReactNode; label: string }
 export default function Ayarlar() {
   const { lang, setLang, t } = useLang();
   const { isDark, accentColor, barStyle, setIsDark, setAccentColor, setBarStyle } = useTheme();
+  const { isEnabled, isSupported, isSpeaking, rate, toggle, setRate, speak, stop } = useNarrator();
   const s = t.settings;
 
   // Determine which preset is active
@@ -288,6 +290,140 @@ export default function Ayarlar() {
               );
             })}
           </div>
+        </section>
+
+        {/* ── Accessibility / Narrator ── */}
+        <section className="rounded-2xl border bg-card p-6 anim-fsu" style={{ animationDelay: "240ms" }}>
+          <SectionHeader icon={<Accessibility className="w-4 h-4" />} label={s.accessibilitySection} />
+
+          {!isSupported ? (
+            /* Browser doesn't support TTS */
+            <div className="flex items-start gap-3 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-4 py-3.5">
+              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-800 dark:text-amber-300">{s.narratorNotSupported}</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+
+              {/* Toggle card */}
+              <div
+                className={`relative flex items-start gap-4 p-5 rounded-2xl border-2 transition-all ${
+                  isEnabled
+                    ? "border-primary bg-primary/5"
+                    : "border-border bg-muted/20"
+                }`}
+              >
+                {/* Icon */}
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                  isEnabled ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                }`}>
+                  {isEnabled
+                    ? <Volume2 className="w-5 h-5" aria-hidden="true" />
+                    : <VolumeX className="w-5 h-5" aria-hidden="true" />
+                  }
+                </div>
+
+                {/* Text */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-sm font-semibold text-foreground">{s.narratorLabel}</span>
+                    <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${
+                      isEnabled
+                        ? "bg-primary/15 text-primary"
+                        : "bg-muted text-muted-foreground"
+                    }`}>
+                      {isEnabled ? s.narratorEnabled : s.narratorDisabled}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{s.narratorDesc}</p>
+                </div>
+
+                {/* Toggle button */}
+                <button
+                  onClick={toggle}
+                  aria-pressed={isEnabled}
+                  aria-label={isEnabled ? s.narratorToggleOff : s.narratorToggleOn}
+                  className={`shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                    isEnabled
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                      : "bg-background border border-border text-foreground hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  {isEnabled ? s.narratorToggleOff : s.narratorToggleOn}
+                </button>
+              </div>
+
+              {/* Controls (only when enabled) */}
+              {isEnabled && (
+                <div className="space-y-4 pt-1">
+
+                  {/* Speed slider */}
+                  <div className="rounded-xl border bg-background px-5 py-4">
+                    <label
+                      htmlFor="settings-narrator-rate"
+                      className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-3"
+                    >
+                      <Settings2 className="w-3.5 h-3.5" aria-hidden="true" />
+                      {s.narratorSpeed}
+                      <span className="ml-auto font-bold text-foreground tabular-nums">{rate.toFixed(1)}×</span>
+                    </label>
+                    <input
+                      id="settings-narrator-rate"
+                      type="range"
+                      min={0.5}
+                      max={2}
+                      step={0.1}
+                      value={rate}
+                      onChange={(e) => setRate(parseFloat(e.target.value))}
+                      aria-label={s.narratorSpeed}
+                      aria-valuemin={0.5}
+                      aria-valuemax={2}
+                      aria-valuenow={rate}
+                      className="w-full accent-primary cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+                      <span>0.5× · {s.narratorSlow}</span>
+                      <span>{s.narratorFast} · 2×</span>
+                    </div>
+                  </div>
+
+                  {/* Test + shortcut row */}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <button
+                      onClick={() => isSpeaking ? stop() : speak(s.narratorTestText)}
+                      aria-label={s.narratorTest}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all ${
+                        isSpeaking
+                          ? "bg-destructive/10 text-destructive border-destructive/30 hover:bg-destructive/20"
+                          : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"
+                      }`}
+                    >
+                      {isSpeaking ? (
+                        <>
+                          <span className="flex gap-0.5 items-end" aria-hidden="true">
+                            {[3, 5, 4].map((h, i) => (
+                              <span key={i} className="w-0.5 bg-current rounded-full animate-pulse inline-block" style={{ height: `${h * 3}px`, animationDelay: `${i * 0.12}s` }} />
+                            ))}
+                          </span>
+                          {s.narratorDisabled !== "Devre Dışı" ? "Stop" : "Durdur"}
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-3.5 h-3.5" aria-hidden="true" />
+                          {s.narratorTest}
+                        </>
+                      )}
+                    </button>
+
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>{s.narratorShortcut}</span>
+                      <kbd className="px-2 py-1 rounded-md bg-muted border border-border font-mono text-[11px] font-semibold text-foreground">Alt + N</kbd>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
       </div>

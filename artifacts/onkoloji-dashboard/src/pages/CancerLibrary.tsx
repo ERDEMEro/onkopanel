@@ -23,6 +23,7 @@ const COLOR_BY_KEY: Record<string, string> = {
   lung: "#607D8B",   liver: "#795548",   colorectal: "#4CAF50",
   pancreatic: "#9C27B0", cervical: "#E91E63", lymphoma: "#00BCD4",
   stomach: "#FF5722",    myeloma: "#3F51B5",  kidney: "#009688",
+  thyroid: "#00acc1",    ovarian: "#e91e63",  brain: "#673ab7",
 };
 
 const PALETTE = [

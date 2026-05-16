@@ -698,6 +698,50 @@ export const CANCER_DATA: CancerEntry[] = [
       { tr: "Evre IV: Mesane, rektum veya uzak metastaz", en: "Stage IV: Bladder, rectum, or distant metastasis" },
     ],
   },
+  {
+    id: "thyroid",
+    category: "carcinoma",
+    color: "#00acc1",
+    bgLight: "#e0f7fa",
+    nameTr: "Tiroid Kanseri",
+    nameEn: "Thyroid Cancer",
+    descTr: "Tiroid bezi hücrelerinden kaynaklanan en sık görülen endokrin kanserdir. Papiller tiroid karsinomu en yaygın alt tipidir ve tedavi başarısı çok yüksektir. Erken tanı ile 10 yıllık sağkalım %95'in üzerindedir.",
+    descEn: "The most common endocrine cancer, originating from thyroid gland cells. Papillary thyroid carcinoma is the most common subtype with excellent prognosis. 10-year survival exceeds 95% with early diagnosis.",
+    survivalRate: "%98 (5 yıl / 5-year)",
+    incidence: "16",
+    symptoms: [
+      { tr: "Boyunda ele gelen şişlik veya kitle", en: "Palpable lump or mass in the neck" },
+      { tr: "Ses kısıklığı veya ses değişikliği", en: "Hoarseness or voice changes" },
+      { tr: "Yutma güçlüğü (disfaji)", en: "Difficulty swallowing (dysphagia)" },
+      { tr: "Boyun lenf bezi büyümesi", en: "Enlarged neck lymph nodes" },
+      { tr: "Boyun veya boğazda ağrı", en: "Pain in neck or throat" },
+    ],
+    riskFactors: [
+      { tr: "İyonizan radyasyon maruziyeti (özellikle çocuklukta)", en: "Ionizing radiation exposure (especially in childhood)" },
+      { tr: "Ailede tiroid kanseri öyküsü", en: "Family history of thyroid cancer" },
+      { tr: "Kadın cinsiyet (3:1 oran)", en: "Female sex (3:1 ratio)" },
+      { tr: "RET proto-onkogen mutasyonu (medüller)", en: "RET proto-oncogene mutation (medullary)" },
+      { tr: "İyot eksikliği", en: "Iodine deficiency" },
+    ],
+    treatments: [
+      { tr: "Total tiroidektomi (tüm bez çıkarımı)", en: "Total thyroidectomy (complete gland removal)" },
+      { tr: "Radyoaktif iyot tedavisi (RAI)", en: "Radioactive iodine therapy (RAI)" },
+      { tr: "TSH supresyon tedavisi (levotiroksin)", en: "TSH suppression therapy (levothyroxine)" },
+      { tr: "Lenf nodu diseksiyonu (gerektiğinde)", en: "Lymph node dissection (when needed)" },
+      { tr: "Kinaz inhibitörleri (sorafenib — refrakter vakalar)", en: "Kinase inhibitors (sorafenib — refractory cases)" },
+    ],
+    prevention: [
+      { tr: "Gereksiz baş-boyun bölgesi radyasyon maruziyetinden kaçınma", en: "Avoiding unnecessary head-neck radiation exposure" },
+      { tr: "Genetik danışmanlık (RET mutasyonu taşıyıcıları)", en: "Genetic counseling (RET mutation carriers)" },
+      { tr: "Düzenli tiroid ultrasonografisi (risk grubunda)", en: "Regular thyroid ultrasound (in high-risk groups)" },
+    ],
+    stages: [
+      { tr: "Evre I: 2 cm altında, tiroide sınırlı", en: "Stage I: <2 cm, confined to thyroid" },
+      { tr: "Evre II: 2-4 cm, tiroide sınırlı", en: "Stage II: 2-4 cm, confined to thyroid" },
+      { tr: "Evre III: Lenf bezi tutulumu veya minimal uzanım", en: "Stage III: Lymph node involvement or minimal extension" },
+      { tr: "Evre IV: Uzak metastaz veya geniş yayılım", en: "Stage IV: Distant metastasis or extensive spread" },
+    ],
+  },
 ];
 
 export const CATEGORY_COLORS: Record<CancerCategory, string> = {

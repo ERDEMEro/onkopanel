@@ -525,6 +525,10 @@ router.get("/cohort", (req: Request, res: Response): void => {
 // ─── Cancer Library Stats ───────────────────────────────────────────────────
 
 const LIBRARY_CANCER_DETECT: Array<{ key: string; labelTr: string; labelEn: string; keywords: string[] }> = [
+  { key: "thyroid",    labelTr: "Tiroid Kanseri",                labelEn: "Thyroid Cancer",        keywords: ["tiroid karsinomu", "tiroid kanseri", "tiroid malign", "tiroid ca", "tiroid tm", "tiroidektomi", "total tiroid", "papiller tiroid", "tiroid papiller", "folliküler tiroid"] },
+  { key: "ovarian",    labelTr: "Over Kanseri",                  labelEn: "Ovarian Cancer",        keywords: ["over karsinomu", "over kanseri", "over ca", "over malign", "yumurtalık kanseri", "yumurtalık karsinomu", "ovarium karsinomu"] },
+  { key: "brain",      labelTr: "Beyin Tümörü",                  labelEn: "Brain Tumor",           keywords: ["beyin malign", "glioblastom", "gliom", "beyin tümörü", "serebral tümör", "intrakranial tümör", "astrositom"] },
+  { key: "kidney",     labelTr: "Böbrek Kanseri",                labelEn: "Kidney Cancer",         keywords: ["böbrek karsinomu", "böbrek kanseri", "renal hücreli karsinom", "böbrek ca", "böbrek malign", "böbrek tm", "nefrektomi", "renal cell"] },
   { key: "breast",     labelTr: "Meme Kanseri",                  labelEn: "Breast Cancer",        keywords: ["meme karsinomu", "meme kanseri", "meme malign neoplazmı", "meme malign", "meme ca"] },
   { key: "prostate",   labelTr: "Prostat Kanseri",               labelEn: "Prostate Cancer",       keywords: ["prostat karsinomu", "prostat kanseri", "prostat adenokarsinomu", "prostat ca", "prostat malign neoplazmı", "prostat malign", "prostatektomi", "prostat tm"] },
   { key: "bladder",    labelTr: "Mesane Kanseri",                labelEn: "Bladder Cancer",        keywords: ["mesane karsinomu", "mesane kanseri", "mesane malign neoplazmı"] },
@@ -536,7 +540,6 @@ const LIBRARY_CANCER_DETECT: Array<{ key: string; labelTr: string; labelEn: stri
   { key: "lymphoma",   labelTr: "Lenfoma",                       labelEn: "Lymphoma",              keywords: ["lenfoma", "hodgkin", "diffuse large"] },
   { key: "stomach",    labelTr: "Mide Kanseri",                  labelEn: "Stomach Cancer",        keywords: ["mide karsinomu", "mide kanseri", "gastrik karsinom"] },
   { key: "myeloma",    labelTr: "Multipl Miyelom",               labelEn: "Multiple Myeloma",      keywords: ["multipl miyelom", "miyelom"] },
-  { key: "kidney",     labelTr: "Böbrek Kanseri",                labelEn: "Kidney Cancer",         keywords: ["böbrek karsinomu", "böbrek kanseri", "renal hücreli karsinom", "böbrek ca"] },
 ];
 
 const CITY_MAP: Record<string, string> = {

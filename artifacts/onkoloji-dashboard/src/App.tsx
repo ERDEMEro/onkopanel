@@ -26,12 +26,12 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider, useLang } from "@/context/LanguageContext";
 import { NarratorProvider } from "@/context/NarratorContext";
 import { NarratorWidget } from "@/components/Narrator";
-import { BarChart2, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList, Heart, Salad, Bell, NotebookPen, Newspaper, Star, AlertTriangle } from "lucide-react";
+import { BarChart2, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList, Heart, Salad, Bell, NotebookPen, Newspaper, Star, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth, AuthProvider } from "@workspace/replit-auth-web";
 import { LoginModal } from "@/components/LoginModal";
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,6 +47,35 @@ function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
   const { t } = useLang();
   const { isDark } = useTheme();
   const { user, isLoading, isAuthenticated, logout } = useAuth();
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateScrollState = useCallback(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+    updateScrollState();
+    el.addEventListener("scroll", updateScrollState, { passive: true });
+    const ro = new ResizeObserver(updateScrollState);
+    ro.observe(el);
+    return () => { el.removeEventListener("scroll", updateScrollState); ro.disconnect(); };
+  }, [updateScrollState]);
+
+  // Re-check when tabs change (login/logout)
+  useEffect(() => { setTimeout(updateScrollState, 50); }, [user, updateScrollState]);
+
+  function scrollTabs(dir: "left" | "right") {
+    const el = tabsRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir === "left" ? -160 : 160, behavior: "smooth" });
+  }
 
   const isDoctor = !!user?.isDoctor;
 
@@ -95,14 +124,45 @@ function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
           <span className="font-bold text-[13px] tracking-tight text-foreground hidden sm:block">OnkoPanel</span>
         </button>
 
-        {/* Main tabs */}
-        <div className="flex items-center h-full flex-1 overflow-x-auto scrollbar-none">
-          {mainTabs.map((tab) => (
-            <button key={tab.path} onClick={() => navigate(tab.path)} className={tabCls(location === tab.path)}>
-              {tab.icon}
-              <span className="hidden md:inline">{tab.label}</span>
+        {/* Main tabs — scrollable */}
+        <div className="flex items-center h-full flex-1 min-w-0 relative">
+          {/* Left arrow */}
+          {canScrollLeft && (
+            <button
+              onClick={() => scrollTabs("left")}
+              className="absolute left-0 z-10 h-full px-1 flex items-center bg-gradient-to-r from-background via-background/90 to-transparent text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
             </button>
-          ))}
+          )}
+
+          {/* Scrollable tab list */}
+          <div
+            ref={tabsRef}
+            className="flex items-center h-full overflow-x-auto scrollbar-none scroll-smooth"
+            style={{ scrollbarWidth: "none" }}
+          >
+            {mainTabs.map((tab) => (
+              <button
+                key={tab.path}
+                onClick={() => navigate(tab.path)}
+                className={tabCls(location === tab.path) + " shrink-0"}
+              >
+                {tab.icon}
+                <span className="hidden md:inline whitespace-nowrap">{tab.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Right arrow */}
+          {canScrollRight && (
+            <button
+              onClick={() => scrollTabs("right")}
+              className="absolute right-0 z-10 h-full px-1 flex items-center bg-gradient-to-l from-background via-background/90 to-transparent text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {/* Right side: Settings + Auth */}

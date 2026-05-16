@@ -104,12 +104,12 @@ router.get("/summary", (_req: Request, res: Response): void => {
         else if (gender === "Erkek") maleCount++;
         const age = getAge(row["doğum tarihi"]);
         if (age !== null && age > 0 && age < 120) ages.push(age);
+        if (row["genetic test "] && row["genetic test "].trim()) withGeneticTest++;
       }
       if (row["ölüm tarihi"] && row["ölüm tarihi"].trim()) {
         deceasedClients.add(row.client_id);
       }
     }
-    if (row["genetic test "] && row["genetic test "].trim()) withGeneticTest++;
     const depts = extractBracketValues(row.department);
     depts.forEach((d) => departments.add(d));
   }
@@ -130,16 +130,29 @@ router.get("/summary", (_req: Request, res: Response): void => {
   });
 });
 
-router.get("/gender-distribution", (_req: Request, res: Response): void => {
+function getUniquePatientRows(): RawRow[] {
   const rows = loadData();
-  const genders = rows.map((r) => extractGender(r.cinsiyet)).filter(Boolean);
+  const seen = new Set<string>();
+  const unique: RawRow[] = [];
+  for (const row of rows) {
+    if (row.client_id && !seen.has(row.client_id)) {
+      seen.add(row.client_id);
+      unique.push(row);
+    }
+  }
+  return unique;
+}
+
+router.get("/gender-distribution", (_req: Request, res: Response): void => {
+  const patients = getUniquePatientRows();
+  const genders = patients.map((r) => extractGender(r.cinsiyet)).filter(Boolean);
   res.json(countBy(genders));
 });
 
 router.get("/age-distribution", (_req: Request, res: Response): void => {
-  const rows = loadData();
+  const patients = getUniquePatientRows();
   const buckets: Record<string, number> = {};
-  for (const row of rows) {
+  for (const row of patients) {
     const age = getAge(row["doğum tarihi"]);
     if (age !== null && age > 0 && age < 120) {
       const decade = Math.floor(age / 10) * 10;
@@ -154,12 +167,23 @@ router.get("/age-distribution", (_req: Request, res: Response): void => {
 });
 
 router.get("/department-distribution", (_req: Request, res: Response): void => {
-  const rows = loadData();
-  const depts: string[] = [];
-  for (const row of rows) {
-    extractBracketValues(row.department).forEach((d) => depts.push(d));
+  const patients = getUniquePatientRows();
+  const deptCounts: Record<string, number> = {};
+  for (const row of patients) {
+    const seen = new Set<string>();
+    extractBracketValues(row.department).forEach((d) => {
+      const key = d.toLowerCase().trim();
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        deptCounts[d] = (deptCounts[d] || 0) + 1;
+      }
+    });
   }
-  res.json(countBy(depts).slice(0, 15));
+  const result = Object.entries(deptCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 15)
+    .map(([label, count]) => ({ label, count }));
+  res.json(result);
 });
 
 function toTitleCase(str: string): string {
@@ -203,26 +227,29 @@ function shortenGeneticLabel(raw: string): string {
 }
 
 router.get("/admission-types", (_req: Request, res: Response): void => {
-  const rows = loadData();
-  const basvuru: string[] = [];
-  const gelis: string[] = [];
-  const yatis: string[] = [];
+  const patients = getUniquePatientRows();
+  const basvuruCounts: Record<string, number> = {};
+  const gelisCounts: Record<string, number> = {};
+  const yatisCounts: Record<string, number> = {};
 
-  for (const row of rows) {
-    const bRaw = row["başvuru tipi"]?.trim();
-    if (bRaw) extractBracketValues(bRaw).forEach((v) => basvuru.push(toTitleCase(v)));
+  for (const row of patients) {
+    const bVals = new Set(extractBracketValues(row["başvuru tipi"] || "").map(toTitleCase));
+    bVals.forEach((v) => { basvuruCounts[v] = (basvuruCounts[v] || 0) + 1; });
 
-    const gRaw = row["geliş tipi"]?.trim();
-    if (gRaw) extractBracketValues(gRaw).forEach((v) => gelis.push(toTitleCase(v)));
+    const gVals = new Set(extractBracketValues(row["geliş tipi"] || "").map(toTitleCase));
+    gVals.forEach((v) => { gelisCounts[v] = (gelisCounts[v] || 0) + 1; });
 
-    const yRaw = row["yatış tipi"]?.trim();
-    if (yRaw) extractBracketValues(yRaw).forEach((v) => yatis.push(toTitleCase(v)));
+    const yVals = new Set(extractBracketValues(row["yatış tipi"] || "").map(toTitleCase));
+    yVals.forEach((v) => { yatisCounts[v] = (yatisCounts[v] || 0) + 1; });
   }
 
+  const toSorted = (obj: Record<string, number>) =>
+    Object.entries(obj).sort((a, b) => b[1] - a[1]).map(([label, count]) => ({ label, count }));
+
   res.json({
-    basvuruTipi: countBy(basvuru),
-    gelisTipi: countBy(gelis),
-    yatisTipi: countBy(yatis),
+    basvuruTipi: toSorted(basvuruCounts),
+    gelisTipi: toSorted(gelisCounts),
+    yatisTipi: toSorted(yatisCounts),
   });
 });
 

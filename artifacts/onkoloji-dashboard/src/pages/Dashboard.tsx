@@ -31,7 +31,11 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshCw, ChevronDown, Check, Printer, Download } from "lucide-react";
+import {
+  RefreshCw, ChevronDown, Check, Printer, Download,
+  Users2, ClipboardList, CalendarDays, Building2,
+  User, FlaskConical, HeartPulse, Dna,
+} from "lucide-react";
 import { PatientTable } from "@/components/patient-table";
 import { KeyInsights } from "@/components/key-insights";
 import { ProblemSolutions } from "@/components/problem-solutions";
@@ -97,14 +101,23 @@ function CustomLegend({ payload }: any) {
   );
 }
 
-function KPICard({ title, value, loading, valueColor = CHART_COLORS.teal }: { title: string; value?: React.ReactNode; loading?: boolean; valueColor?: string }) {
+function KPICard({ title, value, loading, valueColor = CHART_COLORS.teal, icon }: {
+  title: string; value?: React.ReactNode; loading?: boolean; valueColor?: string; icon?: React.ReactNode;
+}) {
   return (
-    <Card>
-      <CardContent className="p-6">
+    <Card className="overflow-hidden relative group transition-shadow hover:shadow-md">
+      <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-lg" style={{ background: valueColor }} />
+      <CardContent className="p-4 pt-4">
         {loading ? (
-          <><Skeleton className="h-4 w-24 mb-2" /><Skeleton className="h-8 w-32" /></>
+          <><Skeleton className="h-3 w-20 mb-2.5" /><Skeleton className="h-7 w-24" /></>
         ) : (
-          <><p className="text-sm text-muted-foreground">{title}</p><p className="text-3xl font-bold mt-2 tracking-tight" style={{ color: valueColor }}>{value ?? "--"}</p></>
+          <>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">{title}</p>
+              {icon && <div className="opacity-40 group-hover:opacity-70 transition-opacity" style={{ color: valueColor }}>{icon}</div>}
+            </div>
+            <p className="text-2xl font-bold tracking-tight" style={{ color: valueColor }}>{value ?? "--"}</p>
+          </>
         )}
       </CardContent>
     </Card>
@@ -183,29 +196,37 @@ export default function Dashboard() {
   const clinicDistTitle = lang === "en" ? "Clinic Distribution" : "Poliklinik Dağılımı";
 
   return (
-    <div className="min-h-screen bg-background px-5 py-4 pt-[32px] pb-[32px] pl-[24px] pr-[24px]">
-      <div className="max-w-[1400px] mx-auto">
+    <div className="min-h-screen bg-background pb-[32px]">
+      <div className="max-w-[1400px] mx-auto px-6">
 
-        {/* Header */}
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-x-4 gap-y-4">
-          <div className="pt-2">
-            <h1 className="font-bold text-[32px] tracking-tight">{d.title}</h1>
-            <p className="text-muted-foreground mt-1 text-[15px]">{d.subtitle}</p>
-            {DATA_SOURCES.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5 mt-3">
-                <span className="text-[12px] text-muted-foreground shrink-0">{d.dataSource}:</span>
-                {DATA_SOURCES.map((source) => (
-                  <span key={source} className="text-[12px] font-medium rounded px-2 py-0.5 truncate print:!bg-[rgb(229,231,235)] print:!text-[rgb(75,85,99)]" title={source}
-                    style={{ maxWidth: "20ch", backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "#e2e8f0", color: isDark ? "#cbd5e1" : "#475569" }}>
-                    {source}
-                  </span>
-                ))}
-              </div>
-            )}
-            {lastRefreshed && <p className="text-[12px] text-muted-foreground mt-1.5">{d.lastUpdated}: {lastRefreshed}</p>}
+        {/* Hero header */}
+        <div className="relative mb-6 mt-5 rounded-2xl border overflow-hidden bg-card print:hidden">
+          <div className="absolute inset-0 pointer-events-none"
+            style={{ background: "linear-gradient(135deg, hsl(var(--primary)/0.08) 0%, transparent 55%)" }} />
+          <div className="absolute right-0 top-0 bottom-0 w-48 pointer-events-none"
+            style={{ background: "linear-gradient(225deg, hsl(var(--primary)/0.05) 0%, transparent 60%)" }} />
+          <div className="relative px-6 py-5 flex flex-wrap items-start justify-between gap-x-4 gap-y-4">
+          <div className="pt-1">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-5 w-1 rounded-full bg-primary" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-primary">OnkoPanel</span>
+            </div>
+            <h1 className="font-bold text-[28px] tracking-tight">{d.title}</h1>
+            <p className="text-muted-foreground mt-1 text-[14px]">{d.subtitle}</p>
+            <div className="flex flex-wrap items-center gap-3 mt-3">
+              {DATA_SOURCES.length > 0 && DATA_SOURCES.map((source) => (
+                <span key={source} className="text-[11px] font-semibold rounded-full px-2.5 py-0.5 print:!bg-[rgb(229,231,235)] print:!text-[rgb(75,85,99)]"
+                  style={{ backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "hsl(var(--primary)/0.1)", color: isDark ? "#cbd5e1" : "hsl(var(--primary))" }}>
+                  {source}
+                </span>
+              ))}
+              {lastRefreshed && (
+                <span className="text-[11px] text-muted-foreground">{d.lastUpdated}: {lastRefreshed}</span>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-3 pt-2 print:hidden">
+          <div className="flex items-center gap-3 pt-1 print:hidden">
             <div className="relative" ref={dropdownRef}>
               <div className="flex items-center rounded-[6px] overflow-hidden h-[30px] text-[13px] border"
                 style={{ backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#ffffff", borderColor: isDark ? "rgba(255,255,255,0.1)" : "#e2e8f0", color: isDark ? "#e2e8f0" : "#334155" }}>
@@ -244,18 +265,19 @@ export default function Dashboard() {
               <Printer className="w-4 h-4" />
             </button>
           </div>
+          </div>
         </div>
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
-          <KPICard title={d.kpi.totalPatients} value={summaryQ.data?.totalPatients} loading={summaryQ.isLoading || summaryQ.isFetching} />
-          <KPICard title={d.kpi.totalAdmissions} value={summaryQ.data?.totalAdmissions} loading={summaryQ.isLoading || summaryQ.isFetching} />
-          <KPICard title={d.kpi.averageAge} value={summaryQ.data?.averageAge ? Math.round(summaryQ.data.averageAge) : "--"} loading={summaryQ.isLoading || summaryQ.isFetching} />
-          <KPICard title={d.kpi.departmentCount} value={summaryQ.data?.departmentCount} loading={summaryQ.isLoading || summaryQ.isFetching} />
-          <KPICard title={d.kpi.malePatients} value={summaryQ.data?.maleCount} loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.blue} />
-          <KPICard title={d.kpi.femalePatients} value={summaryQ.data?.femaleCount} loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.purple} />
-          <KPICard title={d.kpi.geneticTests} value={summaryQ.data?.withGeneticTest} loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.teal} />
-          <KPICard title={d.kpi.mortalityRate} value={(summaryQ.data as any)?.mortalityRate !== undefined ? `%${(summaryQ.data as any).mortalityRate}` : "--"} loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.red} />
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
+          <KPICard title={d.kpi.totalPatients}   value={summaryQ.data?.totalPatients}    loading={summaryQ.isLoading || summaryQ.isFetching} icon={<Users2 className="w-4 h-4"/>} />
+          <KPICard title={d.kpi.totalAdmissions} value={summaryQ.data?.totalAdmissions}  loading={summaryQ.isLoading || summaryQ.isFetching} icon={<ClipboardList className="w-4 h-4"/>} />
+          <KPICard title={d.kpi.averageAge}      value={summaryQ.data?.averageAge ? Math.round(summaryQ.data.averageAge) : "--"} loading={summaryQ.isLoading || summaryQ.isFetching} icon={<CalendarDays className="w-4 h-4"/>} />
+          <KPICard title={d.kpi.departmentCount} value={summaryQ.data?.departmentCount}  loading={summaryQ.isLoading || summaryQ.isFetching} icon={<Building2 className="w-4 h-4"/>} />
+          <KPICard title={d.kpi.malePatients}    value={summaryQ.data?.maleCount}        loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.blue}   icon={<User className="w-4 h-4"/>} />
+          <KPICard title={d.kpi.femalePatients}  value={summaryQ.data?.femaleCount}      loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.purple} icon={<User className="w-4 h-4"/>} />
+          <KPICard title={d.kpi.geneticTests}    value={summaryQ.data?.withGeneticTest}  loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.teal}   icon={<Dna className="w-4 h-4"/>} />
+          <KPICard title={d.kpi.mortalityRate}   value={(summaryQ.data as any)?.mortalityRate !== undefined ? `%${(summaryQ.data as any).mortalityRate}` : "--"} loading={summaryQ.isLoading || summaryQ.isFetching} valueColor={CHART_COLORS.red} icon={<HeartPulse className="w-4 h-4"/>} />
         </div>
 
         <KeyInsights />

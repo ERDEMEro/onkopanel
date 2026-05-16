@@ -20,6 +20,8 @@ interface RawRow {
   "ölüm durumu": string;
   "ölüm tarihi": string;
   "genetic test ": string;
+  "genetic test bilgi ": string;
+  "genetic test tarih": string;
   "başvuru açılma tarihi": string;
   "başvuru kapanma tarihi": string;
   "yatış tipi": string;
@@ -31,6 +33,14 @@ interface RawRow {
   "işlem adı": string;
   "işlem tipi": string;
   "işlem tarihi": string;
+  hikaye: string;
+  epikriz: string;
+  "patoloji rapor özet": string;
+  bulgu: string;
+  not: string;
+  ilac: string;
+  "reçete tarihi": string;
+  lab_sonuclari: string;
 }
 
 let cachedRows: RawRow[] | null = null;
@@ -552,21 +562,21 @@ router.get("/cohort", (req: Request, res: Response): void => {
 // ─── Cancer Library Stats ───────────────────────────────────────────────────
 
 const LIBRARY_CANCER_DETECT: Array<{ key: string; labelTr: string; labelEn: string; keywords: string[] }> = [
-  { key: "thyroid",    labelTr: "Tiroid Kanseri",                labelEn: "Thyroid Cancer",        keywords: ["tiroid karsinomu", "tiroid kanseri", "tiroid malign", "tiroid ca", "tiroid tm", "tiroidektomi", "total tiroid", "papiller tiroid", "tiroid papiller", "folliküler tiroid"] },
-  { key: "ovarian",    labelTr: "Over Kanseri",                  labelEn: "Ovarian Cancer",        keywords: ["over karsinomu", "over kanseri", "over ca", "over malign", "yumurtalık kanseri", "yumurtalık karsinomu", "ovarium karsinomu"] },
-  { key: "brain",      labelTr: "Beyin Tümörü",                  labelEn: "Brain Tumor",           keywords: ["beyin malign", "glioblastom", "gliom", "beyin tümörü", "serebral tümör", "intrakranial tümör", "astrositom"] },
-  { key: "kidney",     labelTr: "Böbrek Kanseri",                labelEn: "Kidney Cancer",         keywords: ["böbrek karsinomu", "böbrek kanseri", "renal hücreli karsinom", "böbrek ca", "böbrek malign", "böbrek tm", "nefrektomi", "renal cell"] },
-  { key: "breast",     labelTr: "Meme Kanseri",                  labelEn: "Breast Cancer",        keywords: ["meme karsinomu", "meme kanseri", "meme malign neoplazmı", "meme malign", "meme ca"] },
-  { key: "prostate",   labelTr: "Prostat Kanseri",               labelEn: "Prostate Cancer",       keywords: ["prostat karsinomu", "prostat kanseri", "prostat adenokarsinomu", "prostat ca", "prostat malign neoplazmı", "prostat malign", "prostatektomi", "prostat tm"] },
-  { key: "bladder",    labelTr: "Mesane Kanseri",                labelEn: "Bladder Cancer",        keywords: ["mesane karsinomu", "mesane kanseri", "mesane malign neoplazmı"] },
-  { key: "lung",       labelTr: "Akciğer Kanseri",               labelEn: "Lung Cancer",           keywords: ["akciğer karsinomu", "akciğer kanseri", "akciğer malign neoplazmı", "akciğer ca", "küçük hücreli akciğer", "nsclc", "sclc"] },
-  { key: "liver",      labelTr: "Karaciğer Kanseri",             labelEn: "Liver Cancer",          keywords: ["hepatosellüler karsinom", "hepatoselüler karsinom", "karaciğer karsinomu", "karaciğer kanseri", "karaciğer ca", "karaciğer malign neoplazmı", "safra yolu kanseri", "kolanjiyokarsinom"] },
-  { key: "colorectal", labelTr: "Kolon/Rektum Kanseri",          labelEn: "Colorectal Cancer",     keywords: ["kolorektal", "kolon karsinomu", "kolon kanseri", "rektum karsinomu", "rektum kanseri", "rektal karsinom", "kolon ca"] },
-  { key: "pancreatic", labelTr: "Pankreas Kanseri",              labelEn: "Pancreatic Cancer",     keywords: ["pankreas karsinomu", "pankreas kanseri", "pankreas ca"] },
-  { key: "cervical",   labelTr: "Serviks/Endometriyum Kanseri",  labelEn: "Cervical/Endometrial",  keywords: ["serviks karsinomu", "serviks kanseri", "endometrium karsinomu", "endometrium kanseri", "endometriyum kanseri", "rahim kanseri", "endometrium malign", "endometriyum malign", "korpus uteri malign"] },
-  { key: "lymphoma",   labelTr: "Lenfoma",                       labelEn: "Lymphoma",              keywords: ["lenfoma", "hodgkin", "diffuse large"] },
-  { key: "stomach",    labelTr: "Mide Kanseri",                  labelEn: "Stomach Cancer",        keywords: ["mide karsinomu", "mide kanseri", "gastrik karsinom"] },
-  { key: "myeloma",    labelTr: "Multipl Miyelom",               labelEn: "Multiple Myeloma",      keywords: ["multipl miyelom", "miyelom"] },
+  { key: "thyroid",    labelTr: "Tiroid Kanseri",                labelEn: "Thyroid Cancer",        keywords: ["tiroid karsinomu", "tiroid kanseri", "tiroid malign", "tiroid ca", "tiroid tm", "tiroidektomi", "total tiroid", "papiller tiroid", "tiroid papiller", "folliküler tiroid", "papiller karsinom", "folliküler karsinom"] },
+  { key: "ovarian",    labelTr: "Over Kanseri",                  labelEn: "Ovarian Cancer",        keywords: ["over karsinomu", "over kanseri", "over ca", "over malign", "yumurtalık kanseri", "yumurtalık karsinomu", "ovarium karsinomu", "over tümörü", "over malign neoplazmı"] },
+  { key: "brain",      labelTr: "Beyin Tümörü",                  labelEn: "Brain Tumor",           keywords: ["beyin malign", "glioblastom", "gliom", "beyin tümörü", "serebral tümör", "intrakranial tümör", "astrositom", "kranial tümör"] },
+  { key: "kidney",     labelTr: "Böbrek Kanseri",                labelEn: "Kidney Cancer",         keywords: ["böbrek karsinomu", "böbrek kanseri", "renal hücreli karsinom", "böbrek ca", "böbrek malign", "böbrek tm", "renal cell", "böbrek tümörü", "böbrek malign neoplazmı"] },
+  { key: "breast",     labelTr: "Meme Kanseri",                  labelEn: "Breast Cancer",         keywords: ["meme karsinomu", "meme kanseri", "meme malign neoplazmı", "meme malign", "meme ca", "meme tümörü"] },
+  { key: "prostate",   labelTr: "Prostat Kanseri",               labelEn: "Prostate Cancer",       keywords: ["prostat karsinomu", "prostat kanseri", "prostat adenokarsinomu", "prostat ca", "prostat malign neoplazmı", "prostat malign", "prostatektomi", "prostat tm", "prostat tümörü"] },
+  { key: "bladder",    labelTr: "Mesane Kanseri",                labelEn: "Bladder Cancer",        keywords: ["mesane karsinomu", "mesane kanseri", "mesane malign neoplazmı", "mesane tümörü", "mesane tm", "mesane malign"] },
+  { key: "lung",       labelTr: "Akciğer Kanseri",               labelEn: "Lung Cancer",           keywords: ["akciğer karsinomu", "akciğer kanseri", "akciğer malign neoplazmı", "akciğer ca", "küçük hücreli akciğer", "nsclc", "sclc", "akciğer tümörü", "akciğer malign", "pulmoner malign neoplazmı"] },
+  { key: "liver",      labelTr: "Karaciğer Kanseri",             labelEn: "Liver Cancer",          keywords: ["hepatosellüler karsinom", "hepatoselüler karsinom", "karaciğer karsinomu", "karaciğer kanseri", "karaciğer ca", "karaciğer malign neoplazmı", "safra yolu kanseri", "kolanjiyokarsinom", "intrahepatik safra yolları malign", "karaciğer ve intrahepatik safra", "karaciğer malign", "hepatik malign neoplazmı"] },
+  { key: "colorectal", labelTr: "Kolon/Rektum Kanseri",          labelEn: "Colorectal Cancer",     keywords: ["kolorektal", "kolon karsinomu", "kolon kanseri", "rektum karsinomu", "rektum kanseri", "rektal karsinom", "kolon ca", "kolon tümörü", "rektum tümörü", "kolon malign neoplazmı"] },
+  { key: "pancreatic", labelTr: "Pankreas Kanseri",              labelEn: "Pancreatic Cancer",     keywords: ["pankreas karsinomu", "pankreas kanseri", "pankreas ca", "pankreas tümörü", "pankreas malign", "pankreas malign neoplazmı"] },
+  { key: "cervical",   labelTr: "Serviks/Endometriyum Kanseri",  labelEn: "Cervical/Endometrial",  keywords: ["serviks karsinomu", "serviks kanseri", "endometrium karsinomu", "endometrium kanseri", "endometriyum kanseri", "rahim kanseri", "endometrium malign", "endometriyum malign", "korpus uteri malign", "uterus malign", "serviks malign", "rahim tümörü", "uterus kanseri"] },
+  { key: "lymphoma",   labelTr: "Lenfoma",                       labelEn: "Lymphoma",              keywords: ["lenfoma", "hodgkin", "diffuse large", "non-hodgkin", "lenf bezi kanseri", "lenf bezi malign"] },
+  { key: "stomach",    labelTr: "Mide Kanseri",                  labelEn: "Stomach Cancer",        keywords: ["mide karsinomu", "mide kanseri", "gastrik karsinom", "mide tümörü", "gastrik kanser", "mide malign", "mide malign neoplazmı"] },
+  { key: "myeloma",    labelTr: "Multipl Miyelom",               labelEn: "Multiple Myeloma",      keywords: ["multipl miyelom", "miyelom", "plazmosit"] },
 ];
 
 const CITY_MAP: Record<string, string> = {
@@ -752,7 +762,13 @@ function buildPatientCache(): Map<string, PatientInfo> {
   }
   _patientCache = new Map();
   for (const [clientId, pRows] of rowsByClient) {
-    const text = pRows.map((r) => [(r as any)["hikaye"] || "", (r as any)["epikriz"] || ""].join(" ")).join(" ");
+    const text = pRows.map((r) => [
+      r.hikaye || "",
+      r.epikriz || "",
+      r["patoloji rapor özet"] || "",
+      r.bulgu || "",
+      r.not || "",
+    ].join(" ")).join(" ");
     const firstRow = pRows[0];
     _patientCache.set(clientId, {
       cancerKey: detectLibraryCancerType(text),

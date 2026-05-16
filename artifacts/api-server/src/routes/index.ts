@@ -13,6 +13,8 @@ import mealPlanRouter from "./meal-plan";
 import oncologyNewsRouter from "./oncology-news";
 import priorityPanelRouter from "./priority-panel";
 import aiAdvisorRouter from "./ai-advisor";
+import exercisePlanRouter from "./exercise-plan";
+import supportPlanRouter from "./support-plan";
 
 const router: IRouter = Router();
 
@@ -30,5 +32,7 @@ router.use(mealPlanRouter);
 router.use(oncologyNewsRouter);
 router.use(priorityPanelRouter);
 router.use(aiAdvisorRouter);
+router.use(exercisePlanRouter);
+router.use(supportPlanRouter);
 
 export default router;

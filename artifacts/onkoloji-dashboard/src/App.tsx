@@ -8,12 +8,13 @@ import Dashboard from "@/pages/Dashboard";
 import PatientProfiler from "@/pages/PatientProfiler";
 import SymptomChecker from "@/pages/SymptomChecker";
 import AiAsistan from "@/pages/AiAsistan";
+import CancerLibrary from "@/pages/CancerLibrary";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider, useLang } from "@/context/LanguageContext";
 import { NarratorProvider } from "@/context/NarratorContext";
 import { NarratorWidget } from "@/components/Narrator";
 import { ThemePanel } from "@/components/ThemePanel";
-import { BarChart2, Users, Stethoscope, Palette, Sparkles } from "lucide-react";
+import { BarChart2, Users, Stethoscope, Palette, Sparkles, BookOpen } from "lucide-react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,6 +34,7 @@ function TabNav() {
     { path: "/", label: t.nav.dashboard, icon: <BarChart2 className="w-4 h-4" /> },
     { path: "/profil", label: t.nav.patientProfiler, icon: <Users className="w-4 h-4" /> },
     { path: "/belirti", label: t.nav.symptomChecker, icon: <Stethoscope className="w-4 h-4" /> },
+    { path: "/kutuphane", label: t.nav.library, icon: <BookOpen className="w-4 h-4" /> },
     { path: "/asistan", label: t.nav.aiAssistant, icon: <Sparkles className="w-4 h-4" /> },
   ];
 
@@ -110,6 +112,7 @@ function Router() {
         <Route path="/" component={Dashboard} />
         <Route path="/profil" component={PatientProfiler} />
         <Route path="/belirti" component={SymptomChecker} />
+        <Route path="/kutuphane" component={CancerLibrary} />
         <Route path="/asistan" component={AiAsistan} />
         <Route component={NotFound} />
       </Switch>

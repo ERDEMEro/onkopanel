@@ -42,7 +42,7 @@ const EDU_DATA: CancerEdu[] = [
     ],
     videos: [
       { title: "Meme Kanseri Nedir? Belirtiler ve Tedavi", titleEn: "What Is Breast Cancer? Signs and Treatment", channel: "Mayo Clinic", videoId: "mCmJQGpjGNA", durationMin: 4 },
-      { title: "Meme Kanseri: Evreleme ve Tedavi Seçenekleri", titleEn: "Breast Cancer Staging & Treatment Options", channel: "Memorial Sloan Kettering", videoId: "ZYC_Qn_fBXM", durationMin: 7 },
+      { title: "Meme Kanseri: Soru & Cevap", titleEn: "Ask Mayo Clinic: Breast Cancer", channel: "Mayo Clinic", videoId: "W7s63d8v6m4", durationMin: 6 },
       { title: "Triple-Negatif Meme Kanseri Açıklandı", titleEn: "Triple-Negative Breast Cancer Explained", channel: "Dana-Farber Cancer Institute", videoId: "5ULywn_l2cM", durationMin: 5 },
     ],
   },

@@ -525,18 +525,18 @@ router.get("/cohort", (req: Request, res: Response): void => {
 // ─── Cancer Library Stats ───────────────────────────────────────────────────
 
 const LIBRARY_CANCER_DETECT: Array<{ key: string; labelTr: string; labelEn: string; keywords: string[] }> = [
-  { key: "breast",      labelTr: "Meme Kanseri",                   labelEn: "Breast Cancer",           keywords: ["meme karsinomu", "meme kanseri", "meme malign", "meme ca"] },
-  { key: "prostate",    labelTr: "Prostat Kanseri",                 labelEn: "Prostate Cancer",         keywords: ["prostat"] },
-  { key: "bladder",     labelTr: "Mesane Kanseri",                  labelEn: "Bladder Cancer",          keywords: ["mesane"] },
-  { key: "lung",        labelTr: "Akciğer Kanseri",                 labelEn: "Lung Cancer",             keywords: ["akciğer karsinomu", "akciğer kanseri", "nsclc", "sclc", "akciger"] },
-  { key: "liver",       labelTr: "Karaciğer Kanseri",               labelEn: "Liver Cancer",            keywords: ["hepatosellüler", "karaciğer karsinomu", "karaciğer kanseri", "karaciğer ca"] },
-  { key: "colorectal",  labelTr: "Kolon/Rektum Kanseri",            labelEn: "Colorectal Cancer",       keywords: ["kolorektal", "kolon kanseri", "rektum kanseri", "colorektal"] },
-  { key: "pancreatic",  labelTr: "Pankreas Kanseri",                labelEn: "Pancreatic Cancer",       keywords: ["pankreas kanseri", "pankreatik"] },
-  { key: "cervical",    labelTr: "Serviks/Endometriyum Kanseri",    labelEn: "Cervical/Endometrial",    keywords: ["serviks", "endometrium", "endometriyum"] },
-  { key: "lymphoma",    labelTr: "Lenfoma",                         labelEn: "Lymphoma",                keywords: ["lenfoma", "hodgkin", "diffuse large"] },
-  { key: "stomach",     labelTr: "Mide Kanseri",                    labelEn: "Stomach Cancer",          keywords: ["mide kanseri", "gastrik karsinom", "gastric"] },
-  { key: "myeloma",     labelTr: "Multipl Miyelom",                 labelEn: "Multiple Myeloma",        keywords: ["miyelom", "myeloma"] },
-  { key: "kidney",      labelTr: "Böbrek Kanseri",                  labelEn: "Kidney Cancer",           keywords: ["böbrek kanseri", "böbrek karsinomu"] },
+  { key: "breast",     labelTr: "Meme Kanseri",                  labelEn: "Breast Cancer",        keywords: ["meme karsinomu", "meme kanseri", "meme malign neoplazmı", "meme malign", "meme ca"] },
+  { key: "prostate",   labelTr: "Prostat Kanseri",               labelEn: "Prostate Cancer",       keywords: ["prostat karsinomu", "prostat kanseri", "prostat adenokarsinomu", "prostat ca", "prostat malign neoplazmı", "prostat malign", "prostatektomi", "prostat tm"] },
+  { key: "bladder",    labelTr: "Mesane Kanseri",                labelEn: "Bladder Cancer",        keywords: ["mesane karsinomu", "mesane kanseri", "mesane malign neoplazmı"] },
+  { key: "lung",       labelTr: "Akciğer Kanseri",               labelEn: "Lung Cancer",           keywords: ["akciğer karsinomu", "akciğer kanseri", "akciğer malign neoplazmı", "akciğer ca", "küçük hücreli akciğer", "nsclc", "sclc"] },
+  { key: "liver",      labelTr: "Karaciğer Kanseri",             labelEn: "Liver Cancer",          keywords: ["hepatosellüler karsinom", "hepatoselüler karsinom", "karaciğer karsinomu", "karaciğer kanseri", "karaciğer ca", "karaciğer malign neoplazmı", "safra yolu kanseri", "kolanjiyokarsinom"] },
+  { key: "colorectal", labelTr: "Kolon/Rektum Kanseri",          labelEn: "Colorectal Cancer",     keywords: ["kolorektal", "kolon karsinomu", "kolon kanseri", "rektum karsinomu", "rektum kanseri", "rektal karsinom", "kolon ca"] },
+  { key: "pancreatic", labelTr: "Pankreas Kanseri",              labelEn: "Pancreatic Cancer",     keywords: ["pankreas karsinomu", "pankreas kanseri", "pankreas ca"] },
+  { key: "cervical",   labelTr: "Serviks/Endometriyum Kanseri",  labelEn: "Cervical/Endometrial",  keywords: ["serviks karsinomu", "serviks kanseri", "endometrium karsinomu", "endometrium kanseri", "endometriyum kanseri", "rahim kanseri", "endometrium malign", "endometriyum malign", "korpus uteri malign"] },
+  { key: "lymphoma",   labelTr: "Lenfoma",                       labelEn: "Lymphoma",              keywords: ["lenfoma", "hodgkin", "diffuse large"] },
+  { key: "stomach",    labelTr: "Mide Kanseri",                  labelEn: "Stomach Cancer",        keywords: ["mide karsinomu", "mide kanseri", "gastrik karsinom"] },
+  { key: "myeloma",    labelTr: "Multipl Miyelom",               labelEn: "Multiple Myeloma",      keywords: ["multipl miyelom", "miyelom"] },
+  { key: "kidney",     labelTr: "Böbrek Kanseri",                labelEn: "Kidney Cancer",         keywords: ["böbrek karsinomu", "böbrek kanseri", "renal hücreli karsinom", "böbrek ca"] },
 ];
 
 const CITY_MAP: Record<string, string> = {

@@ -1,0 +1,13 @@
+FROM node:24-alpine
+RUN corepack enable && corepack prepare pnpm@latest --activate
+WORKDIR /workspace
+
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.base.json tsconfig.json ./
+COPY lib/db/package.json ./lib/db/
+
+RUN pnpm install --frozen-lockfile --ignore-scripts --filter @workspace/db
+
+COPY lib/db/ ./lib/db/
+
+WORKDIR /workspace/lib/db
+CMD ["npx", "drizzle-kit", "push", "--config", "drizzle.config.ts"]

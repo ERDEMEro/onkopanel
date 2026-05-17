@@ -1,0 +1,49 @@
+ubuntu@ip-172-31-43-14:~$ cd ~/onkopanel && docker compose up -d && docker compose run --rm db-migrate
+[+] up 3/3
+ ✔ Container onkopanel-postgres-1 Healthy                                                                           0.5s
+ ✔ Container onkopanel-api-1      Running                                                                           0.0s
+ ✔ Container onkopanel-web-1      Running                                                                           0.0s
+[+]  1/1t 1/11
+ ✔ Container onkopanel-postgres-1 Running                                                                           0.0s
+Container onkopanel-postgres-1 Waiting
+Container onkopanel-postgres-1 Healthy
+Container onkopanel-db-migrate-run-97be3cf2edb9 Creating
+Container onkopanel-db-migrate-run-97be3cf2edb9 Created
+Need to install the following packages:
+drizzle-kit@0.31.10
+Ok to proceed? (y) y
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+No config path provided, using default 'drizzle.config.json'
+/app/drizzle.config.json file does not exist
+npm notice
+npm notice New minor version of npm available! 11.12.1 -> 11.14.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.14.1
+npm notice To update run: npm install -g npm@11.14.1
+npm notice
+node:child_process:1000
+    throw err;
+    ^
+
+Error: Command failed: npx drizzle-kit push
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at checkExecSyncError (node:child_process:925:11)
+    at execSync (node:child_process:997:15)
+    at [eval]:3:3
+    at runScriptInThisContext (node:internal/vm:219:10)
+    at node:internal/process/execution:451:12
+    at [eval]-wrapper:6:24
+    at runScriptInContext (node:internal/process/execution:449:60)
+    at evalFunction (node:internal/process/execution:283:30) {
+  status: 1,
+  signal: null,
+  output: [ null, null, null ],
+  pid: 14,
+  stdout: null,
+  stderr: null
+}
+
+Node.js v24.15.0
+
+ubuntu@ip-172-31-43-14:~/onkopanel$

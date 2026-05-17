@@ -50,12 +50,7 @@ services:
   db-migrate:
     build:
       context: .
-      dockerfile: Dockerfile.api
-    command: >
-      sh -c "node -e \"
-        const { execSync } = require('child_process');
-        execSync('npx drizzle-kit push', { stdio: 'inherit' });
-      \""
+      dockerfile: Dockerfile.migrate
     environment:
       DATABASE_URL: postgresql://onkopanel:${POSTGRES_PASSWORD}@postgres:5432/onkopanel
     depends_on:

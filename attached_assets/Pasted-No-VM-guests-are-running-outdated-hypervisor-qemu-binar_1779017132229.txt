@@ -1,0 +1,42 @@
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
+✓ Certbot kuruldu.
+→ Repo klonlanıyor: https://github.com/ERDEMEro/onkopanel.git
+Cloning into '/home/ubuntu/onkopanel'...
+remote: Enumerating objects: 1587, done.
+remote: Counting objects: 100% (1587/1587), done.
+remote: Compressing objects: 100% (483/483), done.
+remote: Total 1587 (delta 1059), reused 1585 (delta 1057), pack-reused 0 (from 0)
+Receiving objects: 100% (1587/1587), 17.54 MiB | 38.71 MiB/s, done.
+Resolving deltas: 100% (1059/1059), done.
+✓ Kod hazır: /home/ubuntu/onkopanel
+→ .env dosyası oluşturuluyor...
+✓ .env dosyası yazıldı.
+⚠ SSL kurulumu için onko-panel.com → bu IP'ye DNS A kaydı eklenmiş olmalı.
+  DNS kaydı eklendi mi? (e/h): e
+→ SSL sertifikası alınıyor...
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Account registered.
+Requesting a certificate for onko-panel.com and www.onko-panel.com
+
+Certbot failed to authenticate some domains (authenticator: standalone). The Certificate Authority reported these problems:
+  Domain: onko-panel.com
+  Type:   unauthorized
+  Detail: 76.223.105.230: Invalid response from http://onko-panel.com/.well-known/acme-challenge/19tXCPgiCUQqp8PpaYEfKRHD-mLZQwBSSccmgitPNBc: 403
+
+  Domain: www.onko-panel.com
+  Type:   unauthorized
+  Detail: 76.223.105.230: Invalid response from http://www.onko-panel.com/.well-known/acme-challenge/PvIk36UoVMNoEnfzNXq59NfFC34qIJgh4XycfqdTFR8: 403
+
+Hint: The Certificate Authority failed to download the challenge files from the temporary standalone webserver started by Certbot on port 80. Ensure that the listed domains point to this machine and that it can accept inbound connections from the internet.
+
+Some challenges have failed.
+Ask for help or search for solutions at https://community.letsencrypt.org. See the logfile /var/log/letsencrypt/letsencrypt.log or re-run Certbot with -v for more details.
+⚠ SSL alınamadı — ilerle, sonra tekrar dene.
+→ Docker image'lar derleniyor (5-10 dk sürebilir)...
+[+] Building 0.0s (0/0)
+[+] build 0/2
+ ⠋ Image onkopanel-api Building                                                                                     0.1s
+ ⠋ Image onkopanel-web Building                                                                                     0.1s
+permission denied while trying to connect to the docker API at unix:///var/run/docker.sock
+
+ubuntu@ip-172-31-43-14:~$

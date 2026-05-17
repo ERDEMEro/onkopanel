@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext, type ReactNode } from "react";
 import { Crown, Lock, Zap } from "lucide-react";
 import { useLocation } from "wouter";
+import { useAuth } from "@workspace/replit-auth-web";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -47,10 +48,11 @@ interface PremiumGateProps {
 
 export function PremiumGate({ children, featureName }: PremiumGateProps) {
   const { isPremium, loading } = usePremium();
+  const { user } = useAuth();
   const [, navigate] = useLocation();
 
   if (loading) return null;
-  if (isPremium) return <>{children}</>;
+  if ((user as any)?.isDoctor || isPremium) return <>{children}</>;
 
   return (
     <div className="flex flex-col items-center justify-center py-16 px-6 text-center space-y-5">

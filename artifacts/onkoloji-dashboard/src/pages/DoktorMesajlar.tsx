@@ -22,6 +22,9 @@ interface Invitation {
   patientLastName: string | null;
   patientEmail: string | null;
   patientImageUrl: string | null;
+  lastMessageContent: string | null;
+  lastMessageAt: string | null;
+  lastMessageSenderId: string | null;
 }
 
 interface Message {
@@ -34,12 +37,23 @@ interface Message {
 
 function Avatar({ name, imageUrl, size = "md" }: { name: string; imageUrl?: string | null; size?: "sm" | "md" }) {
   const cls = size === "sm" ? "w-8 h-8 text-xs" : "w-10 h-10 text-sm";
-  if (imageUrl) return <img src={imageUrl} alt={name} className={`${cls} rounded-full object-cover ring-2 ring-primary/20`} />;
+  if (imageUrl) return <img src={imageUrl} alt={name} className={`${cls} rounded-full object-cover ring-2 ring-emerald-200 shrink-0`} />;
   return (
     <div className={`${cls} rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold shrink-0`}>
       {name.charAt(0).toUpperCase()}
     </div>
   );
+}
+
+function formatTime(iso: string | null) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = now.getTime() - d.getTime();
+  if (diff < 60_000) return "Az önce";
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} dk önce`;
+  if (diff < 86_400_000) return d.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
 }
 
 export default function DoktorMesajlar() {
@@ -55,6 +69,7 @@ export default function DoktorMesajlar() {
   const [loadingInv, setLoadingInv] = useState(false);
   const [responding, setResponding] = useState<string | null>(null);
   const [chatInvId, setChatInvId] = useState<string | null>(null);
+  const [myUserId, setMyUserId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMsg, setNewMsg] = useState("");
   const [msgSending, setMsgSending] = useState(false);
@@ -69,6 +84,11 @@ export default function DoktorMesajlar() {
         const data = await res.json() as { profile: DoctorProfile | null };
         setProfile(data.profile);
         if (!data.profile) setShowProfileSetup(true);
+        else {
+          setPSpecialty(data.profile.specialty);
+          setPHospital(data.profile.hospital ?? "");
+          setPBio(data.profile.bio ?? "");
+        }
       }
     } finally { setProfileLoading(false); }
   }
@@ -91,7 +111,17 @@ export default function DoktorMesajlar() {
     setMessages(data.messages ?? []);
   }
 
-  useEffect(() => { fetchProfile(); fetchInvitations(); }, []);
+  async function fetchMe() {
+    try {
+      const res = await fetch(`${BASE}/api/auth/me`, { credentials: "include" });
+      if (res.ok) {
+        const d = await res.json() as { user?: { id: string } };
+        setMyUserId(d.user?.id ?? null);
+      }
+    } catch { /* ignore */ }
+  }
+
+  useEffect(() => { fetchProfile(); fetchInvitations(); fetchMe(); }, []);
 
   useEffect(() => {
     if (chatInvId) {
@@ -144,15 +174,21 @@ export default function DoktorMesajlar() {
         credentials: "include",
         body: JSON.stringify({ content: newMsg.trim() }),
       });
-      if (res.ok) { setNewMsg(""); await fetchMessages(chatInvId); }
+      if (res.ok) { setNewMsg(""); await fetchMessages(chatInvId); await fetchInvitations(); }
     } finally { setMsgSending(false); }
   }
 
   const pending = invitations.filter(i => i.status === "pending");
-  const accepted = invitations.filter(i => i.status === "accepted");
+  const accepted = invitations.filter(i => i.status === "accepted")
+    .sort((a, b) => {
+      const ta = a.lastMessageAt ?? a.createdAt;
+      const tb = b.lastMessageAt ?? b.createdAt;
+      return new Date(tb).getTime() - new Date(ta).getTime();
+    });
   const chatInv = invitations.find(i => i.id === chatInvId);
+  const unreadCount = accepted.filter(i => i.lastMessageSenderId && i.lastMessageSenderId !== myUserId).length;
 
-  // ─── Loading ──────────────────────────────────────────────────────────────────
+  // ─── Loading ──────────────────────────────────────────────────────────────
   if (profileLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-52px)]">
@@ -161,17 +197,19 @@ export default function DoktorMesajlar() {
     );
   }
 
-  // ─── Profile Setup ────────────────────────────────────────────────────────────
+  // ─── Profile Setup ────────────────────────────────────────────────────────
   if (showProfileSetup) {
     return (
       <div className="min-h-[calc(100vh-52px)] flex items-center justify-center bg-gradient-to-br from-emerald-50/30 via-white to-teal-50/20 p-4">
         <div className="bg-white rounded-2xl border border-emerald-100 shadow-sm p-6 w-full max-w-md">
           <div className="flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-md">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-md shrink-0">
               <Stethoscope className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-base font-semibold text-slate-800">Doktor Profilinizi Tamamlayın</h1>
+              <h1 className="text-base font-semibold text-slate-800">
+                {profile ? "Profilinizi Güncelleyin" : "Doktor Profilinizi Tamamlayın"}
+              </h1>
               <p className="text-xs text-slate-400">Hastalar sizi bulabilmek için bu bilgilere ihtiyaç duyar</p>
             </div>
           </div>
@@ -197,29 +235,37 @@ export default function DoktorMesajlar() {
                 rows={3}
                 className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-emerald-300" />
             </div>
-            <button onClick={saveProfile} disabled={!pSpecialty || savingProfile}
-              className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
-              {savingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
-              Profili Kaydet
-            </button>
+            <div className="flex gap-2 pt-1">
+              {profile && (
+                <button onClick={() => setShowProfileSetup(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+                  Vazgeç
+                </button>
+              )}
+              <button onClick={saveProfile} disabled={!pSpecialty || savingProfile}
+                className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                {savingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
+                {profile ? "Güncelle" : "Profili Kaydet"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  // ─── Chat View ────────────────────────────────────────────────────────────────
+  // ─── Chat View ────────────────────────────────────────────────────────────
   if (chatInvId && chatInv) {
     const patientName = [chatInv.patientFirstName, chatInv.patientLastName].filter(Boolean).join(" ") || chatInv.patientEmail || "Hasta";
     return (
       <div className="flex flex-col h-[calc(100vh-52px)] bg-white">
-        <div className="flex items-center gap-3 px-4 py-3 border-b bg-white shrink-0">
+        <div className="flex items-center gap-3 px-4 py-3 border-b bg-white shrink-0 shadow-sm">
           <button onClick={() => { setChatInvId(null); setMessages([]); if (pollRef.current) clearInterval(pollRef.current); }}
             className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors">
             <ArrowLeft className="w-4 h-4" />
           </button>
           <Avatar name={patientName} size="sm" imageUrl={chatInv.patientImageUrl} />
-          <div>
+          <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-slate-800">{patientName}</p>
             <p className="text-xs text-slate-400">Hasta</p>
           </div>
@@ -227,15 +273,15 @@ export default function DoktorMesajlar() {
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50/50">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full gap-2 text-slate-400">
-              <MessageCircle className="w-10 h-10 opacity-30" />
+              <MessageCircle className="w-10 h-10 opacity-20" />
               <p className="text-sm">Henüz mesaj yok.</p>
             </div>
           )}
           {messages.map((msg) => {
-            const isMe = msg.senderId !== chatInv.patientId;
+            const isMe = msg.senderId === myUserId;
             return (
               <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                <div className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
                   isMe ? "bg-emerald-500 text-white rounded-br-sm" : "bg-white text-slate-800 border border-slate-100 rounded-bl-sm"
                 }`}>
                   <p>{msg.content}</p>
@@ -264,51 +310,53 @@ export default function DoktorMesajlar() {
     );
   }
 
-  // ─── Main View ────────────────────────────────────────────────────────────────
+  // ─── Main View ────────────────────────────────────────────────────────────
   return (
     <div className="min-h-[calc(100vh-52px)] bg-gradient-to-br from-emerald-50/30 via-white to-teal-50/20 p-4">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-md">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-md shrink-0">
               <MessageCircle className="w-5 h-5 text-white" />
             </div>
             <div>
               <h1 className="text-base font-semibold text-slate-800">Hasta Yazışmaları</h1>
-              <p className="text-xs text-slate-400">{profile?.specialty ?? ""} · {profile?.hospital ?? ""}</p>
+              <p className="text-xs text-slate-400 truncate">{profile?.specialty ?? ""}{profile?.hospital ? ` · ${profile.hospital}` : ""}</p>
             </div>
           </div>
           <button onClick={() => setShowProfileSetup(true)}
-            className="text-xs text-emerald-600 hover:text-emerald-700 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-emerald-50 transition-colors">
+            className="text-xs text-emerald-600 hover:text-emerald-700 flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors">
             <NotebookPen className="w-3.5 h-3.5" /> Profili Düzenle
           </button>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-1 p-1 bg-slate-100 rounded-xl mb-5">
-          {[
-            { key: "invitations", label: `Gelen Davetler${pending.length > 0 ? ` (${pending.length})` : ""}` },
-            { key: "conversations", label: `Aktif Yazışmalar${accepted.length > 0 ? ` (${accepted.length})` : ""}` },
-          ].map(t => (
+          {([
+            { key: "invitations", label: "Gelen Davetler", badge: pending.length },
+            { key: "conversations", label: "Aktif Yazışmalar", badge: unreadCount },
+          ] as { key: string; label: string; badge?: number }[]).map(t => (
             <button key={t.key} onClick={() => setTab(t.key as typeof tab)}
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${tab === t.key ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-1.5 ${tab === t.key ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
               {t.label}
+              {(t.badge ?? 0) > 0 && (
+                <span className="w-4 h-4 rounded-full bg-emerald-500 text-white text-[10px] flex items-center justify-center font-bold">{t.badge}</span>
+              )}
             </button>
           ))}
         </div>
 
         {/* ── Gelen Davetler ── */}
         {tab === "invitations" && (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {loadingInv ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
               </div>
             ) : invitations.length === 0 ? (
-              <div className="text-center py-12 text-slate-400">
-                <UserCheck className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                <p className="text-sm">Henüz davet bulunmuyor.</p>
-                <p className="text-xs mt-1">Hastalar profilinizi görüp davet gönderebilir.</p>
+              <div className="text-center py-14 text-slate-400">
+                <UserCheck className="w-10 h-10 mx-auto mb-3 opacity-20" />
+                <p className="text-sm font-medium text-slate-500">Henüz davet bulunmuyor</p>
+                <p className="text-xs mt-1">Hastalar profilinizi görüp bağlantı daveti gönderebilir.</p>
               </div>
             ) : (
               invitations.map(inv => {
@@ -331,7 +379,7 @@ export default function DoktorMesajlar() {
                             </span>
                           ) : inv.status === "accepted" ? (
                             <span className="flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 shrink-0">
-                              <CheckCircle2 className="w-3 h-3" /> Kabul edildi
+                              <CheckCircle2 className="w-3 h-3" /> Kabul
                             </span>
                           ) : (
                             <span className="flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600 shrink-0">
@@ -340,7 +388,7 @@ export default function DoktorMesajlar() {
                           )}
                         </div>
                         {inv.patientMessage && (
-                          <p className="text-xs text-slate-600 mt-2 bg-slate-50 rounded-lg px-3 py-2 italic leading-relaxed">
+                          <p className="text-xs text-slate-600 mt-2 bg-slate-50 rounded-lg px-3 py-2 italic leading-relaxed border border-slate-100">
                             "{inv.patientMessage}"
                           </p>
                         )}
@@ -380,28 +428,45 @@ export default function DoktorMesajlar() {
 
         {/* ── Aktif Yazışmalar ── */}
         {tab === "conversations" && (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {accepted.length === 0 ? (
-              <div className="text-center py-12 text-slate-400">
-                <MessageCircle className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                <p className="text-sm">Henüz kabul edilmiş davet yok.</p>
-                <button onClick={() => setTab("invitations")} className="mt-2 text-xs text-emerald-500 hover:underline">
+              <div className="text-center py-14 text-slate-400">
+                <MessageCircle className="w-10 h-10 mx-auto mb-3 opacity-20" />
+                <p className="text-sm font-medium text-slate-500">Henüz aktif yazışma yok</p>
+                <button onClick={() => setTab("invitations")} className="mt-3 text-xs font-semibold text-emerald-600 hover:underline">
                   Gelen davetleri görüntüle →
                 </button>
               </div>
             ) : (
               accepted.map(inv => {
                 const pName = [inv.patientFirstName, inv.patientLastName].filter(Boolean).join(" ") || inv.patientEmail || "Hasta";
+                const hasUnread = inv.lastMessageSenderId && inv.lastMessageSenderId !== myUserId;
                 return (
                   <div key={inv.id} onClick={() => setChatInvId(inv.id)}
-                    className="bg-white rounded-2xl border border-emerald-100 shadow-sm p-4 cursor-pointer hover:border-emerald-200 transition-colors">
+                    className="bg-white rounded-2xl border border-emerald-100 shadow-sm p-4 cursor-pointer hover:border-emerald-200 hover:shadow-md transition-all">
                     <div className="flex items-center gap-3">
-                      <Avatar name={pName} size="sm" imageUrl={inv.patientImageUrl} />
+                      <div className="relative">
+                        <Avatar name={pName} size="sm" imageUrl={inv.patientImageUrl} />
+                        {hasUnread && (
+                          <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white" />
+                        )}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-800">{pName}</p>
-                        <p className="text-xs text-emerald-500 mt-0.5 flex items-center gap-1 font-medium">
-                          <MessageCircle className="w-3 h-3" /> Mesajlaşmaya başla
-                        </p>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-semibold text-slate-800">{pName}</p>
+                          {inv.lastMessageAt && (
+                            <span className="text-[10px] text-slate-400 shrink-0">{formatTime(inv.lastMessageAt)}</span>
+                          )}
+                        </div>
+                        {inv.lastMessageContent ? (
+                          <p className={`text-xs mt-0.5 truncate ${hasUnread ? "text-slate-700 font-medium" : "text-slate-400"}`}>
+                            {inv.lastMessageSenderId === myUserId ? "Siz: " : ""}{inv.lastMessageContent}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-emerald-500 mt-0.5 flex items-center gap-1 font-medium">
+                            <MessageCircle className="w-3 h-3" /> Mesajlaşmaya başlayın
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>

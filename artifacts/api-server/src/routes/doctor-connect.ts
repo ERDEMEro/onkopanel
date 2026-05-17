@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { db, usersTable, doctorProfilesTable, doctorInvitationsTable, doctorPatientMessagesTable } from "@workspace/db";
-import { eq, and, or, desc, asc } from "drizzle-orm";
+import { eq, and, or, desc, asc, ilike, sql } from "drizzle-orm";
 import { getSessionId, getSession } from "../lib/auth";
 
 const router = Router();
@@ -17,6 +17,21 @@ async function requireAuth(req: Request, res: Response) {
 
 router.get("/doctors", async (req: Request, res: Response): Promise<void> => {
   const specialty = req.query.specialty as string | undefined;
+  const q = req.query.q as string | undefined;
+
+  const conditions = [eq(usersTable.isDoctor, true)];
+  if (specialty) conditions.push(eq(doctorProfilesTable.specialty, specialty));
+  if (q) {
+    const like = `%${q}%`;
+    conditions.push(
+      or(
+        ilike(usersTable.firstName, like),
+        ilike(usersTable.lastName, like),
+        ilike(doctorProfilesTable.hospital, like),
+        ilike(doctorProfilesTable.bio, like),
+      )!
+    );
+  }
 
   const rows = await db
     .select({
@@ -30,11 +45,7 @@ router.get("/doctors", async (req: Request, res: Response): Promise<void> => {
     })
     .from(usersTable)
     .innerJoin(doctorProfilesTable, eq(usersTable.id, doctorProfilesTable.userId))
-    .where(
-      specialty
-        ? and(eq(usersTable.isDoctor, true), eq(doctorProfilesTable.specialty, specialty))
-        : eq(usersTable.isDoctor, true)
-    )
+    .where(and(...conditions))
     .orderBy(asc(usersTable.lastName));
 
   res.json({ doctors: rows });
@@ -75,8 +86,11 @@ router.get("/doctor-invitations", async (req: Request, res: Response): Promise<v
   const user = await requireAuth(req, res);
   if (!user) return;
 
+  const lastMsgContent = sql<string | null>`(SELECT content FROM doctor_patient_messages WHERE invitation_id = ${doctorInvitationsTable.id} ORDER BY created_at DESC LIMIT 1)`;
+  const lastMsgAt = sql<string | null>`(SELECT created_at FROM doctor_patient_messages WHERE invitation_id = ${doctorInvitationsTable.id} ORDER BY created_at DESC LIMIT 1)`;
+  const lastMsgSenderId = sql<string | null>`(SELECT sender_id FROM doctor_patient_messages WHERE invitation_id = ${doctorInvitationsTable.id} ORDER BY created_at DESC LIMIT 1)`;
+
   if (user.isDoctor) {
-    // Doctor: see received invitations
     const rows = await db
       .select({
         id: doctorInvitationsTable.id,
@@ -88,6 +102,9 @@ router.get("/doctor-invitations", async (req: Request, res: Response): Promise<v
         patientLastName: usersTable.lastName,
         patientEmail: usersTable.email,
         patientImageUrl: usersTable.profileImageUrl,
+        lastMessageContent: lastMsgContent,
+        lastMessageAt: lastMsgAt,
+        lastMessageSenderId: lastMsgSenderId,
       })
       .from(doctorInvitationsTable)
       .innerJoin(usersTable, eq(usersTable.id, doctorInvitationsTable.patientId))
@@ -95,7 +112,6 @@ router.get("/doctor-invitations", async (req: Request, res: Response): Promise<v
       .orderBy(desc(doctorInvitationsTable.createdAt));
     res.json({ invitations: rows });
   } else {
-    // Patient: see sent invitations with doctor info
     const rows = await db
       .select({
         id: doctorInvitationsTable.id,
@@ -109,6 +125,9 @@ router.get("/doctor-invitations", async (req: Request, res: Response): Promise<v
         doctorImageUrl: usersTable.profileImageUrl,
         specialty: doctorProfilesTable.specialty,
         hospital: doctorProfilesTable.hospital,
+        lastMessageContent: lastMsgContent,
+        lastMessageAt: lastMsgAt,
+        lastMessageSenderId: lastMsgSenderId,
       })
       .from(doctorInvitationsTable)
       .innerJoin(usersTable, eq(usersTable.id, doctorInvitationsTable.doctorId))
@@ -141,6 +160,21 @@ router.post("/doctor-invitations", async (req: Request, res: Response): Promise<
   }).returning();
 
   res.status(201).json({ invitation: inv });
+});
+
+router.delete("/doctor-invitations/:id", async (req: Request, res: Response): Promise<void> => {
+  const user = await requireAuth(req, res);
+  if (!user) return;
+  if (user.isDoctor) { res.status(403).json({ error: "Doktorlar davet silemez." }); return; }
+
+  const { id } = req.params;
+  const [inv] = await db.select().from(doctorInvitationsTable).where(eq(doctorInvitationsTable.id, id)).limit(1);
+  if (!inv) { res.status(404).json({ error: "Davet bulunamadı." }); return; }
+  if (inv.patientId !== user.id) { res.status(403).json({ error: "Bu davete erişim yetkiniz yok." }); return; }
+  if (inv.status !== "pending") { res.status(400).json({ error: "Yalnızca bekleyen davetler geri alınabilir." }); return; }
+
+  await db.delete(doctorInvitationsTable).where(eq(doctorInvitationsTable.id, id));
+  res.json({ ok: true });
 });
 
 router.patch("/doctor-invitations/:id", async (req: Request, res: Response): Promise<void> => {

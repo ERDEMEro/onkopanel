@@ -185,9 +185,6 @@ importers:
       '@workspace/db':
         specifier: workspace:*
         version: link:../../lib/db
-      '@workspace/integrations-openai-ai-server':
-        specifier: workspace:*
-        version: link:../../lib/integrations-openai-ai-server
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
@@ -203,6 +200,9 @@ importers:
       express:
         specifier: ^5.2.1
         version: 5.2.1
+      openai:
+        specifier: ^6.27.0
+        version: 6.37.0(ws@8.20.1)(zod@3.25.76)
       openid-client:
         specifier: ^6.8.4
         version: 6.8.4

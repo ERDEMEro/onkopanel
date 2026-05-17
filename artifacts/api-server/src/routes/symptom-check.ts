@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { openai } from "@workspace/integrations-openai-ai-server";
+import { openai } from "../lib/ai-client.js";
 
 const router = Router();
 

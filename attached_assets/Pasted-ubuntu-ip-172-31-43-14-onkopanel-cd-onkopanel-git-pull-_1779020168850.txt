@@ -1,0 +1,69 @@
+ubuntu@ip-172-31-43-14:~/onkopanel$ cd ~/onkopanel && git pull origin main && docker compose build db-migrate && docker compose run --rm db-migrate
+remote: Enumerating objects: 21, done.
+remote: Counting objects: 100% (21/21), done.
+remote: Compressing objects: 100% (6/6), done.
+remote: Total 18 (delta 12), reused 18 (delta 12), pack-reused 0 (from 0)
+Unpacking objects: 100% (18/18), 1.89 MiB | 15.86 MiB/s, done.
+From https://github.com/ERDEMEro/onkopanel
+ * branch            main       -> FETCH_HEAD
+   46e70ec..520eea5  main       -> origin/main
+Updating 46e70ec..520eea5
+Fast-forward
+ Dockerfile.migrate                                                          |  13 ++++++++++
+ ...buntu-ip-172-31-43-14-cd-onkopanel-docker-compose-up-d_1779020045822.txt |  49 ++++++++++++++++++++++++++++++++++++
+ attached_assets/image_1779019205903.png                                     | Bin 0 -> 280887 bytes
+ attached_assets/image_1779019337487.png                                     | Bin 0 -> 848412 bytes
+ attached_assets/image_1779019449265.png                                     | Bin 0 -> 924381 bytes
+ docker-compose.yml                                                          |   7 +-----
+ 6 files changed, 63 insertions(+), 6 deletions(-)
+ create mode 100644 Dockerfile.migrate
+ create mode 100644 attached_assets/Pasted-ubuntu-ip-172-31-43-14-cd-onkopanel-docker-compose-up-d_1779020045822.txt
+ create mode 100644 attached_assets/image_1779019205903.png
+ create mode 100644 attached_assets/image_1779019337487.png
+ create mode 100644 attached_assets/image_1779019449265.png
+[+] Building 12.9s (15/15) FINISHED
+ => [internal] load local bake definitions                                                                         0.0s
+ => => reading from stdin 524B                                                                                     0.0s
+ => [internal] load build definition from Dockerfile.migrate                                                       0.0s
+ => => transferring dockerfile: 469B                                                                               0.0s
+ => [internal] load metadata for docker.io/library/node:24-alpine                                                  0.6s
+ => [internal] load .dockerignore                                                                                  0.0s
+ => => transferring context: 229B                                                                                  0.0s
+ => [1/8] FROM docker.io/library/node:24-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc34884a665f40a06db  0.0s
+ => => resolve docker.io/library/node:24-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc34884a665f40a06db  0.0s
+ => [internal] load build context                                                                                  0.0s
+ => => transferring context: 698B                                                                                  0.0s
+ => CACHED [2/8] RUN corepack enable && corepack prepare pnpm@latest --activate                                    0.0s
+ => CACHED [3/8] WORKDIR /workspace                                                                                0.0s
+ => CACHED [4/8] COPY pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.base.json tsconfig.json ./          0.0s
+ => CACHED [5/8] COPY lib/db/package.json ./lib/db/                                                                0.0s
+ => [6/8] RUN pnpm install --frozen-lockfile --ignore-scripts --filter @workspace/db                               3.8s
+ => [7/8] COPY lib/db/ ./lib/db/                                                                                   0.1s
+ => [8/8] WORKDIR /workspace/lib/db                                                                                0.0s
+ => exporting to image                                                                                             8.0s
+ => => exporting layers                                                                                            5.0s
+ => => exporting manifest sha256:77e90c7895a4140f137e38c040c69df3df35e4163b1933c8ab28170d4384f9ba                  0.0s
+ => => exporting config sha256:b94606f560301dcb27b2b8f9a405f67a0c134caa7356dd9388d585b4d3cc8cd8                    0.0s
+ => => exporting attestation manifest sha256:e6cb8dc0b30832293e2f4ef48d5e3abb3b2896b97beaf31f2e687f20b8f7e22e      0.0s
+ => => exporting manifest list sha256:964c3aab30e78f49ef145494d97ae22f0e3b958a15409476f3fc5a51e355e694             0.0s
+ => => naming to docker.io/library/onkopanel-db-migrate:latest                                                     0.0s
+ => => unpacking to docker.io/library/onkopanel-db-migrate:latest                                                  2.8s
+ => resolving provenance for metadata file                                                                         0.0s
+[+] build 1/1
+ ✔ Image onkopanel-db-migrate Built                                                                                13.0s
+[+]  1/1t 1/11
+ ✔ Container onkopanel-postgres-1 Running                                                                           0.0s
+Container onkopanel-postgres-1 Waiting
+Container onkopanel-postgres-1 Healthy
+Container onkopanel-db-migrate-run-819a812f2036 Creating
+Container onkopanel-db-migrate-run-819a812f2036 Created
+Reading config file '/workspace/lib/db/drizzle.config.ts'
+Using 'pg' driver for database querying
+[⣷] Pulling schema from database...
+npm notice
+npm notice New minor version of npm available! 11.12.1 -> 11.14.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.14.1
+npm notice To update run: npm install -g npm@11.14.1
+npm notice
+
+ubuntu@ip-172-31-43-14:~/onkopanel$

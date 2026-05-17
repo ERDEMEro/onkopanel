@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { Star, ChevronRight, ChevronLeft, RotateCcw, TrendingUp, CheckCircle2 } from "lucide-react";
+import { Star, ChevronRight, ChevronLeft, RotateCcw, TrendingUp, CheckCircle2, Sparkles, Loader2, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
+
+const BASE = (import.meta.env.BASE_URL as string).replace(/\/$/, "");
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 
 // EORTC QLQ-C30 simplified (30 items → 15 key questions for brevity while covering all scales)
@@ -48,6 +50,34 @@ interface Assessment {
   answers: Answers;
   scores: Record<string, number>;
   globalScore: number;
+}
+
+interface QolRecommendation {
+  scale: string;
+  score: number;
+  issue: string;
+  actions: string[];
+  icon: string;
+}
+
+interface QolPlan {
+  summary: string;
+  recommendations: QolRecommendation[];
+  weeklyFocus: string;
+  dailyPractice: string;
+  professionalNote: string;
+}
+
+const LOW_THRESHOLD = 60;
+
+async function callQolPlan(lowScores: { scale: string; score: number; type: "functional" | "symptom" | "global" }[], globalScore: number): Promise<QolPlan> {
+  const res = await fetch(`${BASE}/api/qol-plan`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ lowScores, globalScore }),
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error((e as { error?: string }).error ?? "Plan oluşturulamadı."); }
+  return res.json() as Promise<QolPlan>;
 }
 
 const STORAGE_KEY = "onko_qol_assessments";
@@ -111,6 +141,10 @@ export default function YasamKalitesi() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [lastResult, setLastResult] = useState<Assessment | null>(null);
+  const [qolPlan, setQolPlan] = useState<QolPlan | null>(null);
+  const [loadingPlan, setLoadingPlan] = useState(false);
+  const [planError, setPlanError] = useState<string | null>(null);
+  const [expandedRec, setExpandedRec] = useState<number | null>(null);
 
   useEffect(() => { setAssessments(loadAssessments()); }, []);
 
@@ -118,6 +152,28 @@ export default function YasamKalitesi() {
     setAnswers({});
     setStep(0);
     setPhase("quiz");
+    setQolPlan(null);
+    setPlanError(null);
+    setExpandedRec(null);
+  }
+
+  async function generatePlan(result: Assessment) {
+    const lowScores = Object.entries(result.scores)
+      .filter(([, v]) => v < LOW_THRESHOLD)
+      .map(([k, v]) => ({ scale: k, score: v, type: SCALE_LABELS[k]?.type ?? "functional" as "functional" | "symptom" | "global" }));
+    if (result.globalScore < LOW_THRESHOLD) {
+      lowScores.push({ scale: "Genel QoL", score: result.globalScore, type: "global" });
+    }
+    if (lowScores.length === 0) return;
+    setLoadingPlan(true); setPlanError(null); setQolPlan(null);
+    try {
+      const plan = await callQolPlan(lowScores, result.globalScore);
+      setQolPlan(plan);
+    } catch (e) {
+      setPlanError(e instanceof Error ? e.message : "Plan oluşturulamadı.");
+    } finally {
+      setLoadingPlan(false);
+    }
   }
 
   function answer(val: number) {
@@ -306,6 +362,129 @@ export default function YasamKalitesi() {
                   ))}
               </div>
             </div>
+
+            {/* AI improvement plan trigger */}
+            {(() => {
+              const lowCount = Object.values(lastResult.scores).filter(v => v < LOW_THRESHOLD).length
+                + (lastResult.globalScore < LOW_THRESHOLD ? 1 : 0);
+              return lowCount > 0 ? (
+                <div className="bg-gradient-to-br from-violet-50 to-indigo-50 rounded-2xl border border-indigo-100 p-4">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
+                      <AlertCircle className="w-4 h-4 text-indigo-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">
+                        {lowCount} alanda iyileştirme potansiyeli tespit edildi
+                      </p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        AI, bu alanlara özel somut bir eylem planı hazırlayabilir.
+                      </p>
+                    </div>
+                  </div>
+                  {!qolPlan && !loadingPlan && (
+                    <button
+                      onClick={() => generatePlan(lastResult)}
+                      className="w-full py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2 shadow-sm shadow-indigo-200"
+                    >
+                      <Sparkles className="w-4 h-4" /> İyileştirme Planı Oluştur
+                    </button>
+                  )}
+                  {loadingPlan && (
+                    <div className="flex items-center justify-center gap-2 py-3 text-indigo-500">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="text-sm">Kişiselleştirilmiş plan hazırlanıyor…</span>
+                    </div>
+                  )}
+                  {planError && (
+                    <p className="text-xs text-red-500 mt-1">{planError}</p>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-green-50 border border-green-100 rounded-2xl p-4 flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+                  <p className="text-sm font-medium text-green-700">Tüm alanlarda skor yeterli düzeyde. Böyle devam edin! 🎉</p>
+                </div>
+              );
+            })()}
+
+            {/* Generated plan */}
+            {qolPlan && (
+              <div className="space-y-3">
+                {/* Summary */}
+                <div className="bg-white rounded-2xl border border-indigo-100 p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="w-4 h-4 text-indigo-500" />
+                    <p className="text-xs font-bold text-indigo-600 uppercase tracking-wide">AI İyileştirme Planı</p>
+                  </div>
+                  <p className="text-sm text-slate-700 leading-relaxed">{qolPlan.summary}</p>
+                </div>
+
+                {/* Recommendations per area */}
+                <div className="space-y-2">
+                  {qolPlan.recommendations.map((rec, i) => (
+                    <div key={i} className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+                      <button
+                        onClick={() => setExpandedRec(expandedRec === i ? null : i)}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors"
+                      >
+                        <span className="text-xl shrink-0">{rec.icon}</span>
+                        <div className="flex-1 text-left">
+                          <p className="text-sm font-semibold text-slate-800">{rec.scale}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{rec.issue}</p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${rec.score < 40 ? "bg-red-100 text-red-600" : "bg-yellow-100 text-yellow-700"}`}>
+                            {rec.score}
+                          </span>
+                          {expandedRec === i
+                            ? <ChevronUp className="w-4 h-4 text-slate-400" />
+                            : <ChevronDown className="w-4 h-4 text-slate-400" />
+                          }
+                        </div>
+                      </button>
+                      {expandedRec === i && (
+                        <div className="px-4 pb-3 pt-0 space-y-1.5 border-t border-slate-50">
+                          {rec.actions.map((action, ai) => (
+                            <div key={ai} className="flex items-start gap-2.5 py-1.5">
+                              <div className="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
+                                <span className="text-[10px] font-bold text-indigo-600">{ai + 1}</span>
+                              </div>
+                              <p className="text-sm text-slate-700 leading-snug">{action}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Weekly focus + daily practice */}
+                <div className="grid grid-cols-1 gap-2">
+                  <div className="bg-amber-50 border border-amber-100 rounded-xl p-3.5 flex items-start gap-2.5">
+                    <span className="text-lg shrink-0">🎯</span>
+                    <div>
+                      <p className="text-xs font-bold text-amber-700 uppercase tracking-wide mb-0.5">Bu Haftanın Odağı</p>
+                      <p className="text-sm text-amber-800 leading-snug">{qolPlan.weeklyFocus}</p>
+                    </div>
+                  </div>
+                  <div className="bg-teal-50 border border-teal-100 rounded-xl p-3.5 flex items-start gap-2.5">
+                    <span className="text-lg shrink-0">🌅</span>
+                    <div>
+                      <p className="text-xs font-bold text-teal-700 uppercase tracking-wide mb-0.5">Günlük Pratik</p>
+                      <p className="text-sm text-teal-800 leading-snug">{qolPlan.dailyPractice}</p>
+                    </div>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-100 rounded-xl p-3.5 flex items-start gap-2.5">
+                    <span className="text-lg shrink-0">💬</span>
+                    <div>
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-0.5">Profesyonel Destek</p>
+                      <p className="text-sm text-slate-600 leading-snug">{qolPlan.professionalNote}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="flex gap-2">
               <button

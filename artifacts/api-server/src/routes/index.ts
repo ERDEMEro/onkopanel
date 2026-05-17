@@ -15,6 +15,7 @@ import priorityPanelRouter from "./priority-panel";
 import aiAdvisorRouter from "./ai-advisor";
 import exercisePlanRouter from "./exercise-plan";
 import supportPlanRouter from "./support-plan";
+import qolPlanRouter from "./qol-plan";
 
 const router: IRouter = Router();
 
@@ -34,5 +35,6 @@ router.use(priorityPanelRouter);
 router.use(aiAdvisorRouter);
 router.use(exercisePlanRouter);
 router.use(supportPlanRouter);
+router.use(qolPlanRouter);
 
 export default router;

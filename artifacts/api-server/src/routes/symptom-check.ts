@@ -40,12 +40,20 @@ Kurallar:
 - Sadece geçerli JSON döndür`;
 
 router.post("/", async (req: Request, res: Response): Promise<void> => {
-  const { symptoms } = req.body as { symptoms?: string };
+  const { symptoms, extraNote } = req.body as { symptoms?: string | string[]; extraNote?: string };
 
-  if (!symptoms || symptoms.trim().length < 5) {
+  const symptomsText = Array.isArray(symptoms)
+    ? symptoms.join(", ")
+    : (symptoms ?? "").trim();
+
+  if (!symptomsText || symptomsText.length < 2) {
     res.status(400).json({ error: "Lütfen en az birkaç belirti belirtin." });
     return;
   }
+
+  const userContent = extraNote?.trim()
+    ? `Hasta şikayetleri ve belirtileri:\n${symptomsText}\n\nEk açıklama: ${extraNote.trim()}`
+    : `Hasta şikayetleri ve belirtileri:\n${symptomsText}`;
 
   try {
     const completion = await openai.chat.completions.create({
@@ -53,7 +61,7 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
       max_completion_tokens: 2048,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: `Hasta şikayetleri ve belirtileri:\n${symptoms.trim()}` },
+        { role: "user", content: userContent },
       ],
     });
 

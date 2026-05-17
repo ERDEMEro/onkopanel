@@ -17,6 +17,7 @@ import exercisePlanRouter from "./exercise-plan";
 import supportPlanRouter from "./support-plan";
 import qolPlanRouter from "./qol-plan";
 import stripeRouter from "./stripe";
+import doctorConnectRouter from "./doctor-connect";
 
 const router: IRouter = Router();
 
@@ -38,5 +39,6 @@ router.use(exercisePlanRouter);
 router.use(supportPlanRouter);
 router.use(qolPlanRouter);
 router.use(stripeRouter);
+router.use(doctorConnectRouter);
 
 export default router;

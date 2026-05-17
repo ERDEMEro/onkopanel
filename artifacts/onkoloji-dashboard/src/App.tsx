@@ -28,12 +28,14 @@ import HastaAnaSayfa from "@/pages/HastaAnaSayfa";
 import SaglikPanelim from "@/pages/SaglikPanelim";
 import Premium from "@/pages/Premium";
 import AuthPage from "@/pages/AuthPage";
+import DoktorDavet from "@/pages/DoktorDavet";
+import DoktorMesajlar from "@/pages/DoktorMesajlar";
 import { PremiumProvider, usePremium } from "@/components/PremiumGate";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider, useLang } from "@/context/LanguageContext";
 import { NarratorProvider } from "@/context/NarratorContext";
 import { NarratorWidget } from "@/components/Narrator";
-import { BarChart2, User, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList, Heart, Salad, Bell, NotebookPen, Newspaper, Star, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp, Pill, CalendarDays, Crown } from "lucide-react";
+import { BarChart2, User, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList, Heart, Salad, Bell, NotebookPen, Newspaper, Star, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp, Pill, CalendarDays, Crown, MessageCircle, UserCheck } from "lucide-react";
 
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth, AuthProvider } from "@workspace/replit-auth-web";
@@ -94,11 +96,13 @@ function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
     { path: "/oncelik",     label: "Öncelik Paneli",      icon: <AlertTriangle className="w-3.5 h-3.5" /> },
     { path: "/asistan",     label: t.nav.aiAssistant,     icon: <Sparkles className="w-3.5 h-3.5" /> },
     { path: "/vaka",        label: "Vaka Doldur",         icon: <ClipboardList className="w-3.5 h-3.5" /> },
+    { path: "/mesajlar",    label: "Hasta Mesajları",     icon: <MessageCircle className="w-3.5 h-3.5" /> },
   ];
 
   const premiumPatientTabs = [
     { path: "/",            label: "Sağlık Panelim",      icon: <User className="w-3.5 h-3.5" /> },
     { path: "/belirti",     label: t.nav.symptomChecker,  icon: <Stethoscope className="w-3.5 h-3.5" /> },
+    { path: "/doktorum",    label: "Doktorum",            icon: <UserCheck className="w-3.5 h-3.5" /> },
     { path: "/aile",        label: "Aile Rehberi",        icon: <Users className="w-3.5 h-3.5" /> },
     { path: "/haberler",    label: "Haberler",            icon: <Newspaper className="w-3.5 h-3.5" /> },
     { path: "/egitim",      label: t.nav.educationCenter, icon: <GraduationCap className="w-3.5 h-3.5" /> },
@@ -322,6 +326,8 @@ function Router() {
           <Route path="/vaka"         component={isDoctor ? VakaDoldur : NotFound} />
           <PatientRoute path="/analitik"    component={GelismisAnalitik} />
           <PatientRoute path="/ilac-etki"   component={IlacEtklesim} />
+          <PatientRoute path="/doktorum"    component={DoktorDavet} />
+          <Route path="/mesajlar"     component={isDoctor ? DoktorMesajlar : NotFound} />
           <Route path="/premium"      component={Premium} />
           <Route component={NotFound} />
         </Switch>

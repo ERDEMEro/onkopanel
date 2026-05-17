@@ -131,11 +131,13 @@ function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
           onClick={() => navigate("/")}
           className="flex items-center gap-2 mr-3 pr-4 border-r shrink-0 h-full hover:opacity-80 transition-opacity"
         >
-          <img
-            src={`${import.meta.env.BASE_URL}onkopanel-logo.png`}
-            alt="OnkoPanel"
-            className="h-9 w-auto object-contain"
-          />
+          <div className="bg-slate-900 rounded-lg px-2 py-1 flex items-center">
+            <img
+              src={`${import.meta.env.BASE_URL}onkopanel-logo.png`}
+              alt="OnkoPanel"
+              className="h-7 w-auto object-contain"
+            />
+          </div>
         </button>
 
         {/* Main tabs — scrollable */}

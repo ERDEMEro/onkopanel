@@ -187,11 +187,13 @@ export default function AuthPage() {
       <nav className={`sticky top-0 z-50 transition-all duration-200 ${scrolled ? "bg-background/95 backdrop-blur border-b shadow-sm" : "bg-transparent"}`}>
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center gap-6">
           <div className="flex items-center gap-2.5 mr-auto">
-            <img
-              src={`${import.meta.env.BASE_URL}onkopanel-logo.png`}
-              alt="OnkoPanel"
-              className="h-10 w-auto object-contain"
-            />
+            <div className="bg-slate-900 rounded-xl px-3 py-1.5 flex items-center">
+              <img
+                src={`${import.meta.env.BASE_URL}onkopanel-logo.png`}
+                alt="OnkoPanel"
+                className="h-8 w-auto object-contain"
+              />
+            </div>
           </div>
           <a href="#ozellikler" className="text-sm text-muted-foreground hover:text-foreground hidden md:block transition-colors">Özellikler</a>
           <a href="#nasil-calisir" className="text-sm text-muted-foreground hover:text-foreground hidden md:block transition-colors">Nasıl Çalışır?</a>

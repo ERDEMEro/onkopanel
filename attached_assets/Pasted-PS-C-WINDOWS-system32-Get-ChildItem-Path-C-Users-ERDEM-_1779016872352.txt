@@ -1,0 +1,74 @@
+PS C:\WINDOWS\system32> Get-ChildItem -Path C:\Users\ERDEM -Recurse -Filter "*.pem" 2>$null
+
+
+    Directory: C:\Users\ERDEM\.ssh
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         1.04.2026     18:08           1678 guvercin-key.pem
+
+
+    Directory: C:\Users\ERDEM\Downloads
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         1.04.2026     18:08           1678 guvercin-key.pem
+-a----        17.05.2026     14:07           1674 onkopanel-key.pem
+
+
+    Directory: C:\Users\ERDEM\OneDrive\Desktop\hachathon\.venv\Lib\site-packages\botocore
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        15.05.2026     22:49         259837 cacert.pem
+
+
+    Directory: C:\Users\ERDEM\OneDrive\Desktop\hachathon\.venv\Lib\site-packages\certifi
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        15.05.2026     21:12         238641 cacert.pem
+
+
+    Directory: C:\Users\ERDEM\OneDrive\Desktop\hachathon\.venv\Lib\site-packages\grpc\_cython\_credentials
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        15.05.2026     22:42         268777 roots.pem
+
+
+    Directory: C:\Users\ERDEM\OneDrive\Desktop\hachathon\.venv\Lib\site-packages\pip\_vendor\certifi
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        15.05.2026     21:11         272441 cacert.pem
+
+
+    Directory: C:\Users\ERDEM\OneDrive\Desktop\important
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         1.04.2026     18:08           1678 guvercin-key.pem
+
+
+    Directory: C:\Users\ERDEM\OneDrive\Desktop\Yeni klasör\jarvis-assistant\.venv\Lib\site-packages\certifi
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a---l        18.10.2025     18:05         291366 cacert.pem
+
+
+    Directory: C:\Users\ERDEM\OneDrive\Desktop\Yeni klasör\jarvis-assistant\.venv\Lib\site-packages\pip\_vendor\certifi
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a---l        18.10.2025     17:24         290057 cacert.pem

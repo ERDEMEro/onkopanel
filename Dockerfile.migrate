@@ -10,4 +10,4 @@ RUN pnpm install --frozen-lockfile --ignore-scripts --filter @workspace/db
 COPY lib/db/ ./lib/db/
 
 WORKDIR /workspace/lib/db
-CMD ["npx", "drizzle-kit", "push", "--config", "drizzle.config.ts"]
+CMD ["npx", "drizzle-kit", "push", "--config", "drizzle.config.ts", "--force"]

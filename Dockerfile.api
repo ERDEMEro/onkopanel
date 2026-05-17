@@ -29,6 +29,7 @@ FROM node:24-alpine AS production
 WORKDIR /app
 
 COPY --from=builder /workspace/artifacts/api-server/dist ./dist
+COPY artifacts/api-server/data/ ./data/
 
 ENV NODE_ENV=production
 ENV PORT=8080

@@ -3,7 +3,7 @@ import { Star, ChevronRight, ChevronLeft, RotateCcw, TrendingUp, CheckCircle2, S
 import { PremiumGate } from "@/components/PremiumGate";
 
 const BASE = (import.meta.env.BASE_URL as string).replace(/\/$/, "");
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
+import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 
 // EORTC QLQ-C30 simplified (30 items → 15 key questions for brevity while covering all scales)
 const QUESTIONS = [
@@ -345,12 +345,13 @@ export default function YasamKalitesi() {
             {radarData.length > 0 && (
               <div className="bg-white rounded-2xl border border-indigo-100 p-4 shadow-sm">
                 <p className="text-xs font-semibold text-slate-600 mb-2">İşlevsellik (yüksek = iyi)</p>
-                <ResponsiveContainer width="100%" height={200}>
-                  <RadarChart data={radarData}>
+                <ResponsiveContainer width="100%" height={240}>
+                  <RadarChart data={radarData} outerRadius={80}>
                     <PolarGrid stroke="#e2e8f0" />
                     <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: "#64748b" }} />
-                    <Radar dataKey="value" stroke="#6366f1" fill="#6366f1" fillOpacity={0.2} strokeWidth={2} />
-                    <Tooltip formatter={(v: number) => [`${v}`, ""]} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+                    <PolarRadiusAxis domain={[0, 100]} tickCount={6} tick={{ fontSize: 9, fill: "#cbd5e1" }} axisLine={false} />
+                    <Radar dataKey="value" stroke="#6366f1" fill="#6366f1" fillOpacity={0.25} strokeWidth={2} />
+                    <Tooltip formatter={(v: number) => [`${v}/100`, ""]} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
                   </RadarChart>
                 </ResponsiveContainer>
               </div>

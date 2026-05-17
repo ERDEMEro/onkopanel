@@ -13,42 +13,9 @@ async function requireAuth(req: Request, res: Response) {
   return { id: session.user.id, isDoctor: !!session.user.isDoctor };
 }
 
-// Seed demo doctors if none exist
-async function seedDemoDoctors() {
-  const existing = await db.select().from(doctorProfilesTable).limit(1);
-  if (existing.length > 0) return;
-
-  const demos = [
-    { firstName: "Ahmet", lastName: "Yılmaz", email: "dr.yilmaz@demo.onkopanel", specialty: "Akciğer Kanseri", hospital: "Ankara Onkoloji Hastanesi", bio: "20 yıllık deneyimiyle akciğer kanseri tanı ve tedavisinde uzman. Klinik araştırmalara aktif katılım sağlamaktadır." },
-    { firstName: "Elif", lastName: "Şahin", email: "dr.sahin@demo.onkopanel", specialty: "Meme Kanseri", hospital: "İstanbul Üniversitesi Tıp Fakültesi", bio: "Meme kanseri cerrahisi ve medikal onkoloji alanında uluslararası deneyime sahip." },
-    { firstName: "Mehmet", lastName: "Kaya", email: "dr.kaya@demo.onkopanel", specialty: "Kolorektal Kanser", hospital: "Hacettepe Üniversitesi Onkoloji Merkezi", bio: "Kolorektal kanser cerrahisi ve kemoterapi protokollerinde öncü çalışmalar yapmaktadır." },
-    { firstName: "Zeynep", lastName: "Demir", email: "dr.demir@demo.onkopanel", specialty: "Lösemi", hospital: "Ege Üniversitesi Hematoloji Bölümü", bio: "Lösemi ve lenfoma tedavisinde kök hücre nakli deneyimi bulunan hematoloji uzmanı." },
-    { firstName: "Mustafa", lastName: "Çelik", email: "dr.celik@demo.onkopanel", specialty: "Prostat Kanseri", hospital: "Gazi Üniversitesi Tıp Fakültesi", bio: "Ürolojik kanserler ve prostat kanseri robotik cerrahi alanında uzman hekim." },
-    { firstName: "Ayşe", lastName: "Arslan", email: "dr.arslan@demo.onkopanel", specialty: "Melanom", hospital: "Marmara Üniversitesi Dermatoloji Kliniği", bio: "Melanom ve deri kanserleri immunoterapi tedavi protokolleri konusunda deneyimli." },
-  ];
-
-  for (const d of demos) {
-    const [user] = await db.insert(usersTable).values({
-      email: d.email,
-      firstName: d.firstName,
-      lastName: d.lastName,
-      isDoctor: true,
-    }).onConflictDoNothing().returning();
-    const userId = user?.id;
-    if (!userId) {
-      const existing = await db.select().from(usersTable).where(eq(usersTable.email, d.email)).limit(1);
-      if (!existing[0]) continue;
-      await db.insert(doctorProfilesTable).values({ userId: existing[0].id, specialty: d.specialty, hospital: d.hospital, bio: d.bio }).onConflictDoNothing();
-    } else {
-      await db.insert(doctorProfilesTable).values({ userId, specialty: d.specialty, hospital: d.hospital, bio: d.bio }).onConflictDoNothing();
-    }
-  }
-}
-
 // ─── Doctors list ────────────────────────────────────────────────────────────
 
 router.get("/doctors", async (req: Request, res: Response): Promise<void> => {
-  await seedDemoDoctors();
   const specialty = req.query.specialty as string | undefined;
 
   const rows = await db

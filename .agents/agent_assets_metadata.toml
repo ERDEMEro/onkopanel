@@ -1,5 +1,10 @@
 uploads = []
-generated = []
+
+[[generated]]
+id = "fKVl0-ltOSQ3u5OaeNWTz"
+uri = "file://artifacts/onkopanel-pitch/public/hero.png"
+type = "image"
+title = "generated_image"
 
 [[outputs]]
 id = "qqaP7OoTRfoUO5FmpFQwI"

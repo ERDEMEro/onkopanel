@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearch } from "wouter";
 import { User, CalendarDays, NotebookPen, Star, Activity, Heart, Pill, Salad } from "lucide-react";
 import HastaAnaSayfa from "./HastaAnaSayfa";
 import BesinTakvimi from "./BesinTakvimi";
@@ -23,7 +24,20 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 export default function SaglikPanelim() {
-  const [active, setActive] = useState<TabId>("takvim");
+  const search = useSearch();
+
+  function tabFromSearch(s: string): TabId {
+    const p = new URLSearchParams(s);
+    const id = p.get("tab") as TabId | null;
+    return id && TABS.some(t => t.id === id) ? id : "anasayfa";
+  }
+
+  const [active, setActive] = useState<TabId>(() => tabFromSearch(search));
+
+  useEffect(() => {
+    setActive(tabFromSearch(search));
+  }, [search]);
+
   const tab = TABS.find(t => t.id === active)!;
   const ActiveComponent = tab.component;
 

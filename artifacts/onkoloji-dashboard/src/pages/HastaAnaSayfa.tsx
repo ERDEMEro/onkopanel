@@ -95,12 +95,12 @@ export default function HastaAnaSayfa() {
 
   const hizliErisim = [
     { icon: <Stethoscope className="w-5 h-5 text-violet-600" />, label: "Belirti Değ.", path: "/belirti", color: "hover:border-violet-300" },
-    { icon: <NotebookPen className="w-5 h-5 text-blue-600" />, label: "Belirti Günlüğü", path: "/gunluk", color: "hover:border-blue-300" },
-    { icon: <Activity className="w-5 h-5 text-emerald-600" />, label: "Egzersiz", path: "/egzersiz", color: "hover:border-emerald-300" },
-    { icon: <Bell className="w-5 h-5 text-amber-600" />, label: "İlaç & Randevu", path: "/hatirlatici", color: "hover:border-amber-300" },
-    { icon: <Salad className="w-5 h-5 text-lime-600" />, label: "Beslenme", path: "/beslenme", color: "hover:border-lime-300" },
-    { icon: <Star className="w-5 h-5 text-yellow-500" />, label: "Yaşam Kalitesi", path: "/yasam", color: "hover:border-yellow-300" },
-    { icon: <Heart className="w-5 h-5 text-pink-600" />, label: "Psikolojik Destek", path: "/destek", color: "hover:border-pink-300" },
+    { icon: <NotebookPen className="w-5 h-5 text-blue-600" />, label: "Belirti Günlüğü", path: "/?tab=gunluk", color: "hover:border-blue-300" },
+    { icon: <Activity className="w-5 h-5 text-emerald-600" />, label: "Egzersiz", path: "/?tab=egzersiz", color: "hover:border-emerald-300" },
+    { icon: <Bell className="w-5 h-5 text-amber-600" />, label: "İlaç & Randevu", path: "/?tab=ilac", color: "hover:border-amber-300" },
+    { icon: <Salad className="w-5 h-5 text-lime-600" />, label: "Beslenme", path: "/?tab=beslenme", color: "hover:border-lime-300" },
+    { icon: <Star className="w-5 h-5 text-yellow-500" />, label: "Yaşam Kalitesi", path: "/?tab=yasam", color: "hover:border-yellow-300" },
+    { icon: <Heart className="w-5 h-5 text-pink-600" />, label: "Psikolojik Destek", path: "/?tab=destek", color: "hover:border-pink-300" },
     { icon: <Sparkles className="w-5 h-5 text-indigo-600" />, label: "YZ Asistan", path: "/asistan", color: "hover:border-indigo-300" },
     { icon: <TrendingUp className="w-5 h-5 text-amber-500" />, label: "Analitik ★", path: "/analitik", color: "hover:border-amber-300" },
     { icon: <Pill className="w-5 h-5 text-amber-500" />, label: "İlaç Etkileşim ★", path: "/ilac-etki", color: "hover:border-amber-300" },

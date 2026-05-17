@@ -94,8 +94,9 @@ function calcScores(answers: Answers): { scales: Record<string, number>; global:
 
   for (const q of QUESTIONS) {
     const raw = answers[q.id] ?? 1;
-    // Convert 1-7 to 0-100 (EORTC standard)
-    const val = ((raw - 1) / 6) * 100;
+    // Convert to 0-100: global uses 1-7 scale (range 6), others use 1-4 scale (range 3)
+    const range = (q as any).global ? 6 : 3;
+    const val = ((raw - 1) / range) * 100;
     const scaled = q.reverse ? 100 - val : val;
 
     if ((q as any).global) {
@@ -288,7 +289,7 @@ export default function YasamKalitesi() {
                   : "1 = Hiç · 4 = Çok Fazla"}
               </p>
 
-              <div className="grid grid-cols-4 gap-2">
+              <div className={(q as any).global ? "grid grid-cols-7 gap-1.5" : "grid grid-cols-4 gap-2"}>
                 {((q as any).global ? [1,2,3,4,5,6,7] : [1,2,3,4]).map((v) => (
                   <button
                     key={v}

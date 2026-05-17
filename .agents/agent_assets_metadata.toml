@@ -11,3 +11,9 @@ id = "qqaP7OoTRfoUO5FmpFQwI"
 uri = "file://.agents/outputs/oncology-analysis.md"
 type = "text"
 title = "Onkoloji Veri Seti — Kapsamlı Analiz Raporu"
+
+[[outputs]]
+id = "3f_qBALsVlv_A2v_QZnjz"
+uri = "file://.local/outputs/Data-Viz-Site.pdf"
+type = "pdf"
+title = "Data Viz Site.pdf"

@@ -1,0 +1,151 @@
+ubuntu@ip-172-31-43-14:~/onkopanel$ cd ~/onkopanel && git pull origin main && docker compose build && docker compose up -d
+remote: Enumerating objects: 25, done.
+remote: Counting objects: 100% (25/25), done.
+remote: Compressing objects: 100% (5/5), done.
+remote: Total 14 (delta 9), reused 14 (delta 9), pack-reused 0 (from 0)
+Unpacking objects: 100% (14/14), 3.77 KiB | 321.00 KiB/s, done.
+From https://github.com/ERDEMEro/onkopanel
+ * branch            main       -> FETCH_HEAD
+   abd4afd..0349ad5  main       -> origin/main
+Updating abd4afd..0349ad5
+Fast-forward
+ artifacts/api-server/package.json                                           |   2 +-
+ artifacts/api-server/src/lib/ai-client.ts                                   |  11 ++++
+ artifacts/api-server/src/routes/doctor-recommend.ts                         |   2 +-
+ artifacts/api-server/src/routes/symptom-check.ts                            |   2 +-
+ ...buntu-ip-172-31-43-14-onkopanel-cd-onkopanel-git-pull-_1779017977430.txt | 127 ++++++++++++++++++++++++++++++++++++
+ pnpm-lock.yaml                                                              |   6 +-
+ 6 files changed, 144 insertions(+), 6 deletions(-)
+ create mode 100644 artifacts/api-server/src/lib/ai-client.ts
+ create mode 100644 attached_assets/Pasted-ubuntu-ip-172-31-43-14-onkopanel-cd-onkopanel-git-pull-_1779017977430.txt
+[+] Building 41.5s (50/52)
+ => [internal] load local bake definitions                                                                         0.0s
+ => => reading from stdin 947B                                                                                     0.0s
+ => [web internal] load build definition from Dockerfile.web                                                       0.0s
+ => => transferring dockerfile: 1.54kB                                                                             0.0s
+ => [api internal] load build definition from Dockerfile.api                                                       0.0s
+ => => transferring dockerfile: 1.42kB                                                                             0.0s
+ => [web internal] load metadata for docker.io/library/nginx:1.27-alpine                                           0.5s
+ => [api internal] load metadata for docker.io/library/node:24-alpine                                              0.5s
+ => [web internal] load .dockerignore                                                                              0.0s
+ => => transferring context: 229B                                                                                  0.0s
+ => [api builder  1/20] FROM docker.io/library/node:24-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc348  0.1s
+ => => resolve docker.io/library/node:24-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc34884a665f40a06db  0.1s
+ => CACHED [web production 1/3] FROM docker.io/library/nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d074320  0.1s
+ => => resolve docker.io/library/nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76f  0.1s
+ => [web internal] load build context                                                                              0.1s
+ => => transferring context: 236.57kB                                                                              0.1s
+ => [api internal] load build context                                                                              0.0s
+ => => transferring context: 240.01kB                                                                              0.0s
+ => CACHED [api production 2/3] WORKDIR /app                                                                       0.0s
+ => CACHED [api builder  2/20] RUN corepack enable && corepack prepare pnpm@latest --activate                      0.0s
+ => CACHED [api builder  3/20] WORKDIR /workspace                                                                  0.0s
+ => [web builder  4/20] COPY pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.base.json tsconfig.json ./   0.1s
+ => [web builder  5/20] COPY lib/db/package.json                        ./lib/db/                                  0.1s
+ => [web builder  6/20] COPY lib/api-spec/package.json                  ./lib/api-spec/                            0.1s
+ => [web builder  7/20] COPY lib/api-zod/package.json                   ./lib/api-zod/                             0.1s
+ => [web builder  8/20] COPY lib/api-client-react/package.json          ./lib/api-client-react/                    0.1s
+ => CACHED [api builder  4/20] COPY pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.base.json tsconfig.j  0.0s
+ => CACHED [api builder  5/20] COPY lib/db/package.json                        ./lib/db/                           0.0s
+ => CACHED [api builder  6/20] COPY lib/api-spec/package.json                  ./lib/api-spec/                     0.0s
+ => CACHED [api builder  7/20] COPY lib/api-zod/package.json                   ./lib/api-zod/                      0.0s
+ => CACHED [api builder  8/20] COPY lib/api-client-react/package.json          ./lib/api-client-react/             0.0s
+ => [api builder  9/20] COPY artifacts/api-server/package.json          ./artifacts/api-server/                    0.1s
+ => [web builder  9/20] COPY artifacts/onkoloji-dashboard/package.json  ./artifacts/onkoloji-dashboard/            0.1s
+ => [web builder 10/20] RUN pnpm install --frozen-lockfile --ignore-scripts                                       16.5s
+ => [api builder 10/20] RUN pnpm install --frozen-lockfile --ignore-scripts                                       10.5s
+ => [api builder 11/20] COPY lib/db/                         ./lib/db/                                             0.4s
+ => [api builder 12/20] COPY lib/api-spec/                   ./lib/api-spec/                                       0.1s
+ => [api builder 13/20] COPY lib/api-zod/                    ./lib/api-zod/                                        0.1s
+ => [api builder 14/20] COPY lib/api-client-react/           ./lib/api-client-react/                               0.1s
+ => [api builder 15/20] COPY artifacts/api-server/           ./artifacts/api-server/                               0.4s
+ => [api builder 16/20] RUN cd lib/db            && npx tsc --build                                                8.5s
+ => [web builder 11/20] COPY lib/db/                        ./lib/db/                                              0.8s
+ => [web builder 12/20] COPY lib/api-spec/                  ./lib/api-spec/                                        0.1s
+ => [web builder 13/20] COPY lib/api-zod/                   ./lib/api-zod/                                         0.1s
+ => [web builder 14/20] COPY lib/api-client-react/          ./lib/api-client-react/                                0.1s
+ => [web builder 15/20] COPY artifacts/onkoloji-dashboard/  ./artifacts/onkoloji-dashboard/                        0.2s
+ => [web builder 16/20] RUN cd lib/db            && npx tsc --build                                                8.2s
+ => [api builder 17/20] RUN cd lib/api-spec      && npx tsc --build 2>/dev/null || true                            1.4s
+ => [api builder 18/20] RUN cd lib/api-zod       && npx tsc --build 2>/dev/null || true                            4.6s
+ => [web builder 17/20] RUN cd lib/api-spec      && npx tsc --build 2>/dev/null || true                            1.8s
+ => [api builder 19/20] RUN cd lib/api-client-react && npx tsc --build 2>/dev/null || true                         6.2s
+ => [web builder 18/20] RUN cd lib/api-zod       && npx tsc --build 2>/dev/null || true                            4.3s
+ => [web builder 19/20] RUN cd lib/api-client-react && npx tsc --build 2>/dev/null || true                         6.3s
+ => [api builder 20/20] RUN pnpm --filter @workspace/api-server run build                                          4.0s
+ => [api production 3/3] COPY --from=builder /workspace/artifacts/api-server/dist ./dist                           0.1s
+ => [api] exporting to image                                                                                       1.3s
+ => => exporting layers                                                                                            0.9s
+ => => exporting manifest sha256:6da753defa973f1b8d485a8010d497b2bc3e7c97472bd2ac4d9a5e6ec89714ab                  0.0s
+ => => exporting config sha256:91e691c007a9c58dc6445c4137da0856a2dbe5e0c3c2c9b7c260d506f759a57f                    0.0s
+ => => exporting attestation manifest sha256:b44a67d546faab545b81d5daaa36794c971b90ac118ae52cccd8639d294496e2      0.0s
+ => => exporting manifest list sha256:07b286e1a2c497c66cc034a7fe077bad37c516cdc4a03cf78851a91f497e5db9             0.0s
+ => => naming to docker.io/library/onkopanel-api:latest                                                            0.0s
+ => => unpacking to docker.io/library/onkopanel-api:latest                                                         0.2s
+ => [api] resolving provenance for metadata file                                                                   0.0s
+ => ERROR [web builder 20/20] RUN pnpm --filter @workspace/onkoloji-dashboard run build                            1.8s
+------
+ > [web builder 20/20] RUN pnpm --filter @workspace/onkoloji-dashboard run build:
+1.104 $ vite build --config vite.config.ts
+1.593 /workspace/node_modules/.pnpm/rollup@4.60.3/node_modules/rollup/dist/native.js:115
+1.593           throw new Error(
+1.593                 ^
+1.593
+1.593 Error: Cannot find module @rollup/rollup-linux-x64-musl. npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828). Please try `npm i` again after removing both package-lock.json and node_modules directory.
+1.593     at requireWithFriendlyError (/workspace/node_modules/.pnpm/rollup@4.60.3/node_modules/rollup/dist/native.js:115:9)
+1.593     at Object.<anonymous> (/workspace/node_modules/.pnpm/rollup@4.60.3/node_modules/rollup/dist/native.js:124:76)
+1.593     at Module._compile (node:internal/modules/cjs/loader:1830:14)
+1.593     at Object..js (node:internal/modules/cjs/loader:1961:10)
+1.593     at Module.load (node:internal/modules/cjs/loader:1553:32)
+1.593     at Module._load (node:internal/modules/cjs/loader:1355:12)
+1.593     at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+1.593     at loadCJSModuleWithModuleLoad (node:internal/modules/esm/translators:326:3)
+1.593     at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:231:7)
+1.593     at ModuleJob.run (node:internal/modules/esm/module_job:437:25) {
+1.593   [cause]: Error: Cannot find module '@rollup/rollup-linux-x64-musl'
+1.593   Require stack:
+1.593   - /workspace/node_modules/.pnpm/rollup@4.60.3/node_modules/rollup/dist/native.js
+1.593       at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+1.593       at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+1.593       at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+1.593       at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+1.593       at Module._load (node:internal/modules/cjs/loader:1262:25)
+1.593       at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+1.593       at Module.require (node:internal/modules/cjs/loader:1576:12)
+1.593       at require (node:internal/modules/helpers:153:16)
+1.593       at requireWithFriendlyError (/workspace/node_modules/.pnpm/rollup@4.60.3/node_modules/rollup/dist/native.js:97:10)
+1.593       at Object.<anonymous> (/workspace/node_modules/.pnpm/rollup@4.60.3/node_modules/rollup/dist/native.js:124:76) {
+1.593     code: 'MODULE_NOT_FOUND',
+1.593     requireStack: [
+1.593       '/workspace/node_modules/.pnpm/rollup@4.60.3/node_modules/rollup/dist/native.js'
+1.593     ]
+1.593   }
+1.593 }
+1.593
+1.593 Node.js v24.15.0
+1.695 /workspace/artifacts/onkoloji-dashboard:
+1.695 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @workspace/onkoloji-dashboard@0.0.0 build: `vite build --config vite.config.ts`
+1.695 Exit status 1
+------
+[+] build 0/2
+ ⠙ Image onkopanel-web Building                                                                                    41.6s
+ ⠙ Image onkopanel-api Building                                                                                    41.6s
+Dockerfile.web:29
+
+--------------------
+
+  27 |     ENV PORT=3000 BASE_PATH=${BASE_PATH} NODE_ENV=production
+
+  28 |
+
+  29 | >>> RUN pnpm --filter @workspace/onkoloji-dashboard run build
+
+  30 |
+
+  31 |     FROM nginx:1.27-alpine AS production
+
+--------------------
+
+target web: failed to solve: process "/bin/sh -c pnpm --filter @workspace/onkoloji-dashboard run build" did not complete successfully: exit code: 1
+
+ubuntu@ip-172-31-43-14:~/onkopanel$

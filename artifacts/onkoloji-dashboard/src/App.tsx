@@ -186,7 +186,7 @@ function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
           {!isDoctor && (
             <button
               onClick={() => navigate("/premium")}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-[11px] font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all shadow-sm shrink-0"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 text-[#0f1923] text-[11px] font-semibold hover:from-amber-600 hover:to-yellow-600 transition-all shadow-sm shrink-0"
             >
               <Crown className="w-3 h-3" />
               <span className="hidden sm:inline">Premium</span>

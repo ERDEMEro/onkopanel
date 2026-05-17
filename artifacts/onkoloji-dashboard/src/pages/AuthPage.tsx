@@ -208,11 +208,12 @@ export default function AuthPage() {
       </nav>
 
       {/* ── Hero ───────────────────────────────────────────────────────────── */}
-      <section className="relative bg-gradient-to-br from-[#0d7c60] via-[#0f9472] to-[#0a6b52] overflow-hidden">
+      <section className="relative bg-gradient-to-br from-[#0f1923] via-[#111f2f] to-[#0c1e1a] overflow-hidden">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-white/5" />
-          <div className="absolute -bottom-32 -left-32 w-[400px] h-[400px] rounded-full bg-white/5" />
-          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-white/[0.03]" />
+          <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-teal-500/5" />
+          <div className="absolute -bottom-32 -left-32 w-[400px] h-[400px] rounded-full bg-teal-500/5" />
+          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-white/[0.02]" />
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,rgba(61,158,143,0.12)_0%,transparent_60%)]" />
         </div>
 
         <div className="relative max-w-6xl mx-auto px-6 py-20 lg:py-28 flex flex-col lg:flex-row items-center gap-12">
@@ -235,7 +236,7 @@ export default function AuthPage() {
 
             <div className="flex flex-wrap gap-3 justify-center lg:justify-start mb-10">
               <button onClick={() => { setAuthTab("register"); scrollToForm(); }}
-                className="flex items-center gap-2 bg-white text-[#0d7c60] font-bold px-6 py-3 rounded-xl hover:bg-white/90 transition-colors shadow-lg text-sm">
+                className="flex items-center gap-2 bg-white text-[#0f1923] font-bold px-6 py-3 rounded-xl hover:bg-white/90 transition-colors shadow-lg text-sm">
                 Hemen Başla <ArrowRight className="w-4 h-4" />
               </button>
               <button onClick={() => { setAuthTab("login"); scrollToForm(); }}
@@ -349,7 +350,8 @@ export default function AuthPage() {
       </section>
 
       {/* ── Doctor section ─────────────────────────────────────────────────── */}
-      <section id="doktorlar" className="py-20 px-6 bg-gradient-to-br from-[#0d7c60] to-[#0a6b52]">
+      <section id="doktorlar" className="py-20 px-6 bg-gradient-to-br from-[#0f1923] via-[#111f2f] to-[#0c1e1a] relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(61,158,143,0.10)_0%,transparent_60%)] pointer-events-none" />
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12">
           <div className="flex-1 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 bg-white/15 border border-white/25 rounded-full px-4 py-1.5 mb-6">
@@ -377,7 +379,7 @@ export default function AuthPage() {
               ))}
             </ul>
             <button onClick={() => { setAuthTab("register"); scrollToForm(); }}
-              className="flex items-center gap-2 bg-white text-[#0d7c60] font-bold px-6 py-3 rounded-xl hover:bg-white/90 transition-colors shadow-lg text-sm">
+              className="flex items-center gap-2 bg-white text-[#0f1923] font-bold px-6 py-3 rounded-xl hover:bg-white/90 transition-colors shadow-lg text-sm">
               Doktor Olarak Kayıt Ol <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -423,11 +425,13 @@ export default function AuthPage() {
       <footer className="border-t py-8 px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <img
-              src={`${import.meta.env.BASE_URL}onkopanel-logo.png`}
-              alt="OnkoPanel"
-              className="h-6 w-auto object-contain"
-            />
+            <div className="bg-slate-900 rounded-lg px-2 py-1">
+              <img
+                src={`${import.meta.env.BASE_URL}onkopanel-logo.png`}
+                alt="OnkoPanel"
+                className="h-5 w-auto object-contain"
+              />
+            </div>
           </div>
           <p className="text-xs text-muted-foreground text-center">
             Bu veriler klinik kayıtlardan anahtar kelime eşleştirme ile elde edilmiştir. Yalnızca bilgi amaçlıdır.

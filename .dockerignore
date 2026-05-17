@@ -1,0 +1,17 @@
+**/node_modules
+**/.git
+**/.gitignore
+**/dist
+**/.env
+**/.env.*
+!**/.env.production.example
+**/coverage
+**/.turbo
+**/.cache
+**/tmp
+**/logs
+*.log
+.replit
+replit.nix
+.local
+attached_assets

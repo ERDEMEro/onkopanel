@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: onkopanel
+      POSTGRES_USER: onkopanel
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U onkopanel"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      DATABASE_URL: postgresql://onkopanel:${POSTGRES_PASSWORD}@postgres:5432/onkopanel
+      SESSION_SECRET: ${SESSION_SECRET}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      SERPER_API_KEY: ${SERPER_API_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        BASE_PATH: /
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - api
+
+  db-migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    command: >
+      sh -c "node -e \"
+        const { execSync } = require('child_process');
+        execSync('npx drizzle-kit push', { stdio: 'inherit' });
+      \""
+    environment:
+      DATABASE_URL: postgresql://onkopanel:${POSTGRES_PASSWORD}@postgres:5432/onkopanel
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - migrate
+
+volumes:
+  postgres_data:

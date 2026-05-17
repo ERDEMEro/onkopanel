@@ -5,6 +5,8 @@ import {
   BadgeCheck, PhoneCall, X, Loader2, Pill, Database, Leaf, AlertCircle,
 } from "lucide-react";
 import { useLang } from "@/context/LanguageContext";
+import { usePremium } from "@/components/PremiumGate";
+import { useLocation as useWouterLocation } from "wouter";
 import {
   useGetMedsByCancerType,
   getGetMedsByCancerTypeQueryKey,
@@ -134,6 +136,8 @@ function isSerious(result: CheckResult): boolean {
 
 export default function SymptomChecker() {
   const { lang, t } = useLang();
+  const { isPremium } = usePremium();
+  const [, navigateTo] = useWouterLocation();
   const s = t.symptom;
 
   const medsCancerQ = useGetMedsByCancerType({
@@ -202,6 +206,10 @@ export default function SymptomChecker() {
   }
 
   function openDoctorModal(cancerType: string) {
+    if (!isPremium) {
+      navigateTo("/premium");
+      return;
+    }
     setDoctorTarget(cancerType);
     setDoctorResult(null); setDoctorError(null); setBudget("");
     setShowDoctorModal(true);

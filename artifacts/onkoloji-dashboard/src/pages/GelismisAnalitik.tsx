@@ -5,6 +5,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import { Crown, TrendingUp, TrendingDown, Minus, Dna, Pill, Activity, Brain } from "lucide-react";
+import { PremiumGate } from "@/components/PremiumGate";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -115,6 +116,7 @@ export default function GelismisAnalitik() {
   ];
 
   return (
+    <PremiumGate featureName="Gelişmiş Analitik">
     <div className="max-w-[1200px] mx-auto px-4 py-8 space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
@@ -263,5 +265,6 @@ export default function GelismisAnalitik() {
         </div>
       </div>
     </div>
+    </PremiumGate>
   );
 }

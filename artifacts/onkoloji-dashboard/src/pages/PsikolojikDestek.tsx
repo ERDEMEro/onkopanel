@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Heart, Send, Bot, User, RefreshCw, History, Clock, Trash2, X, ClipboardList, Sparkles, Loader2, ChevronRight, RotateCcw } from "lucide-react";
+import { PremiumGate } from "@/components/PremiumGate";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const CURRENT_KEY = "onko_chat_psiko_current";
@@ -204,6 +205,7 @@ export default function PsikolojikDestek() {
   const MOOD_LABELS = ["","Çok kötü","Kötü","Orta","İyi","Çok iyi"];
 
   return (
+    <PremiumGate featureName="Psikolojik Destek AI">
     <div className="flex flex-col h-[calc(100vh-52px)] bg-gradient-to-br from-rose-50/40 via-white to-purple-50/30">
       {/* Header */}
       <div className="shrink-0 border-b border-rose-100/80 bg-white/80 backdrop-blur-sm px-6 py-4">
@@ -484,5 +486,6 @@ export default function PsikolojikDestek() {
         </div>
       )}
     </div>
+    </PremiumGate>
   );
 }

@@ -4,6 +4,7 @@ import {
   Calendar, Sparkles, Loader2, Check, ChevronLeft, ChevronRight, Lightbulb,
   CheckCircle2, Circle,
 } from "lucide-react";
+import { PremiumGate } from "@/components/PremiumGate";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const CURRENT_KEY = "onko_chat_beslenme_current";
@@ -705,6 +706,7 @@ export default function BeslenmeDanismani() {
 
   /* ─── Chat screen ─── */
   return (
+    <PremiumGate featureName="Beslenme Danışmanı AI">
     <>
       {activePlan && <MealCalendar plan={activePlan} onClose={() => setActivePlan(null)} />}
       {wizardOpen && (
@@ -892,5 +894,6 @@ export default function BeslenmeDanismani() {
         )}
       </div>
     </>
+    </PremiumGate>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Star, ChevronRight, ChevronLeft, RotateCcw, TrendingUp, CheckCircle2, Sparkles, Loader2, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
+import { PremiumGate } from "@/components/PremiumGate";
 
 const BASE = (import.meta.env.BASE_URL as string).replace(/\/$/, "");
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
@@ -219,6 +220,7 @@ export default function YasamKalitesi() {
     : [];
 
   return (
+    <PremiumGate featureName="Yaşam Kalitesi AI Planı">
     <div className="min-h-[calc(100vh-52px)] bg-gradient-to-br from-indigo-50/30 via-white to-violet-50/20 p-6">
       <div className="max-w-2xl mx-auto">
 
@@ -563,5 +565,6 @@ export default function YasamKalitesi() {
         )}
       </div>
     </div>
+    </PremiumGate>
   );
 }

@@ -16,6 +16,7 @@ import aiAdvisorRouter from "./ai-advisor";
 import exercisePlanRouter from "./exercise-plan";
 import supportPlanRouter from "./support-plan";
 import qolPlanRouter from "./qol-plan";
+import stripeRouter from "./stripe";
 
 const router: IRouter = Router();
 
@@ -36,5 +37,6 @@ router.use(aiAdvisorRouter);
 router.use(exercisePlanRouter);
 router.use(supportPlanRouter);
 router.use(qolPlanRouter);
+router.use(stripeRouter);
 
 export default router;

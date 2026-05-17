@@ -4,6 +4,7 @@ import {
   ShieldAlert, Sparkles, Database, History, Clock, X,
 } from "lucide-react";
 import { useLang } from "@/context/LanguageContext";
+import { PremiumGate } from "@/components/PremiumGate";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const CURRENT_KEY = "onko_chat_asistan_current";
@@ -159,6 +160,7 @@ export default function AiAsistan() {
   }
 
   return (
+    <PremiumGate featureName="YZ Asistan">
     <div className="max-w-[900px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-4" style={{ minHeight: "calc(100vh - 44px)" }}>
       {/* Header */}
       <div className="anim-fsu" style={{ animationDelay: "0ms" }}>
@@ -343,5 +345,6 @@ export default function AiAsistan() {
         </div>
       )}
     </div>
+    </PremiumGate>
   );
 }

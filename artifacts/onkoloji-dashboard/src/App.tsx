@@ -26,12 +26,14 @@ import GelismisAnalitik from "@/pages/GelismisAnalitik";
 import IlacEtklesim from "@/pages/IlacEtklesim";
 import HastaAnaSayfa from "@/pages/HastaAnaSayfa";
 import SaglikPanelim from "@/pages/SaglikPanelim";
+import Premium from "@/pages/Premium";
 import AuthPage from "@/pages/AuthPage";
+import { PremiumProvider } from "@/components/PremiumGate";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider, useLang } from "@/context/LanguageContext";
 import { NarratorProvider } from "@/context/NarratorContext";
 import { NarratorWidget } from "@/components/Narrator";
-import { BarChart2, User, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList, Heart, Salad, Bell, NotebookPen, Newspaper, Star, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp, Pill, CalendarDays } from "lucide-react";
+import { BarChart2, User, Users, Stethoscope, Sparkles, BookOpen, GraduationCap, Settings, Activity, LogIn, LogOut, Loader2, ClipboardList, Heart, Salad, Bell, NotebookPen, Newspaper, Star, AlertTriangle, ChevronLeft, ChevronRight, TrendingUp, Pill, CalendarDays, Crown } from "lucide-react";
 
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth, AuthProvider } from "@workspace/replit-auth-web";
@@ -169,6 +171,15 @@ function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
 
         {/* Right side: Settings + Auth */}
         <div className="flex items-center h-full pl-2 border-l ml-2 shrink-0 gap-1">
+          {!isDoctor && (
+            <button
+              onClick={() => navigate("/premium")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-[11px] font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all shadow-sm shrink-0"
+            >
+              <Crown className="w-3 h-3" />
+              <span className="hidden sm:inline">Premium</span>
+            </button>
+          )}
           <button
             onClick={() => navigate("/ayarlar")}
             className={tabCls(location === "/ayarlar")}
@@ -285,6 +296,7 @@ function Router() {
           <Route path="/vaka"         component={isDoctor ? VakaDoldur : NotFound} />
           <Route path="/analitik"     component={GelismisAnalitik} />
           <Route path="/ilac-etki"    component={IlacEtklesim} />
+          <Route path="/premium"      component={Premium} />
           <Route component={NotFound} />
         </Switch>
       </PageTransition>
@@ -299,7 +311,9 @@ function AppInner() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router />
+            <PremiumProvider>
+              <Router />
+            </PremiumProvider>
           </WouterRouter>
           <NarratorWidget />
           <Toaster />

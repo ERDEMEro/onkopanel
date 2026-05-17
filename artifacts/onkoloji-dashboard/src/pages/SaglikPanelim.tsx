@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { CalendarDays, NotebookPen, Star, Activity, Heart, Pill, Salad } from "lucide-react";
+import { User, CalendarDays, NotebookPen, Star, Activity, Heart, Pill, Salad } from "lucide-react";
+import HastaAnaSayfa from "./HastaAnaSayfa";
 import BesinTakvimi from "./BesinTakvimi";
 import BeliritGunlugu from "./BeliritGunlugu";
 import YasamKalitesi from "./YasamKalitesi";
@@ -9,13 +10,14 @@ import HatirlaticiTakip from "./HatirlaticiTakip";
 import BeslenmeDanismani from "./BeslenmeDanismani";
 
 const TABS = [
-  { id: "takvim",   label: "Günlük Takip",      shortLabel: "Takvim",   icon: CalendarDays,   component: BesinTakvimi,     activeBg: "bg-emerald-500" },
-  { id: "ilac",     label: "İlaç & Randevu",     shortLabel: "İlaç",     icon: Pill,            component: HatirlaticiTakip, activeBg: "bg-violet-500"  },
-  { id: "beslenme", label: "Beslenme Danışmanı", shortLabel: "Beslenme", icon: Salad,           component: BeslenmeDanismani,activeBg: "bg-teal-500"    },
-  { id: "gunluk",   label: "Belirti Günlüğü",    shortLabel: "Belirti",  icon: NotebookPen,     component: BeliritGunlugu,   activeBg: "bg-amber-500"   },
-  { id: "yasam",    label: "Yaşam Kalitesi",     shortLabel: "Yaşam",    icon: Star,            component: YasamKalitesi,    activeBg: "bg-indigo-500"  },
-  { id: "egzersiz", label: "Egzersiz",           shortLabel: "Egzersiz", icon: Activity,        component: EgzersizTakip,    activeBg: "bg-cyan-500"    },
-  { id: "destek",   label: "Psikolojik Destek",  shortLabel: "Destek",   icon: Heart,           component: PsikolojikDestek, activeBg: "bg-rose-500"    },
+  { id: "anasayfa", label: "Ana Sayfa",           shortLabel: "Ana",      icon: User,           component: HastaAnaSayfa,    activeBg: "bg-primary"     },
+  { id: "takvim",   label: "Günlük Takip",        shortLabel: "Takvim",   icon: CalendarDays,   component: BesinTakvimi,     activeBg: "bg-emerald-500" },
+  { id: "ilac",     label: "İlaç & Randevu",      shortLabel: "İlaç",     icon: Pill,            component: HatirlaticiTakip, activeBg: "bg-violet-500"  },
+  { id: "beslenme", label: "Beslenme Danışmanı",  shortLabel: "Beslenme", icon: Salad,           component: BeslenmeDanismani,activeBg: "bg-teal-500"    },
+  { id: "gunluk",   label: "Belirti Günlüğü",     shortLabel: "Belirti",  icon: NotebookPen,     component: BeliritGunlugu,   activeBg: "bg-amber-500"   },
+  { id: "yasam",    label: "Yaşam Kalitesi",      shortLabel: "Yaşam",    icon: Star,            component: YasamKalitesi,    activeBg: "bg-indigo-500"  },
+  { id: "egzersiz", label: "Egzersiz",            shortLabel: "Egzersiz", icon: Activity,        component: EgzersizTakip,    activeBg: "bg-cyan-500"    },
+  { id: "destek",   label: "Psikolojik Destek",   shortLabel: "Destek",   icon: Heart,           component: PsikolojikDestek, activeBg: "bg-rose-500"    },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];

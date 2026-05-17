@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Volume2, VolumeX, Pause, Play, Square, ChevronUp, ChevronDown,
-  Accessibility, Settings2, BookOpen,
+  Accessibility, Settings2, BookOpen, GripVertical,
 } from "lucide-react";
 import { useNarrator } from "@/context/NarratorContext";
 import { useLang } from "@/context/LanguageContext";
@@ -12,8 +12,54 @@ export function NarratorWidget() {
   const n = t.narrator;
 
   const [expanded, setExpanded] = useState(false);
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const dragging = useRef(false);
+  const dragOffset = useRef({ x: 0, y: 0 });
+  const widgetRef = useRef<HTMLDivElement>(null);
+
+  const clamp = useCallback((p: { x: number; y: number }) => {
+    const el = widgetRef.current;
+    if (!el) return p;
+    const w = el.offsetWidth || 56;
+    const h = el.offsetHeight || 56;
+    return {
+      x: Math.max(8, Math.min(window.innerWidth - w - 8, p.x)),
+      y: Math.max(8, Math.min(window.innerHeight - h - 8, p.y)),
+    };
+  }, []);
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    const el = widgetRef.current;
+    if (!el) return;
+    dragging.current = true;
+    const rect = el.getBoundingClientRect();
+    dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    e.preventDefault();
+  }, []);
+
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragging.current) return;
+    const newPos = clamp({ x: e.clientX - dragOffset.current.x, y: e.clientY - dragOffset.current.y });
+    setPos(newPos);
+    e.preventDefault();
+  }, [clamp]);
+
+  const onPointerUp = useCallback(() => { dragging.current = false; }, []);
+
+  useEffect(() => {
+    function onResize() {
+      setPos(p => p ? clamp(p) : p);
+    }
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [clamp]);
 
   if (!isSupported) return null;
+
+  const style: React.CSSProperties = pos
+    ? { position: "fixed", left: pos.x, top: pos.y, right: "auto", bottom: "auto" }
+    : { position: "fixed", right: 16, bottom: 16 };
 
   const presets = lang === "tr"
     ? ["Merhaba! Onkoloji Veri Panosu'na hoş geldiniz."]
@@ -21,9 +67,14 @@ export function NarratorWidget() {
 
   return (
     <div
+      ref={widgetRef}
       role="region"
       aria-label={n.widgetLabel}
-      className={`fixed bottom-4 right-4 z-[9999] flex flex-col items-end gap-2 transition-all`}
+      style={{ ...style, zIndex: 9999 }}
+      className="flex flex-col items-end gap-2"
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
     >
       {/* Expanded panel */}
       {isEnabled && expanded && (
@@ -206,27 +257,38 @@ export function NarratorWidget() {
         </button>
       )}
 
-      {/* Main toggle button */}
-      <button
-        onClick={() => {
-          toggle();
-          if (!isEnabled) setExpanded(true);
-        }}
-        aria-label={isEnabled ? n.turnOff : n.turnOn}
-        aria-pressed={isEnabled}
-        title={`${isEnabled ? n.turnOff : n.turnOn} (Alt+N)`}
-        className={`w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all focus:outline-none focus:ring-4 focus:ring-primary/40 ${
-          isEnabled
-            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-            : "bg-background border-2 border-border text-muted-foreground hover:border-primary hover:text-primary"
-        }`}
-      >
-        {isEnabled ? (
-          <Volume2 className="w-5 h-5" aria-hidden="true" />
-        ) : (
-          <VolumeX className="w-5 h-5" aria-hidden="true" />
-        )}
-      </button>
+      {/* Main toggle button + drag handle */}
+      <div className="flex items-center gap-1">
+        <div
+          onPointerDown={onPointerDown}
+          title="Taşı"
+          className="w-6 h-12 rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors touch-none select-none"
+          aria-label="Widgeti taşı"
+          aria-hidden="true"
+        >
+          <GripVertical className="w-3.5 h-3.5" />
+        </div>
+        <button
+          onClick={() => {
+            toggle();
+            if (!isEnabled) setExpanded(true);
+          }}
+          aria-label={isEnabled ? n.turnOff : n.turnOn}
+          aria-pressed={isEnabled}
+          title={`${isEnabled ? n.turnOff : n.turnOn} (Alt+N)`}
+          className={`w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all focus:outline-none focus:ring-4 focus:ring-primary/40 ${
+            isEnabled
+              ? "bg-primary text-primary-foreground hover:bg-primary/90"
+              : "bg-background border-2 border-border text-muted-foreground hover:border-primary hover:text-primary"
+          }`}
+        >
+          {isEnabled ? (
+            <Volume2 className="w-5 h-5" aria-hidden="true" />
+          ) : (
+            <VolumeX className="w-5 h-5" aria-hidden="true" />
+          )}
+        </button>
+      </div>
     </div>
   );
 }

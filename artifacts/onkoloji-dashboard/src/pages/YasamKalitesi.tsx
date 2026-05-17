@@ -97,7 +97,9 @@ function calcScores(answers: Answers): { scales: Record<string, number>; global:
     // Convert to 0-100: global uses 1-7 scale (range 6), others use 1-4 scale (range 3)
     const range = (q as any).global ? 6 : 3;
     const val = ((raw - 1) / range) * 100;
-    const scaled = q.reverse ? 100 - val : val;
+    // reverse=true → positive question (higher raw = better) → keep val
+    // reverse=false → negative question (higher raw = worse) → invert to 100-val
+    const scaled = q.reverse ? val : 100 - val;
 
     if ((q as any).global) {
       globalSum += (q.reverse ? val : val); // keep as 0-100
@@ -111,9 +113,9 @@ function calcScores(answers: Answers): { scales: Record<string, number>; global:
   const scales: Record<string, number> = {};
   for (const [k, vals] of Object.entries(scaleGroups)) {
     const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
-    // For functional: higher = better. For symptoms: higher = worse — we show as 100-score for chart
+    // Both types: scaled values already point "higher = better" after the reverse fix above
     const info = SCALE_LABELS[k];
-    scales[k] = info?.type === "symptom" ? Math.round(100 - avg) : Math.round(avg);
+    scales[k] = Math.round(avg);
   }
 
   return { scales, global: globalCount > 0 ? Math.round(globalSum / globalCount) : 0 };

@@ -18,10 +18,10 @@ COPY lib/api-zod/                    ./lib/api-zod/
 COPY lib/api-client-react/           ./lib/api-client-react/
 COPY artifacts/api-server/           ./artifacts/api-server/
 
-RUN cd lib/db            && npx tsc --build --skipLibCheck 2>/dev/null || npx tsc --build --skipLibCheck --force
-RUN cd lib/api-spec      && npx tsc --build --skipLibCheck 2>/dev/null || true
-RUN cd lib/api-zod       && npx tsc --build --skipLibCheck 2>/dev/null || true
-RUN cd lib/api-client-react && npx tsc --build --skipLibCheck 2>/dev/null || true
+RUN cd lib/db            && npx tsc --build
+RUN cd lib/api-spec      && npx tsc --build 2>/dev/null || true
+RUN cd lib/api-zod       && npx tsc --build 2>/dev/null || true
+RUN cd lib/api-client-react && npx tsc --build 2>/dev/null || true
 
 RUN pnpm --filter @workspace/api-server run build
 

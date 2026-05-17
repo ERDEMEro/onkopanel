@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, varchar, text, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, varchar, text, timestamp, pgEnum, boolean } from "drizzle-orm/pg-core";
 
 export const invitationStatusEnum = pgEnum("invitation_status", ["pending", "accepted", "rejected"]);
 
@@ -9,6 +9,7 @@ export const doctorProfilesTable = pgTable("doctor_profiles", {
   specialty: varchar("specialty").notNull(),
   hospital: varchar("hospital"),
   bio: text("bio"),
+  isAvailable: boolean("is_available").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

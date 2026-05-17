@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { Stethoscope, Building2, MessageCircle, Send, Clock, CheckCircle2, XCircle, ArrowLeft, Loader2, UserCheck, Check, X, NotebookPen } from "lucide-react";
+import {
+  Stethoscope, Building2, MessageCircle, Send, Clock, CheckCircle2, XCircle,
+  ArrowLeft, Loader2, UserCheck, Check, X, NotebookPen, ChevronDown, Zap,
+  ToggleLeft, ToggleRight,
+} from "lucide-react";
 
 const BASE = (import.meta.env.BASE_URL as string).replace(/\/$/, "");
 
@@ -10,7 +14,19 @@ const CANCER_TYPES = [
   "Yumurtalık Kanseri", "Rahim Kanseri",
 ];
 
-interface DoctorProfile { id: string; specialty: string; hospital: string | null; bio: string | null; }
+const QUICK_REPLIES = [
+  "Bilgi aldım, teşekkürler.",
+  "Randevu için kliniğimizi arayabilirsiniz.",
+  "Durumunuz hakkında daha fazla bilgi paylaşır mısınız?",
+];
+
+interface DoctorProfile {
+  id: string;
+  specialty: string;
+  hospital: string | null;
+  bio: string | null;
+  isAvailable: boolean;
+}
 
 interface Invitation {
   id: string;
@@ -37,7 +53,7 @@ interface Message {
 
 function Avatar({ name, imageUrl, size = "md" }: { name: string; imageUrl?: string | null; size?: "sm" | "md" }) {
   const cls = size === "sm" ? "w-8 h-8 text-xs" : "w-10 h-10 text-sm";
-  if (imageUrl) return <img src={imageUrl} alt={name} className={`${cls} rounded-full object-cover ring-2 ring-emerald-200 shrink-0`} />;
+  if (imageUrl) return <img src={imageUrl} alt={name} className={`${cls} rounded-full object-cover ring-2 ring-emerald-100 shrink-0`} />;
   return (
     <div className={`${cls} rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold shrink-0`}>
       {name.charAt(0).toUpperCase()}
@@ -56,6 +72,28 @@ function formatTime(iso: string | null) {
   return d.toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
 }
 
+function dateLabelForMsg(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today.getTime() - 86_400_000);
+  const msgDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  if (msgDay.getTime() === today.getTime()) return "Bugün";
+  if (msgDay.getTime() === yesterday.getTime()) return "Dün";
+  return d.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
+}
+
+function useAutoResizeTextarea(value: string) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 120) + "px";
+  }, [value]);
+  return ref;
+}
+
 export default function DoktorMesajlar() {
   const [tab, setTab] = useState<"invitations" | "conversations">("invitations");
   const [profile, setProfile] = useState<DoctorProfile | null>(null);
@@ -65,6 +103,7 @@ export default function DoktorMesajlar() {
   const [pHospital, setPHospital] = useState("");
   const [pBio, setPBio] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
+  const [togglingAvail, setTogglingAvail] = useState(false);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loadingInv, setLoadingInv] = useState(false);
   const [responding, setResponding] = useState<string | null>(null);
@@ -73,8 +112,12 @@ export default function DoktorMesajlar() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMsg, setNewMsg] = useState("");
   const [msgSending, setMsgSending] = useState(false);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const [showQuickReplies, setShowQuickReplies] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const msgTextareaRef = useAutoResizeTextarea(newMsg);
 
   async function fetchProfile() {
     setProfileLoading(true);
@@ -83,8 +126,9 @@ export default function DoktorMesajlar() {
       if (res.ok) {
         const data = await res.json() as { profile: DoctorProfile | null };
         setProfile(data.profile);
-        if (!data.profile) setShowProfileSetup(true);
-        else {
+        if (!data.profile) {
+          setShowProfileSetup(true);
+        } else {
           setPSpecialty(data.profile.specialty);
           setPHospital(data.profile.hospital ?? "");
           setPBio(data.profile.bio ?? "");
@@ -124,14 +168,26 @@ export default function DoktorMesajlar() {
   useEffect(() => { fetchProfile(); fetchInvitations(); fetchMe(); }, []);
 
   useEffect(() => {
-    if (chatInvId) {
-      fetchMessages(chatInvId);
-      pollRef.current = setInterval(() => fetchMessages(chatInvId), 5000);
-      return () => { if (pollRef.current) clearInterval(pollRef.current); };
-    }
+    if (!chatInvId) return;
+    fetchMessages(chatInvId);
+    pollRef.current = setInterval(() => fetchMessages(chatInvId), 5000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [chatInvId]);
 
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  useEffect(() => {
+    if (!showScrollBtn) messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  function handleScroll() {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    setShowScrollBtn(el.scrollHeight - el.scrollTop - el.clientHeight > 120);
+  }
+
+  function scrollToBottom() {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setShowScrollBtn(false);
+  }
 
   async function saveProfile() {
     if (!pSpecialty) return;
@@ -151,6 +207,20 @@ export default function DoktorMesajlar() {
     } finally { setSavingProfile(false); }
   }
 
+  async function toggleAvailability() {
+    if (!profile) return;
+    setTogglingAvail(true);
+    try {
+      const res = await fetch(`${BASE}/api/doctors/profile/availability`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ isAvailable: !profile.isAvailable }),
+      });
+      if (res.ok) setProfile(p => p ? { ...p, isAvailable: !p.isAvailable } : p);
+    } finally { setTogglingAvail(false); }
+  }
+
   async function respond(id: string, status: "accepted" | "rejected") {
     setResponding(id);
     try {
@@ -164,22 +234,28 @@ export default function DoktorMesajlar() {
     } finally { setResponding(null); }
   }
 
-  async function sendMessage() {
-    if (!chatInvId || !newMsg.trim()) return;
+  async function sendMessage(content?: string) {
+    const text = (content ?? newMsg).trim();
+    if (!chatInvId || !text) return;
     setMsgSending(true);
     try {
       const res = await fetch(`${BASE}/api/doctor-messages/${chatInvId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ content: newMsg.trim() }),
+        body: JSON.stringify({ content: text }),
       });
-      if (res.ok) { setNewMsg(""); await fetchMessages(chatInvId); await fetchInvitations(); }
+      if (res.ok) {
+        if (!content) setNewMsg("");
+        setShowScrollBtn(false); setShowQuickReplies(false);
+        await fetchMessages(chatInvId); await fetchInvitations();
+      }
     } finally { setMsgSending(false); }
   }
 
   const pending = invitations.filter(i => i.status === "pending");
-  const accepted = invitations.filter(i => i.status === "accepted")
+  const accepted = invitations
+    .filter(i => i.status === "accepted")
     .sort((a, b) => {
       const ta = a.lastMessageAt ?? a.createdAt;
       const tb = b.lastMessageAt ?? b.createdAt;
@@ -187,6 +263,17 @@ export default function DoktorMesajlar() {
     });
   const chatInv = invitations.find(i => i.id === chatInvId);
   const unreadCount = accepted.filter(i => i.lastMessageSenderId && i.lastMessageSenderId !== myUserId).length;
+
+  // Date-grouped messages
+  const msgGroups: Array<{ label: string; msgs: Message[] }> = [];
+  for (const msg of messages) {
+    const label = dateLabelForMsg(msg.createdAt);
+    if (!msgGroups.length || msgGroups[msgGroups.length - 1].label !== label) {
+      msgGroups.push({ label, msgs: [msg] });
+    } else {
+      msgGroups[msgGroups.length - 1].msgs.push(msg);
+    }
+  }
 
   // ─── Loading ──────────────────────────────────────────────────────────────
   if (profileLoading) {
@@ -210,7 +297,7 @@ export default function DoktorMesajlar() {
               <h1 className="text-base font-semibold text-slate-800">
                 {profile ? "Profilinizi Güncelleyin" : "Doktor Profilinizi Tamamlayın"}
               </h1>
-              <p className="text-xs text-slate-400">Hastalar sizi bulabilmek için bu bilgilere ihtiyaç duyar</p>
+              <p className="text-xs text-slate-400">Hastalar sizi bulmak için bu bilgilere ihtiyaç duyar</p>
             </div>
           </div>
           <div className="space-y-3">
@@ -260,7 +347,7 @@ export default function DoktorMesajlar() {
     return (
       <div className="flex flex-col h-[calc(100vh-52px)] bg-white">
         <div className="flex items-center gap-3 px-4 py-3 border-b bg-white shrink-0 shadow-sm">
-          <button onClick={() => { setChatInvId(null); setMessages([]); if (pollRef.current) clearInterval(pollRef.current); }}
+          <button onClick={() => { setChatInvId(null); setMessages([]); setShowQuickReplies(false); if (pollRef.current) clearInterval(pollRef.current); }}
             className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors">
             <ArrowLeft className="w-4 h-4" />
           </button>
@@ -270,38 +357,91 @@ export default function DoktorMesajlar() {
             <p className="text-xs text-slate-400">Hasta</p>
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50/50">
+
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto px-4 py-4 bg-slate-50/50 relative"
+        >
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full gap-2 text-slate-400">
               <MessageCircle className="w-10 h-10 opacity-20" />
               <p className="text-sm">Henüz mesaj yok.</p>
             </div>
           )}
-          {messages.map((msg) => {
-            const isMe = msg.senderId === myUserId;
-            return (
-              <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                  isMe ? "bg-emerald-500 text-white rounded-br-sm" : "bg-white text-slate-800 border border-slate-100 rounded-bl-sm"
-                }`}>
-                  <p>{msg.content}</p>
-                  <p className={`text-[10px] mt-1 ${isMe ? "text-emerald-200" : "text-slate-400"}`}>
-                    {new Date(msg.createdAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}
-                  </p>
-                </div>
+          {msgGroups.map(group => (
+            <div key={group.label}>
+              <div className="flex items-center gap-2 my-4">
+                <div className="flex-1 h-px bg-slate-200" />
+                <span className="text-[11px] text-slate-400 font-medium px-2">{group.label}</span>
+                <div className="flex-1 h-px bg-slate-200" />
               </div>
-            );
-          })}
+              <div className="space-y-3">
+                {group.msgs.map((msg) => {
+                  const isMe = msg.senderId === myUserId;
+                  return (
+                    <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                      <div className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                        isMe ? "bg-emerald-500 text-white rounded-br-sm" : "bg-white text-slate-800 border border-slate-100 rounded-bl-sm"
+                      }`}>
+                        <p style={{ whiteSpace: "pre-wrap" }}>{msg.content}</p>
+                        <p className={`text-[10px] mt-1 text-right ${isMe ? "text-emerald-200" : "text-slate-400"}`}>
+                          {new Date(msg.createdAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
           <div ref={messagesEndRef} />
         </div>
+
+        {showScrollBtn && (
+          <button onClick={scrollToBottom}
+            className="absolute bottom-28 right-5 z-10 w-9 h-9 rounded-full bg-emerald-500 text-white shadow-lg flex items-center justify-center hover:bg-emerald-600 transition-colors">
+            <ChevronDown className="w-4 h-4" />
+          </button>
+        )}
+
+        {/* Quick replies panel */}
+        {showQuickReplies && (
+          <div className="px-4 py-2 border-t bg-slate-50 shrink-0">
+            <div className="flex gap-2 flex-wrap">
+              {QUICK_REPLIES.map(qr => (
+                <button key={qr}
+                  onClick={() => sendMessage(qr)}
+                  className="text-xs px-3 py-1.5 rounded-xl bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-colors font-medium"
+                >
+                  {qr}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="px-4 py-3 border-t bg-white shrink-0">
-          <div className="flex items-center gap-2">
-            <input type="text" value={newMsg} onChange={e => setNewMsg(e.target.value)}
+          <div className="flex items-end gap-2">
+            <button
+              onClick={() => setShowQuickReplies(v => !v)}
+              className={`p-2 rounded-xl transition-colors shrink-0 ${showQuickReplies ? "bg-emerald-100 text-emerald-600" : "text-slate-400 hover:bg-slate-100"}`}
+              title="Hızlı yanıtlar"
+            >
+              <Zap className="w-4 h-4" />
+            </button>
+            <textarea
+              ref={msgTextareaRef}
+              value={newMsg}
+              onChange={e => setNewMsg(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-              placeholder="Hastaya mesaj yazın…"
-              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition" />
-            <button onClick={sendMessage} disabled={!newMsg.trim() || msgSending}
-              className="p-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-colors disabled:opacity-50 shadow-sm">
+              placeholder="Hastaya mesaj yazın…  (Shift+Enter: yeni satır)"
+              rows={1}
+              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-300 transition resize-none overflow-hidden"
+              style={{ minHeight: "42px", maxHeight: "120px" }}
+            />
+            <button onClick={() => sendMessage()} disabled={!newMsg.trim() || msgSending}
+              className="p-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white transition-colors disabled:opacity-50 shadow-sm shrink-0">
               {msgSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </button>
           </div>
@@ -321,13 +461,38 @@ export default function DoktorMesajlar() {
             </div>
             <div>
               <h1 className="text-base font-semibold text-slate-800">Hasta Yazışmaları</h1>
-              <p className="text-xs text-slate-400 truncate">{profile?.specialty ?? ""}{profile?.hospital ? ` · ${profile.hospital}` : ""}</p>
+              <p className="text-xs text-slate-400 truncate max-w-[180px]">
+                {profile?.specialty ?? ""}{profile?.hospital ? ` · ${profile.hospital}` : ""}
+              </p>
             </div>
           </div>
-          <button onClick={() => setShowProfileSetup(true)}
-            className="text-xs text-emerald-600 hover:text-emerald-700 flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors">
-            <NotebookPen className="w-3.5 h-3.5" /> Profili Düzenle
-          </button>
+
+          <div className="flex items-center gap-2">
+            {/* Availability toggle */}
+            <button
+              onClick={toggleAvailability}
+              disabled={togglingAvail}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                profile?.isAvailable
+                  ? "bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                  : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100"
+              }`}
+            >
+              {togglingAvail ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : profile?.isAvailable ? (
+                <ToggleRight className="w-3.5 h-3.5" />
+              ) : (
+                <ToggleLeft className="w-3.5 h-3.5" />
+              )}
+              {profile?.isAvailable ? "Müsait" : "Müsait Değil"}
+            </button>
+
+            <button onClick={() => setShowProfileSetup(true)}
+              className="text-xs text-emerald-600 hover:text-emerald-700 flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors">
+              <NotebookPen className="w-3.5 h-3.5" /> Profil
+            </button>
+          </div>
         </div>
 
         <div className="flex gap-1 p-1 bg-slate-100 rounded-xl mb-5">
@@ -357,6 +522,12 @@ export default function DoktorMesajlar() {
                 <UserCheck className="w-10 h-10 mx-auto mb-3 opacity-20" />
                 <p className="text-sm font-medium text-slate-500">Henüz davet bulunmuyor</p>
                 <p className="text-xs mt-1">Hastalar profilinizi görüp bağlantı daveti gönderebilir.</p>
+                {!profile?.isAvailable && (
+                  <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-left">
+                    <p className="text-xs text-amber-700 font-medium">Müsait değil durumundasınız</p>
+                    <p className="text-xs text-amber-600 mt-0.5">Hastalar tarafından görünmek için müsaitlik durumunuzu açın.</p>
+                  </div>
+                )}
               </div>
             ) : (
               invitations.map(inv => {
@@ -388,7 +559,7 @@ export default function DoktorMesajlar() {
                           )}
                         </div>
                         {inv.patientMessage && (
-                          <p className="text-xs text-slate-600 mt-2 bg-slate-50 rounded-lg px-3 py-2 italic leading-relaxed border border-slate-100">
+                          <p className="text-xs text-slate-600 mt-2 bg-slate-50 rounded-xl px-3 py-2 italic leading-relaxed border border-slate-100">
                             "{inv.patientMessage}"
                           </p>
                         )}
@@ -440,16 +611,14 @@ export default function DoktorMesajlar() {
             ) : (
               accepted.map(inv => {
                 const pName = [inv.patientFirstName, inv.patientLastName].filter(Boolean).join(" ") || inv.patientEmail || "Hasta";
-                const hasUnread = inv.lastMessageSenderId && inv.lastMessageSenderId !== myUserId;
+                const hasUnread = !!inv.lastMessageSenderId && inv.lastMessageSenderId !== myUserId;
                 return (
                   <div key={inv.id} onClick={() => setChatInvId(inv.id)}
                     className="bg-white rounded-2xl border border-emerald-100 shadow-sm p-4 cursor-pointer hover:border-emerald-200 hover:shadow-md transition-all">
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <Avatar name={pName} size="sm" imageUrl={inv.patientImageUrl} />
-                        {hasUnread && (
-                          <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white" />
-                        )}
+                        {hasUnread && <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">

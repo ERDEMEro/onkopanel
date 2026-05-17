@@ -1,5 +1,8 @@
-import { useState, useEffect, useRef } from "react";
-import { Stethoscope, Building2, UserPlus, Send, Clock, CheckCircle2, XCircle, MessageCircle, ArrowLeft, Loader2, Filter, Search, Trash2, Circle } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  Stethoscope, Building2, UserPlus, Send, Clock, CheckCircle2, XCircle,
+  MessageCircle, ArrowLeft, Loader2, Filter, Search, Trash2, ChevronDown, X,
+} from "lucide-react";
 import { PremiumGate } from "@/components/PremiumGate";
 
 const BASE = (import.meta.env.BASE_URL as string).replace(/\/$/, "");
@@ -19,6 +22,7 @@ interface Doctor {
   specialty: string;
   hospital: string | null;
   bio: string | null;
+  isAvailable: boolean;
 }
 
 interface Invitation {
@@ -46,8 +50,8 @@ interface Message {
 }
 
 function Avatar({ name, imageUrl, size = "md" }: { name: string; imageUrl?: string | null; size?: "sm" | "md" | "lg" }) {
-  const cls = size === "sm" ? "w-8 h-8 text-xs" : size === "lg" ? "w-12 h-12 text-base" : "w-10 h-10 text-sm";
-  if (imageUrl) return <img src={imageUrl} alt={name} className={`${cls} rounded-full object-cover ring-2 ring-primary/20 shrink-0`} />;
+  const cls = size === "sm" ? "w-8 h-8 text-xs" : size === "lg" ? "w-14 h-14 text-lg" : "w-10 h-10 text-sm";
+  if (imageUrl) return <img src={imageUrl} alt={name} className={`${cls} rounded-full object-cover ring-2 ring-indigo-100 shrink-0`} />;
   return (
     <div className={`${cls} rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold shrink-0`}>
       {name.charAt(0).toUpperCase()}
@@ -55,19 +59,25 @@ function Avatar({ name, imageUrl, size = "md" }: { name: string; imageUrl?: stri
   );
 }
 
+function AvailableDot({ available }: { available: boolean }) {
+  return (
+    <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${available ? "bg-green-400" : "bg-slate-300"}`} title={available ? "Müsait" : "Müsait Değil"} />
+  );
+}
+
 function StatusBadge({ status }: { status: "pending" | "accepted" | "rejected" }) {
   if (status === "accepted") return (
-    <span className="flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">
-      <CheckCircle2 className="w-3 h-3" /> Kabul edildi
+    <span className="flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 shrink-0">
+      <CheckCircle2 className="w-3 h-3" /> Kabul
     </span>
   );
   if (status === "rejected") return (
-    <span className="flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600">
+    <span className="flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600 shrink-0">
       <XCircle className="w-3 h-3" /> Reddedildi
     </span>
   );
   return (
-    <span className="flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+    <span className="flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 shrink-0">
       <Clock className="w-3 h-3" /> Bekliyor
     </span>
   );
@@ -84,6 +94,28 @@ function formatTime(iso: string | null) {
   return d.toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
 }
 
+function dateLabelForMsg(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today.getTime() - 86_400_000);
+  const msgDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  if (msgDay.getTime() === today.getTime()) return "Bugün";
+  if (msgDay.getTime() === yesterday.getTime()) return "Dün";
+  return d.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
+}
+
+function useAutoResizeTextarea(value: string) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 120) + "px";
+  }, [value]);
+  return ref;
+}
+
 export default function DoktorDavet() {
   const [tab, setTab] = useState<"list" | "conversations">("list");
   const [specialty, setSpecialty] = useState("");
@@ -91,6 +123,7 @@ export default function DoktorDavet() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [inviteDoctor, setInviteDoctor] = useState<Doctor | null>(null);
+  const [profileModal, setProfileModal] = useState<Doctor | null>(null);
   const [inviteMsg, setInviteMsg] = useState("");
   const [sending, setSending] = useState(false);
   const [cancelling, setCancelling] = useState<string | null>(null);
@@ -101,22 +134,27 @@ export default function DoktorDavet() {
   const [msgSending, setMsgSending] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const msgTextareaRef = useAutoResizeTextarea(newMsg);
 
-  async function fetchDoctors(q?: string, spec?: string) {
+  const fetchDoctors = useCallback(async (q?: string, spec?: string) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (spec ?? specialty) params.set("specialty", spec ?? specialty);
-      if (q ?? searchQ) params.set("q", q ?? searchQ);
+      const specVal = spec !== undefined ? spec : specialty;
+      const qVal = q !== undefined ? q : searchQ;
+      if (specVal) params.set("specialty", specVal);
+      if (qVal) params.set("q", qVal);
       const url = `${BASE}/api/doctors${params.toString() ? "?" + params.toString() : ""}`;
       const res = await fetch(url, { credentials: "include" });
       const data = await res.json() as { doctors: Doctor[] };
       setDoctors(data.doctors ?? []);
     } finally { setLoading(false); }
-  }
+  }, [specialty, searchQ]);
 
   async function fetchInvitations() {
     try {
@@ -151,14 +189,27 @@ export default function DoktorDavet() {
   }, [searchQ, specialty]);
 
   useEffect(() => {
-    if (chatInvId) {
-      fetchMessages(chatInvId);
-      pollRef.current = setInterval(() => fetchMessages(chatInvId), 5000);
-      return () => { if (pollRef.current) clearInterval(pollRef.current); };
-    }
+    if (!chatInvId) return;
+    fetchMessages(chatInvId);
+    pollRef.current = setInterval(() => fetchMessages(chatInvId), 5000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [chatInvId]);
 
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  useEffect(() => {
+    if (!showScrollBtn) messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  function handleScroll() {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    setShowScrollBtn(distFromBottom > 120);
+  }
+
+  function scrollToBottom() {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setShowScrollBtn(false);
+  }
 
   async function sendInvite() {
     if (!inviteDoctor) return;
@@ -196,15 +247,28 @@ export default function DoktorDavet() {
         credentials: "include",
         body: JSON.stringify({ content: newMsg.trim() }),
       });
-      if (res.ok) { setNewMsg(""); await fetchMessages(chatInvId); await fetchInvitations(); }
+      if (res.ok) {
+        setNewMsg(""); setShowScrollBtn(false);
+        await fetchMessages(chatInvId); await fetchInvitations();
+      }
     } finally { setMsgSending(false); }
   }
 
-  const invitedDoctorIds = new Set(invitations.map(i => i.doctorId));
   const invitationByDoctor = Object.fromEntries(invitations.map(i => [i.doctorId, i]));
   const chatInv = invitations.find(i => i.id === chatInvId);
   const acceptedInvs = invitations.filter(i => i.status === "accepted");
   const unreadCount = acceptedInvs.filter(i => i.lastMessageSenderId && i.lastMessageSenderId !== myUserId).length;
+
+  // Build date-separated message groups
+  const msgGroups: Array<{ label: string; msgs: Message[] }> = [];
+  for (const msg of messages) {
+    const label = dateLabelForMsg(msg.createdAt);
+    if (!msgGroups.length || msgGroups[msgGroups.length - 1].label !== label) {
+      msgGroups.push({ label, msgs: [msg] });
+    } else {
+      msgGroups[msgGroups.length - 1].msgs.push(msg);
+    }
+  }
 
   // ─── Chat View ─────────────────────────────────────────────────────────────
   if (chatInvId && chatInv) {
@@ -224,45 +288,69 @@ export default function DoktorDavet() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50/50">
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto px-4 py-4 bg-slate-50/50 relative"
+        >
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full gap-2 text-slate-400">
               <MessageCircle className="w-10 h-10 opacity-20" />
               <p className="text-sm">Henüz mesaj yok. İlk mesajı gönderin!</p>
             </div>
           )}
-          {messages.map((msg) => {
-            const isMe = msg.senderId === myUserId;
-            return (
-              <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                  isMe ? "bg-indigo-500 text-white rounded-br-sm" : "bg-white text-slate-800 border border-slate-100 rounded-bl-sm"
-                }`}>
-                  <p>{msg.content}</p>
-                  <p className={`text-[10px] mt-1 ${isMe ? "text-indigo-200" : "text-slate-400"}`}>
-                    {new Date(msg.createdAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}
-                  </p>
-                </div>
+          {msgGroups.map(group => (
+            <div key={group.label}>
+              <div className="flex items-center gap-2 my-4">
+                <div className="flex-1 h-px bg-slate-200" />
+                <span className="text-[11px] text-slate-400 font-medium px-2">{group.label}</span>
+                <div className="flex-1 h-px bg-slate-200" />
               </div>
-            );
-          })}
+              <div className="space-y-3">
+                {group.msgs.map(msg => {
+                  const isMe = msg.senderId === myUserId;
+                  return (
+                    <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                      <div className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                        isMe ? "bg-indigo-500 text-white rounded-br-sm" : "bg-white text-slate-800 border border-slate-100 rounded-bl-sm"
+                      }`}>
+                        <p style={{ whiteSpace: "pre-wrap" }}>{msg.content}</p>
+                        <p className={`text-[10px] mt-1 text-right ${isMe ? "text-indigo-200" : "text-slate-400"}`}>
+                          {new Date(msg.createdAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
           <div ref={messagesEndRef} />
         </div>
 
+        {showScrollBtn && (
+          <button onClick={scrollToBottom}
+            className="absolute bottom-24 right-5 z-10 w-9 h-9 rounded-full bg-indigo-500 text-white shadow-lg flex items-center justify-center hover:bg-indigo-600 transition-colors">
+            <ChevronDown className="w-4 h-4" />
+          </button>
+        )}
+
         <div className="px-4 py-3 border-t bg-white shrink-0">
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
+          <div className="flex items-end gap-2">
+            <textarea
+              ref={msgTextareaRef}
               value={newMsg}
               onChange={e => setNewMsg(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-              placeholder="Mesajınızı yazın…"
-              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition"
+              placeholder="Mesajınızı yazın…  (Shift+Enter: yeni satır)"
+              rows={1}
+              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition resize-none overflow-hidden"
+              style={{ minHeight: "42px", maxHeight: "120px" }}
             />
             <button
               onClick={sendMessage}
               disabled={!newMsg.trim() || msgSending}
-              className="p-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              className="p-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shrink-0"
             >
               {msgSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </button>
@@ -308,23 +396,23 @@ export default function DoktorDavet() {
         {tab === "list" && (
           <div className="space-y-3">
             <div className="flex gap-2">
-              <div className="flex items-center gap-2 bg-white rounded-xl border border-slate-100 px-3 py-2 shadow-sm flex-1">
+              <div className="flex items-center gap-2 bg-white rounded-xl border border-slate-100 px-3 py-2 shadow-sm flex-1 min-w-0">
                 <Search className="w-4 h-4 text-slate-400 shrink-0" />
                 <input
                   type="text"
                   value={searchQ}
                   onChange={e => setSearchQ(e.target.value)}
                   placeholder="İsim veya hastane ara…"
-                  className="flex-1 text-sm text-slate-700 bg-transparent outline-none placeholder:text-slate-400"
+                  className="flex-1 text-sm text-slate-700 bg-transparent outline-none placeholder:text-slate-400 min-w-0"
                 />
                 {searchQ && (
-                  <button onClick={() => setSearchQ("")} className="text-slate-400 hover:text-slate-600 text-xs">✕</button>
+                  <button onClick={() => setSearchQ("")} className="text-slate-400 hover:text-slate-600 shrink-0"><X className="w-3.5 h-3.5" /></button>
                 )}
               </div>
-              <div className="flex items-center gap-2 bg-white rounded-xl border border-slate-100 px-3 py-2 shadow-sm">
-                <Filter className="w-4 h-4 text-slate-400 shrink-0" />
+              <div className="flex items-center gap-1.5 bg-white rounded-xl border border-slate-100 px-3 py-2 shadow-sm shrink-0">
+                <Filter className="w-3.5 h-3.5 text-slate-400" />
                 <select value={specialty} onChange={e => setSpecialty(e.target.value)}
-                  className="text-sm text-slate-700 bg-transparent outline-none max-w-[140px]">
+                  className="text-xs text-slate-700 bg-transparent outline-none max-w-[120px]">
                   <option value="">Tüm uzmanlıklar</option>
                   {CANCER_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
@@ -339,7 +427,7 @@ export default function DoktorDavet() {
               <div className="text-center py-14 text-slate-400">
                 <Stethoscope className="w-10 h-10 mx-auto mb-3 opacity-20" />
                 <p className="text-sm font-medium text-slate-500">Doktor bulunamadı</p>
-                <p className="text-xs mt-1">Arama veya filtre kriterlerinizi değiştirmeyi deneyin.</p>
+                <p className="text-xs mt-1">Arama veya filtre kriterlerinizi değiştirin.</p>
               </div>
             ) : (
               <div className="space-y-2.5">
@@ -347,33 +435,41 @@ export default function DoktorDavet() {
                   const fullName = [doc.firstName, doc.lastName].filter(Boolean).join(" ") || "Doktor";
                   const inv = invitationByDoctor[doc.id];
                   return (
-                    <div key={doc.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 hover:border-indigo-200 transition-all hover:shadow-md">
+                    <div key={doc.id}
+                      className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 hover:border-indigo-200 transition-all hover:shadow-md cursor-pointer"
+                      onClick={() => setProfileModal(doc)}
+                    >
                       <div className="flex items-start gap-3">
                         <Avatar name={fullName} imageUrl={doc.profileImageUrl} />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 flex-wrap">
                             <div>
-                              <p className="text-sm font-semibold text-slate-800">Dr. {fullName}</p>
+                              <div className="flex items-center gap-1.5">
+                                <p className="text-sm font-semibold text-slate-800">Dr. {fullName}</p>
+                                <AvailableDot available={doc.isAvailable} />
+                              </div>
                               <span className="inline-block text-[11px] font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full mt-0.5">{doc.specialty}</span>
                             </div>
-                            {inv ? (
-                              <div className="flex items-center gap-2 shrink-0">
-                                <StatusBadge status={inv.status} />
-                                {inv.status === "accepted" && (
-                                  <button onClick={() => { setChatInvId(inv.id); setTab("conversations"); }}
-                                    className="flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:text-indigo-700 px-2 py-1 rounded-lg hover:bg-indigo-50 transition-colors">
-                                    <MessageCircle className="w-3 h-3" /> Mesajlaş
-                                  </button>
-                                )}
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => { setInviteDoctor(doc); setInviteMsg(""); setError(null); }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-semibold transition-colors shrink-0"
-                              >
-                                <UserPlus className="w-3.5 h-3.5" /> Davet Et
-                              </button>
-                            )}
+                            <div onClick={e => e.stopPropagation()}>
+                              {inv ? (
+                                <div className="flex items-center gap-2">
+                                  <StatusBadge status={inv.status} />
+                                  {inv.status === "accepted" && (
+                                    <button onClick={() => { setChatInvId(inv.id); setTab("conversations"); }}
+                                      className="flex items-center gap-1 text-[11px] font-semibold text-indigo-600 px-2 py-1 rounded-lg hover:bg-indigo-50 transition-colors">
+                                      <MessageCircle className="w-3 h-3" /> Mesajlaş
+                                    </button>
+                                  )}
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => { setInviteDoctor(doc); setInviteMsg(""); setError(null); }}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-semibold transition-colors"
+                                >
+                                  <UserPlus className="w-3.5 h-3.5" /> Davet Et
+                                </button>
+                              )}
+                            </div>
                           </div>
                           {doc.hospital && (
                             <p className="text-xs text-slate-500 mt-1.5 flex items-center gap-1">
@@ -406,30 +502,24 @@ export default function DoktorDavet() {
             ) : (
               invitations.map(inv => {
                 const dName = [inv.doctorFirstName, inv.doctorLastName].filter(Boolean).join(" ") || "Doktor";
-                const hasUnread = inv.status === "accepted" && inv.lastMessageSenderId && inv.lastMessageSenderId !== myUserId;
+                const hasUnread = inv.status === "accepted" && !!inv.lastMessageSenderId && inv.lastMessageSenderId !== myUserId;
                 return (
                   <div key={inv.id}
                     className={`bg-white rounded-2xl border shadow-sm p-4 transition-all ${
-                      inv.status === "accepted"
-                        ? "border-indigo-100 hover:border-indigo-200 hover:shadow-md cursor-pointer"
-                        : "border-slate-100"
+                      inv.status === "accepted" ? "border-indigo-100 hover:border-indigo-200 hover:shadow-md cursor-pointer" : "border-slate-100"
                     }`}
                     onClick={() => inv.status === "accepted" ? setChatInvId(inv.id) : undefined}
                   >
                     <div className="flex items-center gap-3">
                       <div className="relative">
-                        <Avatar name={dName} size="md" imageUrl={inv.doctorImageUrl} />
-                        {hasUnread && (
-                          <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-indigo-500 border-2 border-white" />
-                        )}
+                        <Avatar name={dName} imageUrl={inv.doctorImageUrl} />
+                        {hasUnread && <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-indigo-500 border-2 border-white" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm font-semibold text-slate-800">Dr. {dName}</p>
                           <div className="flex items-center gap-2 shrink-0">
-                            {inv.lastMessageAt && (
-                              <span className="text-[10px] text-slate-400">{formatTime(inv.lastMessageAt)}</span>
-                            )}
+                            {inv.lastMessageAt && <span className="text-[10px] text-slate-400">{formatTime(inv.lastMessageAt)}</span>}
                             <StatusBadge status={inv.status} />
                           </div>
                         </div>
@@ -438,7 +528,7 @@ export default function DoktorDavet() {
                         </p>
                         {inv.lastMessageContent ? (
                           <p className={`text-xs mt-1 truncate ${hasUnread ? "text-slate-700 font-medium" : "text-slate-400"}`}>
-                            {inv.lastMessageSenderId === myUserId ? "Siz: " : ""}{inv.lastMessageContent}
+                            {inv.lastMessageSenderId === myUserId ? "Siz: " : "Dr: "}{inv.lastMessageContent}
                           </p>
                         ) : inv.status === "pending" ? (
                           <p className="text-xs text-amber-500 mt-1">Doktorun yanıtı bekleniyor…</p>
@@ -469,17 +559,101 @@ export default function DoktorDavet() {
         )}
       </div>
 
+      {/* ── Doctor Profile Modal ── */}
+      {profileModal && (() => {
+        const fullName = [profileModal.firstName, profileModal.lastName].filter(Boolean).join(" ") || "Doktor";
+        const inv = invitationByDoctor[profileModal.id];
+        return (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setProfileModal(null)}>
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
+              <div className="bg-gradient-to-br from-indigo-500 to-violet-600 px-6 pt-6 pb-10 text-white relative">
+                <button onClick={() => setProfileModal(null)} className="absolute top-4 right-4 p-1 rounded-lg hover:bg-white/20 transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+                <div className="flex items-end gap-4">
+                  <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-2xl font-bold border-2 border-white/30">
+                    {profileModal.profileImageUrl
+                      ? <img src={profileModal.profileImageUrl} alt={fullName} className="w-full h-full rounded-2xl object-cover" />
+                      : fullName.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold">Dr. {fullName}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs font-medium bg-white/20 px-2 py-0.5 rounded-full">{profileModal.specialty}</span>
+                      <span className={`flex items-center gap-1 text-xs font-medium ${profileModal.isAvailable ? "text-green-200" : "text-white/60"}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${profileModal.isAvailable ? "bg-green-300" : "bg-white/40"}`} />
+                        {profileModal.isAvailable ? "Müsait" : "Müsait Değil"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-6 -mt-4">
+                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 space-y-3">
+                  {profileModal.hospital && (
+                    <div className="flex items-start gap-2.5">
+                      <Building2 className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wide">Hastane / Klinik</p>
+                        <p className="text-sm text-slate-700 font-medium">{profileModal.hospital}</p>
+                      </div>
+                    </div>
+                  )}
+                  {profileModal.bio && (
+                    <div className="flex items-start gap-2.5">
+                      <Stethoscope className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wide mb-1">Hakkında</p>
+                        <p className="text-sm text-slate-600 leading-relaxed">{profileModal.bio}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="px-6 py-4">
+                {inv ? (
+                  <div className="flex items-center justify-between">
+                    <StatusBadge status={inv.status} />
+                    {inv.status === "accepted" && (
+                      <button
+                        onClick={() => { setProfileModal(null); setChatInvId(inv.id); setTab("conversations"); }}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-semibold transition-colors"
+                      >
+                        <MessageCircle className="w-4 h-4" /> Mesajlaşmaya Git
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => { setProfileModal(null); setInviteDoctor(profileModal); setInviteMsg(""); setError(null); }}
+                    className="w-full py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                  >
+                    <UserPlus className="w-4 h-4" /> Davet Gönder
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ── Invite Modal ── */}
       {inviteDoctor && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <div className="flex items-center gap-3 mb-4">
               <Avatar name={[inviteDoctor.firstName, inviteDoctor.lastName].filter(Boolean).join(" ") || "D"} imageUrl={inviteDoctor.profileImageUrl} size="lg" />
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800">
                   Dr. {[inviteDoctor.firstName, inviteDoctor.lastName].filter(Boolean).join(" ")}
                 </p>
-                <span className="text-[11px] font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{inviteDoctor.specialty}</span>
+                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                  <span className="text-[11px] font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{inviteDoctor.specialty}</span>
+                  <AvailableDot available={inviteDoctor.isAvailable} />
+                  <span className="text-[11px] text-slate-400">{inviteDoctor.isAvailable ? "Müsait" : "Müsait Değil"}</span>
+                </div>
                 {inviteDoctor.hospital && (
                   <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1"><Building2 className="w-3 h-3" />{inviteDoctor.hospital}</p>
                 )}
@@ -493,15 +667,16 @@ export default function DoktorDavet() {
               onChange={e => setInviteMsg(e.target.value)}
               placeholder="Kendinizi tanıtmak veya durumunuz hakkında kısa bir not eklemek ister misiniz? (isteğe bağlı)"
               rows={3}
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-3"
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-1"
             />
+            <p className="text-right text-[10px] text-slate-400 mb-3">{inviteMsg.length} / 500</p>
             {error && <p className="text-xs text-red-500 mb-3 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
             <div className="flex gap-2">
               <button onClick={() => setInviteDoctor(null)}
                 className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
                 Vazgeç
               </button>
-              <button onClick={sendInvite} disabled={sending}
+              <button onClick={sendInvite} disabled={sending || inviteMsg.length > 500}
                 className="flex-1 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-60">
                 {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
                 Davet Gönder

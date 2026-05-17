@@ -42,11 +42,12 @@ router.get("/doctors", async (req: Request, res: Response): Promise<void> => {
       specialty: doctorProfilesTable.specialty,
       hospital: doctorProfilesTable.hospital,
       bio: doctorProfilesTable.bio,
+      isAvailable: doctorProfilesTable.isAvailable,
     })
     .from(usersTable)
     .innerJoin(doctorProfilesTable, eq(usersTable.id, doctorProfilesTable.userId))
     .where(and(...conditions))
-    .orderBy(asc(usersTable.lastName));
+    .orderBy(desc(doctorProfilesTable.isAvailable), asc(usersTable.lastName));
 
   res.json({ doctors: rows });
 });
@@ -67,17 +68,28 @@ router.post("/doctors/profile", async (req: Request, res: Response): Promise<voi
   if (!user) return;
   if (!user.isDoctor) { res.status(403).json({ error: "Yalnızca doktorlar erişebilir." }); return; }
 
-  const { specialty, hospital, bio } = req.body as { specialty?: string; hospital?: string; bio?: string };
+  const { specialty, hospital, bio, isAvailable } = req.body as { specialty?: string; hospital?: string; bio?: string; isAvailable?: boolean };
   if (!specialty) { res.status(400).json({ error: "Uzmanlık alanı gereklidir." }); return; }
 
   const existing = await db.select().from(doctorProfilesTable).where(eq(doctorProfilesTable.userId, user.id)).limit(1);
+  const patch = { specialty, hospital, bio, ...(isAvailable !== undefined ? { isAvailable } : {}) };
   if (existing.length > 0) {
-    await db.update(doctorProfilesTable).set({ specialty, hospital, bio }).where(eq(doctorProfilesTable.userId, user.id));
+    await db.update(doctorProfilesTable).set(patch).where(eq(doctorProfilesTable.userId, user.id));
   } else {
-    await db.insert(doctorProfilesTable).values({ userId: user.id, specialty, hospital, bio });
+    await db.insert(doctorProfilesTable).values({ userId: user.id, ...patch });
   }
   const [profile] = await db.select().from(doctorProfilesTable).where(eq(doctorProfilesTable.userId, user.id)).limit(1);
   res.json({ profile });
+});
+
+router.patch("/doctors/profile/availability", async (req: Request, res: Response): Promise<void> => {
+  const user = await requireAuth(req, res);
+  if (!user) return;
+  if (!user.isDoctor) { res.status(403).json({ error: "Yalnızca doktorlar erişebilir." }); return; }
+  const { isAvailable } = req.body as { isAvailable?: boolean };
+  if (typeof isAvailable !== "boolean") { res.status(400).json({ error: "isAvailable boolean olmalı." }); return; }
+  await db.update(doctorProfilesTable).set({ isAvailable }).where(eq(doctorProfilesTable.userId, user.id));
+  res.json({ ok: true, isAvailable });
 });
 
 // ─── Invitations ─────────────────────────────────────────────────────────────

@@ -10,7 +10,7 @@ COPY lib/api-zod/package.json                   ./lib/api-zod/
 COPY lib/api-client-react/package.json          ./lib/api-client-react/
 COPY artifacts/api-server/package.json          ./artifacts/api-server/
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY lib/db/                         ./lib/db/
 COPY lib/api-spec/                   ./lib/api-spec/

@@ -1,0 +1,87 @@
+ubuntu@ip-172-31-43-14:~/onkopanel$ docker compose up -d
+[+] up 13/13
+ ✔ Image postgres:16-alpine Pulled                                                                                  8.9s
+[+] Building 11.2s (27/50)
+ => [internal] load local bake definitions                                                                         0.0s
+ => => reading from stdin 947B                                                                                     0.0s
+ => [api internal] load build definition from Dockerfile.api                                                       0.0s
+ => => transferring dockerfile: 1.33kB                                                                             0.0s
+ => [web internal] load build definition from Dockerfile.web                                                       0.0s
+ => => transferring dockerfile: 1.45kB                                                                             0.0s
+ => [api internal] load metadata for docker.io/library/node:24-alpine                                              0.4s
+ => [web internal] load metadata for docker.io/library/nginx:1.27-alpine                                           0.4s
+ => [web internal] load .dockerignore                                                                              0.0s
+ => => transferring context: 229B                                                                                  0.0s
+ => [api builder  1/20] FROM docker.io/library/node:24-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc348  0.1s
+ => => resolve docker.io/library/node:24-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc34884a665f40a06db  0.1s
+ => [web internal] load build context                                                                              0.1s
+ => => transferring context: 12.35kB                                                                               0.0s
+ => CACHED [web production 1/3] FROM docker.io/library/nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d074320  0.1s
+ => => resolve docker.io/library/nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76f  0.1s
+ => [api internal] load build context                                                                              0.0s
+ => => transferring context: 5.75kB                                                                                0.0s
+ => CACHED [api production 2/3] WORKDIR /app                                                                       0.0s
+ => CACHED [api builder  2/20] RUN corepack enable && corepack prepare pnpm@latest --activate                      0.0s
+ => CACHED [api builder  3/20] WORKDIR /workspace                                                                  0.0s
+ => CACHED [web builder  4/20] COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./                             0.0s
+ => CACHED [web builder  5/20] COPY lib/db/package.json                        ./lib/db/                           0.0s
+ => CACHED [web builder  6/20] COPY lib/api-spec/package.json                  ./lib/api-spec/                     0.0s
+ => CACHED [web builder  7/20] COPY lib/api-zod/package.json                   ./lib/api-zod/                      0.0s
+ => CACHED [web builder  8/20] COPY lib/api-client-react/package.json          ./lib/api-client-react/             0.0s
+ => CACHED [web builder  9/20] COPY artifacts/onkoloji-dashboard/package.json  ./artifacts/onkoloji-dashboard/     0.0s
+ => CANCELED [web builder 10/20] RUN pnpm install --frozen-lockfile                                               10.5s
+ => CACHED [api builder  4/20] COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./                             0.0s
+ => CACHED [api builder  5/20] COPY lib/db/package.json                        ./lib/db/                           0.0s
+ => CACHED [api builder  6/20] COPY lib/api-spec/package.json                  ./lib/api-spec/                     0.0s
+ => CACHED [api builder  7/20] COPY lib/api-zod/package.json                   ./lib/api-zod/                      0.0s
+ => CACHED [api builder  8/20] COPY lib/api-client-react/package.json          ./lib/api-client-react/             0.0s
+ => CACHED [api builder  9/20] COPY artifacts/api-server/package.json          ./artifacts/api-server/             0.0s
+ => ERROR [api builder 10/20] RUN pnpm install --frozen-lockfile                                                  10.1s
+------
+ > [api builder 10/20] RUN pnpm install --frozen-lockfile:
+1.856 Scope: all 6 workspace projects
+2.370 Lockfile is up to date, resolution step is skipped
+2.559 Progress: resolved 1, reused 0, downloaded 0, added 0
+2.647 Packages: +277
+2.647 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+3.562 Progress: resolved 277, reused 0, downloaded 15, added 0
+4.564 Progress: resolved 277, reused 0, downloaded 55, added 13
+5.599 Progress: resolved 277, reused 0, downloaded 119, added 33
+6.591 Progress: resolved 277, reused 0, downloaded 175, added 53
+7.590 Progress: resolved 277, reused 0, downloaded 235, added 72
+8.591 Progress: resolved 277, reused 0, downloaded 277, added 175
+8.860 Progress: resolved 277, reused 0, downloaded 277, added 277, done
+9.463
+9.463 dependencies:
+9.463 + @replit/connectors-sdk 0.4.1
+9.463 + stripe 20.0.0
+9.463 + stripe-replit-sync 1.0.0
+9.463
+9.463 devDependencies:
+9.463 + prettier 3.8.3
+9.463 + typescript 5.9.3
+9.463
+9.520 . preinstall$ sh -c 'rm -f package-lock.json yarn.lock; case "$npm_config_user_agent" in pnpm/*) ;; *) echo "Use pnpm instead" >&2; exit 1 ;; esac'
+9.593 . preinstall: Use pnpm instead
+9.597 . preinstall: Failed
+[+] up 13/15CYCLE] Command failed with exit code 1.
+ ✔ Image postgres:16-alpine Pulled                                                                                  8.9s
+ ⠙ Image onkopanel-api      Building                                                                               11.3s
+ ⠙ Image onkopanel-web      Building                                                                               11.3s
+Dockerfile.api:13
+
+--------------------
+
+  11 |     COPY artifacts/api-server/package.json          ./artifacts/api-server/
+
+  12 |
+
+  13 | >>> RUN pnpm install --frozen-lockfile
+
+  14 |
+
+  15 |     COPY lib/db/                         ./lib/db/
+
+--------------------
+
+target api: failed to solve: process "/bin/sh -c pnpm install --frozen-lockfile" did not complete successfully: exit code: 1

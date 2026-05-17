@@ -131,10 +131,11 @@ function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
           onClick={() => navigate("/")}
           className="flex items-center gap-2 mr-3 pr-4 border-r shrink-0 h-full hover:opacity-80 transition-opacity"
         >
-          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shrink-0">
-            <Activity className="w-4 h-4 text-primary-foreground" />
-          </div>
-          <span className="font-bold text-[13px] tracking-tight text-foreground hidden sm:block">OnkoPanel</span>
+          <img
+            src={`${import.meta.env.BASE_URL}onkopanel-logo.png`}
+            alt="OnkoPanel"
+            className="h-9 w-auto object-contain"
+          />
         </button>
 
         {/* Main tabs — scrollable */}

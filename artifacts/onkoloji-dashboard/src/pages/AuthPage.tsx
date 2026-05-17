@@ -187,10 +187,11 @@ export default function AuthPage() {
       <nav className={`sticky top-0 z-50 transition-all duration-200 ${scrolled ? "bg-background/95 backdrop-blur border-b shadow-sm" : "bg-transparent"}`}>
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center gap-6">
           <div className="flex items-center gap-2.5 mr-auto">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm">
-              <Activity className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-[15px] tracking-tight">OnkoPanel</span>
+            <img
+              src={`${import.meta.env.BASE_URL}onkopanel-logo.png`}
+              alt="OnkoPanel"
+              className="h-10 w-auto object-contain"
+            />
           </div>
           <a href="#ozellikler" className="text-sm text-muted-foreground hover:text-foreground hidden md:block transition-colors">Özellikler</a>
           <a href="#nasil-calisir" className="text-sm text-muted-foreground hover:text-foreground hidden md:block transition-colors">Nasıl Çalışır?</a>
@@ -420,10 +421,11 @@ export default function AuthPage() {
       <footer className="border-t py-8 px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
-              <Activity className="w-3.5 h-3.5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-sm">OnkoPanel</span>
+            <img
+              src={`${import.meta.env.BASE_URL}onkopanel-logo.png`}
+              alt="OnkoPanel"
+              className="h-6 w-auto object-contain"
+            />
           </div>
           <p className="text-xs text-muted-foreground text-center">
             Bu veriler klinik kayıtlardan anahtar kelime eşleştirme ile elde edilmiştir. Yalnızca bilgi amaçlıdır.

@@ -157,9 +157,9 @@ export default function DoktorMesajlar() {
 
   async function fetchMe() {
     try {
-      const res = await fetch(`${BASE}/api/auth/me`, { credentials: "include" });
+      const res = await fetch(`${BASE}/api/auth/user`, { credentials: "include" });
       if (res.ok) {
-        const d = await res.json() as { user?: { id: string } };
+        const d = await res.json() as { user?: { id: string } | null };
         setMyUserId(d.user?.id ?? null);
       }
     } catch { /* ignore */ }

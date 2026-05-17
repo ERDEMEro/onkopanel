@@ -8,6 +8,7 @@ import {
   type PaginationState,
 } from "@tanstack/react-table";
 import { useGetPatients, getGetPatientsQueryKey } from "@workspace/api-client-react";
+import type { PatientList } from "@workspace/api-client-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -105,7 +106,7 @@ export function PatientTable() {
     query: {
       enabled: true,
       queryKey: getGetPatientsQueryKey(queryParams),
-      keepPreviousData: true
+      placeholderData: (prev: PatientList | undefined) => prev
     }
   });
 

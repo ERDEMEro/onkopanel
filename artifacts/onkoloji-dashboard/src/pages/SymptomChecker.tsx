@@ -70,6 +70,7 @@ interface Prediction {
   otherTypicalSymptoms: string[];
   recommendedTests: string[];
   urgency: string;
+  naturalRemedies?: { name: string; benefit: string; warning: string }[];
 }
 
 interface CheckResult {

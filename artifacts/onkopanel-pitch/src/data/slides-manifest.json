@@ -40,16 +40,48 @@
     "speakerNotes": ""
   },
   {
-    "id": "f6a7b8c9-d0e1-2345-f012-456789012345",
+    "id": "c1d2e3f4-a5b6-7890-abcd-ef0123456789",
     "position": 6,
+    "filepath": "src/pages/slides/AIFeaturesSlide.tsx",
+    "title": "Yapay Zeka Özellikleri",
+    "description": "YZ Asistan, Beslenme AI, Gelişmiş Analitik ve Psikolojik Destek modülleri",
+    "speakerNotes": ""
+  },
+  {
+    "id": "d2e3f4a5-b6c7-8901-bcde-f01234567890",
+    "position": 7,
+    "filepath": "src/pages/slides/PricingCompareSlide.tsx",
+    "title": "Ücretsiz vs Premium",
+    "description": "Freemium modeli: temel özellikler ücretsiz, 6 premium AI modülü abonelikle",
+    "speakerNotes": ""
+  },
+  {
+    "id": "e3f4a5b6-c7d8-9012-cdef-012345678901",
+    "position": 8,
+    "filepath": "src/pages/slides/PricingSlide.tsx",
+    "title": "Fiyatlandırma",
+    "description": "Aylık ve yıllık abonelik seçenekleri, Stripe entegrasyonu ve freemium gelir modeli",
+    "speakerNotes": ""
+  },
+  {
+    "id": "f6a7b8c9-d0e1-2345-f012-456789012345",
+    "position": 9,
     "filepath": "src/pages/slides/TechDataSlide.tsx",
     "title": "Teknoloji & Veri",
     "description": "979 hasta kaydı, 56+ klinik parametre, React + Express + Groq AI altyapısı",
     "speakerNotes": ""
   },
   {
+    "id": "f4a5b6c7-d8e9-0123-def0-123456789012",
+    "position": 10,
+    "filepath": "src/pages/slides/RoadmapSlide.tsx",
+    "title": "Yol Haritası",
+    "description": "Hackathon prototipi → Klinik pilot → Mobil uygulama → SağlıkNet entegrasyonu",
+    "speakerNotes": ""
+  },
+  {
     "id": "a7b8c9d0-e1f2-3456-0123-567890123456",
-    "position": 7,
+    "position": 11,
     "filepath": "src/pages/slides/ImpactSlide.tsx",
     "title": "Etki",
     "description": "Hızlı karar süreçleri, azaltılmış hata riski, bütünleşik hasta takibi ve veri odaklı tedavi",
@@ -57,7 +89,7 @@
   },
   {
     "id": "b8c9d0e1-f2a3-4567-1234-678901234567",
-    "position": 8,
+    "position": 12,
     "filepath": "src/pages/slides/ClosingSlide.tsx",
     "title": "Kapanış",
     "description": "Onkolojide akıllı karar, daha iyi sonuç — DataMedX Hackathon 2026",

@@ -147,12 +147,12 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 sudo apt-get install -y certbot
 
 # Sertifika al (domain önce A kaydıyla bu IP'ye bakıyor olmalı)
-sudo certbot certonly --standalone -d onkopanel.com -d www.onkopanel.com
+sudo certbot certonly --standalone -d onko-panel.com -d www.onko-panel.com
 
 # Sertifika dosyalarını deploy/ssl/ klasörüne kopyala
 mkdir -p ~/onkopanel/deploy/ssl
-sudo cp /etc/letsencrypt/live/onkopanel.com/fullchain.pem ~/onkopanel/deploy/ssl/
-sudo cp /etc/letsencrypt/live/onkopanel.com/privkey.pem   ~/onkopanel/deploy/ssl/
+sudo cp /etc/letsencrypt/live/onko-panel.com/fullchain.pem ~/onkopanel/deploy/ssl/
+sudo cp /etc/letsencrypt/live/onko-panel.com/privkey.pem   ~/onkopanel/deploy/ssl/
 sudo chown ubuntu:ubuntu ~/onkopanel/deploy/ssl/*.pem
 ```
 
@@ -161,7 +161,7 @@ Ardından `artifacts/onkoloji-dashboard/nginx.conf` dosyasına HTTPS bloğunu ek
 ```nginx
 server {
     listen 443 ssl http2;
-    server_name onkopanel.com www.onkopanel.com;
+    server_name onko-panel.com www.onko-panel.com;
 
     ssl_certificate     /etc/nginx/ssl/fullchain.pem;
     ssl_certificate_key /etc/nginx/ssl/privkey.pem;
@@ -173,7 +173,7 @@ server {
 
 server {
     listen 80;
-    server_name onkopanel.com www.onkopanel.com;
+    server_name onko-panel.com www.onko-panel.com;
     return 301 https://$host$request_uri;
 }
 ```
@@ -210,12 +210,12 @@ docker compose logs -f web
 ```bash
 # Hosted zone oluştur (zaten yoksa)
 aws route53 create-hosted-zone \
-  --name onkopanel.com \
+  --name onko-panel.com \
   --caller-reference $(date +%s) \
   --region eu-central-1
 
 # A kaydı ekle
-# AWS Console → Route 53 → Hosted zones → onkopanel.com
+# AWS Console → Route 53 → Hosted zones → onko-panel.com
 # Create record:
 #   Record name: @ (veya boş)
 #   Record type: A
@@ -249,7 +249,7 @@ DNS yayılması 5-30 dakika sürer.
 # Crontab'a ekle (her gün gece 3'te kontrol)
 sudo crontab -e
 # Şu satırı ekle:
-0 3 * * * certbot renew --quiet && cp /etc/letsencrypt/live/onkopanel.com/*.pem ~/onkopanel/deploy/ssl/ && docker compose -f ~/onkopanel/docker-compose.yml restart web
+0 3 * * * certbot renew --quiet && cp /etc/letsencrypt/live/onko-panel.com/*.pem ~/onkopanel/deploy/ssl/ && docker compose -f ~/onkopanel/docker-compose.yml restart web
 ```
 
 ---

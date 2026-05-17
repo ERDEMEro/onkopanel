@@ -1,0 +1,31 @@
+kind = "slides"
+previewPath = "/onkopanel-pitch/"
+title = "OnkoPanel — DataMedX Hackathon Sunumu"
+version = "1.0.0"
+id = "artifacts/onkopanel-pitch"
+router = "path"
+
+[[integratedSkills]]
+name = "slides"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/onkopanel-pitch/" ]
+localPort = 19350
+
+[services.development]
+run = "pnpm --filter @workspace/onkopanel-pitch run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/onkopanel-pitch", "run", "build" ]
+publicDir = "artifacts/onkopanel-pitch/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19350"
+BASE_PATH = "/onkopanel-pitch/"

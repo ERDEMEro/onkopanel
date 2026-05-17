@@ -2,7 +2,7 @@
 set -euo pipefail
 
 DOMAIN="onko-panel.com"
-REPO_URL=""
+REPO_URL="https://github.com/ERDEMEro/onkopanel.git"
 APP_DIR="$HOME/onkopanel"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
@@ -22,9 +22,6 @@ banner() {
 collect_secrets() {
   echo -e "${YELLOW}Ortam değişkenleri ayarlanıyor...${NC}"
   echo ""
-
-  read -rp "  GitHub repo URL'si (https://github.com/...): " REPO_URL
-  [[ -z "$REPO_URL" ]] && error "Repo URL gerekli."
 
   read -rsp "  PostgreSQL şifresi: " POSTGRES_PASSWORD; echo
   [[ -z "$POSTGRES_PASSWORD" ]] && error "PostgreSQL şifresi gerekli."

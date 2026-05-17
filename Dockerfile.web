@@ -8,6 +8,7 @@ COPY lib/db/package.json                        ./lib/db/
 COPY lib/api-spec/package.json                  ./lib/api-spec/
 COPY lib/api-zod/package.json                   ./lib/api-zod/
 COPY lib/api-client-react/package.json          ./lib/api-client-react/
+COPY lib/replit-auth-web/package.json           ./lib/replit-auth-web/
 COPY artifacts/onkoloji-dashboard/package.json  ./artifacts/onkoloji-dashboard/
 
 RUN pnpm install --frozen-lockfile --ignore-scripts
@@ -16,12 +17,14 @@ COPY lib/db/                        ./lib/db/
 COPY lib/api-spec/                  ./lib/api-spec/
 COPY lib/api-zod/                   ./lib/api-zod/
 COPY lib/api-client-react/          ./lib/api-client-react/
+COPY lib/replit-auth-web/           ./lib/replit-auth-web/
 COPY artifacts/onkoloji-dashboard/  ./artifacts/onkoloji-dashboard/
 
 RUN cd lib/db            && npx tsc --build
 RUN cd lib/api-spec      && npx tsc --build 2>/dev/null || true
 RUN cd lib/api-zod       && npx tsc --build 2>/dev/null || true
 RUN cd lib/api-client-react && npx tsc --build 2>/dev/null || true
+RUN cd lib/replit-auth-web  && npx tsc --build 2>/dev/null || true
 
 ARG BASE_PATH=/
 ENV PORT=3000 BASE_PATH=${BASE_PATH} NODE_ENV=production

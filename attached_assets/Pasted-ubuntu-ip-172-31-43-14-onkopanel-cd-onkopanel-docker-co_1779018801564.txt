@@ -1,0 +1,40 @@
+ubuntu@ip-172-31-43-14:~/onkopanel$ cd ~/onkopanel && docker compose build web 2>&1 | tail -40
+#27 1.631 ✗ Build failed in 73ms
+#27 1.631 error during build:
+#27 1.631 [vite:build-html] parsing /workspace/lib/replit-auth-web/tsconfig.json failed: Error: ENOENT: no such file or directory, open '/workspace/lib/replit-auth-web/tsconfig.json'
+#27 1.631 file: /workspace/artifacts/onkoloji-dashboard/index.html
+#27 1.631     at file:///workspace/node_modules/.pnpm/vite@7.3.3_@types+node@25.6.2_jiti@2.7.0_lightningcss@1.32.0_tsx@4.21.0_yaml@2.8.4/node_modules/vite/dist/node/chunks/config.js:5719:9
+#27 1.679 /workspace/artifacts/onkoloji-dashboard:
+#27 1.679 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @workspace/onkoloji-dashboard@0.0.0 build: `vite build --config vite.config.ts`
+#27 1.679 Exit status 1
+#27 ERROR: process "/bin/sh -c pnpm --filter @workspace/onkoloji-dashboard run build" did not complete successfully: exit code: 1
+------
+ > [builder 20/20] RUN pnpm --filter @workspace/onkoloji-dashboard run build:
+1.515 vite v7.3.3 building client environment for production...
+1.627 ✓ 0 modules transformed.
+1.631 ✗ Build failed in 73ms
+1.631 error during build:
+1.631 [vite:build-html] parsing /workspace/lib/replit-auth-web/tsconfig.json failed: Error: ENOENT: no such file or directory, open '/workspace/lib/replit-auth-web/tsconfig.json'
+1.631 file: /workspace/artifacts/onkoloji-dashboard/index.html
+1.631     at file:///workspace/node_modules/.pnpm/vite@7.3.3_@types+node@25.6.2_jiti@2.7.0_lightningcss@1.32.0_tsx@4.21.0_yaml@2.8.4/node_modules/vite/dist/node/chunks/config.js:5719:9
+1.679 /workspace/artifacts/onkoloji-dashboard:
+1.679 [ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @workspace/onkoloji-dashboard@0.0.0 build: `vite build --config vite.config.ts`
+1.679 Exit status 1
+------
+Dockerfile.web:29
+
+--------------------
+
+  27 |     ENV PORT=3000 BASE_PATH=${BASE_PATH} NODE_ENV=production
+
+  28 |
+
+  29 | >>> RUN pnpm --filter @workspace/onkoloji-dashboard run build
+
+  30 |
+
+  31 |     FROM nginx:1.27-alpine AS production
+
+--------------------
+
+failed to solve: process "/bin/sh -c pnpm --filter @workspace/onkoloji-dashboard run build" did not complete successfully: exit code: 1

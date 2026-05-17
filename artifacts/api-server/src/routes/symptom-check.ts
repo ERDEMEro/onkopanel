@@ -32,12 +32,13 @@ Verilen şikayetlere göre SADECE JSON formatında yanıt döndür, başka hiçb
 
 Kurallar:
 - Maksimum 3 kanser türü tahmin et, en az 1
-- Her kanser türü için 3-5 doğal/bitkisel destekleyici yaklaşım öner; bunlar tıbbi tedavinin YANINDA kullanılabilir, yerini alamaz
+- Her kanser türü için SADECE 2 doğal/bitkisel destekleyici yaklaşım öner (daha fazla değil)
 - naturalRemedies yalnızca bilimsel literatürde veya geleneksel tıpta kabul görmüş bitkisel/diyet/yaşam tarzı yaklaşımları içersin
+- Her alan için kısa ve öz yaz, gereksiz uzatma
 - Belirtilerle en iyi eşleşen türleri önce listele
 - Türkçe yanıt ver
 - Bu bir kesin tanı değil, yönlendirme aracıdır; bunu yansıt
-- Sadece geçerli JSON döndür`;
+- Sadece geçerli JSON döndür, başka hiçbir şey ekleme`;
 
 router.post("/", async (req: Request, res: Response): Promise<void> => {
   const { symptoms, extraNote } = req.body as { symptoms?: string | string[]; extraNote?: string };
@@ -58,7 +59,7 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-5.1",
-      max_completion_tokens: 2048,
+      max_completion_tokens: 4096,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: userContent },
@@ -73,7 +74,30 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const parsed = JSON.parse(jsonMatch[0]);
+    let parsed: any;
+    try {
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch {
+      // JSON kesilmiş olabilir — predictions dizisini kurtarmaya çalış
+      const partialMatch = jsonMatch[0].match(/"predictions"\s*:\s*(\[[\s\S]*)/);
+      if (!partialMatch) {
+        res.status(500).json({ error: "Yanıt ayrıştırılamadı. Lütfen tekrar deneyin." });
+        return;
+      }
+      // Eksik kapanışları tamamla ve yeniden dene
+      let fixed = `{"predictions":${partialMatch[1]}`;
+      const openBraces = (fixed.match(/\{/g) ?? []).length - (fixed.match(/\}/g) ?? []).length;
+      const openBrackets = (fixed.match(/\[/g) ?? []).length - (fixed.match(/\]/g) ?? []).length;
+      fixed += "]".repeat(Math.max(0, openBrackets)) + "}".repeat(Math.max(0, openBraces));
+      fixed += `,"generalAdvice":"Lütfen bir onkoloji uzmanına başvurun.","urgencyLevel":"bir hafta içinde"}}`;
+      try {
+        parsed = JSON.parse(fixed);
+      } catch {
+        res.status(500).json({ error: "Yanıt ayrıştırılamadı. Lütfen tekrar deneyin." });
+        return;
+      }
+    }
+
     res.json(parsed);
   } catch (err: any) {
     req.log?.error?.({ err }, "symptom-check error");

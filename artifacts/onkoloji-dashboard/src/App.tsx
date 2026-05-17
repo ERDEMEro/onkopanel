@@ -28,7 +28,7 @@ import HastaAnaSayfa from "@/pages/HastaAnaSayfa";
 import SaglikPanelim from "@/pages/SaglikPanelim";
 import Premium from "@/pages/Premium";
 import AuthPage from "@/pages/AuthPage";
-import { PremiumProvider } from "@/components/PremiumGate";
+import { PremiumProvider, usePremium } from "@/components/PremiumGate";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider, useLang } from "@/context/LanguageContext";
 import { NarratorProvider } from "@/context/NarratorContext";
@@ -85,26 +85,35 @@ function TabNav({ onLoginClick }: { onLoginClick: () => void }) {
   }
 
   const isDoctor = !!user?.isDoctor;
+  const { isPremium } = usePremium();
 
-  const mainTabs = isDoctor
-    ? [
-        { path: "/",            label: t.nav.dashboard,       icon: <BarChart2 className="w-3.5 h-3.5" /> },
-        { path: "/profil",      label: t.nav.patientProfiler, icon: <Users className="w-3.5 h-3.5" /> },
-        { path: "/kutuphane",   label: t.nav.library,         icon: <BookOpen className="w-3.5 h-3.5" /> },
-        { path: "/oncelik",     label: "Öncelik Paneli",      icon: <AlertTriangle className="w-3.5 h-3.5" /> },
-        { path: "/asistan",     label: t.nav.aiAssistant,     icon: <Sparkles className="w-3.5 h-3.5" /> },
-        { path: "/vaka",        label: "Vaka Doldur",         icon: <ClipboardList className="w-3.5 h-3.5" /> },
-      ]
-    : [
-        { path: "/",            label: "Sağlık Panelim",      icon: <User className="w-3.5 h-3.5" /> },
-        { path: "/belirti",     label: t.nav.symptomChecker,  icon: <Stethoscope className="w-3.5 h-3.5" /> },
-        { path: "/aile",        label: "Aile Rehberi",        icon: <Users className="w-3.5 h-3.5" /> },
-        { path: "/haberler",    label: "Haberler",            icon: <Newspaper className="w-3.5 h-3.5" /> },
-        { path: "/egitim",      label: t.nav.educationCenter, icon: <GraduationCap className="w-3.5 h-3.5" /> },
-        { path: "/asistan",     label: t.nav.aiAssistant,     icon: <Sparkles className="w-3.5 h-3.5" /> },
-        { path: "/analitik",    label: "Analitik ★",          icon: <TrendingUp className="w-3.5 h-3.5 text-amber-500" /> },
-        { path: "/ilac-etki",   label: "İlaç Etkileşim ★",   icon: <Pill className="w-3.5 h-3.5 text-amber-500" /> },
-      ];
+  const doctorTabs = [
+    { path: "/",            label: t.nav.dashboard,       icon: <BarChart2 className="w-3.5 h-3.5" /> },
+    { path: "/profil",      label: t.nav.patientProfiler, icon: <Users className="w-3.5 h-3.5" /> },
+    { path: "/kutuphane",   label: t.nav.library,         icon: <BookOpen className="w-3.5 h-3.5" /> },
+    { path: "/oncelik",     label: "Öncelik Paneli",      icon: <AlertTriangle className="w-3.5 h-3.5" /> },
+    { path: "/asistan",     label: t.nav.aiAssistant,     icon: <Sparkles className="w-3.5 h-3.5" /> },
+    { path: "/vaka",        label: "Vaka Doldur",         icon: <ClipboardList className="w-3.5 h-3.5" /> },
+  ];
+
+  const premiumPatientTabs = [
+    { path: "/",            label: "Sağlık Panelim",      icon: <User className="w-3.5 h-3.5" /> },
+    { path: "/belirti",     label: t.nav.symptomChecker,  icon: <Stethoscope className="w-3.5 h-3.5" /> },
+    { path: "/aile",        label: "Aile Rehberi",        icon: <Users className="w-3.5 h-3.5" /> },
+    { path: "/haberler",    label: "Haberler",            icon: <Newspaper className="w-3.5 h-3.5" /> },
+    { path: "/egitim",      label: t.nav.educationCenter, icon: <GraduationCap className="w-3.5 h-3.5" /> },
+    { path: "/asistan",     label: t.nav.aiAssistant,     icon: <Sparkles className="w-3.5 h-3.5" /> },
+    { path: "/analitik",    label: "Analitik",            icon: <TrendingUp className="w-3.5 h-3.5" /> },
+    { path: "/ilac-etki",   label: "İlaç Etkileşim",     icon: <Pill className="w-3.5 h-3.5" /> },
+  ];
+
+  const freeTabs = [
+    { path: "/belirti",     label: t.nav.symptomChecker,  icon: <Stethoscope className="w-3.5 h-3.5" /> },
+    { path: "/haberler",    label: "Haberler",            icon: <Newspaper className="w-3.5 h-3.5" /> },
+    { path: "/egitim",      label: t.nav.educationCenter, icon: <GraduationCap className="w-3.5 h-3.5" /> },
+  ];
+
+  const mainTabs = isDoctor ? doctorTabs : (isPremium ? premiumPatientTabs : freeTabs);
 
   const tabCls = (active: boolean) =>
     `flex items-center gap-1.5 px-3.5 h-full text-[13px] font-medium border-b-2 transition-all ${
@@ -265,6 +274,18 @@ function Router() {
   }
 
   const isDoctor = !!user?.isDoctor;
+  const { isPremium } = usePremium();
+
+  // Ücretsiz hastalara açık route'lar
+  const FREE_PATHS = new Set(["/belirti", "/haberler", "/egitim", "/premium", "/ayarlar"]);
+
+  // Ücretsiz hasta — kısıtlı route'a girmeye çalışırsa premium'a yönlendir
+  function PatientRoute({ path, component: Comp }: { path: string; component: React.ComponentType }) {
+    if (!isDoctor && !isPremium && !FREE_PATHS.has(path)) {
+      return <Route path={path}><Redirect to="/premium" /></Route>;
+    }
+    return <Route path={path} component={Comp} />;
+  }
 
   return (
     <>
@@ -274,28 +295,30 @@ function Router() {
         <Switch>
           {isDoctor ? (
             <Route path="/" component={Dashboard} />
-          ) : (
+          ) : isPremium ? (
             <Route path="/" component={SaglikPanelim} />
+          ) : (
+            <Route path="/"><Redirect to="/belirti" /></Route>
           )}
-          <Route path="/profil"    component={isDoctor ? PatientProfiler : NotFound} />
+          <Route path="/profil"       component={isDoctor ? PatientProfiler : NotFound} />
           <Route path="/belirti"      component={SymptomChecker} />
-          <Route path="/gunluk"       component={isDoctor ? NotFound : BeliritGunlugu} />
-          <Route path="/egzersiz"     component={isDoctor ? NotFound : EgzersizTakip} />
-          <Route path="/hatirlatici"  component={isDoctor ? NotFound : HatirlaticiTakip} />
-          <Route path="/beslenme"     component={isDoctor ? NotFound : BeslenmeDanismani} />
-          <Route path="/takvim"       component={isDoctor ? NotFound : BesinTakvimi} />
-          <Route path="/yasam"        component={isDoctor ? NotFound : YasamKalitesi} />
-          <Route path="/destek"       component={isDoctor ? NotFound : PsikolojikDestek} />
-          <Route path="/aile"         component={isDoctor ? NotFound : BakiciRehberi} />
+          <PatientRoute path="/gunluk"      component={isDoctor ? NotFound : BeliritGunlugu} />
+          <PatientRoute path="/egzersiz"    component={isDoctor ? NotFound : EgzersizTakip} />
+          <PatientRoute path="/hatirlatici" component={isDoctor ? NotFound : HatirlaticiTakip} />
+          <PatientRoute path="/beslenme"    component={isDoctor ? NotFound : BeslenmeDanismani} />
+          <PatientRoute path="/takvim"      component={isDoctor ? NotFound : BesinTakvimi} />
+          <PatientRoute path="/yasam"       component={isDoctor ? NotFound : YasamKalitesi} />
+          <PatientRoute path="/destek"      component={isDoctor ? NotFound : PsikolojikDestek} />
+          <PatientRoute path="/aile"        component={isDoctor ? NotFound : BakiciRehberi} />
           <Route path="/haberler"     component={isDoctor ? NotFound : OnkoHaberler} />
           <Route path="/kutuphane"    component={isDoctor ? CancerLibrary : NotFound} />
           <Route path="/oncelik"      component={isDoctor ? OncelikPaneli : NotFound} />
           <Route path="/egitim"       component={EgitimMerkezi} />
-          <Route path="/asistan"      component={AiAsistan} />
+          <PatientRoute path="/asistan"     component={AiAsistan} />
           <Route path="/ayarlar"      component={Ayarlar} />
           <Route path="/vaka"         component={isDoctor ? VakaDoldur : NotFound} />
-          <Route path="/analitik"     component={GelismisAnalitik} />
-          <Route path="/ilac-etki"    component={IlacEtklesim} />
+          <PatientRoute path="/analitik"    component={GelismisAnalitik} />
+          <PatientRoute path="/ilac-etki"   component={IlacEtklesim} />
           <Route path="/premium"      component={Premium} />
           <Route component={NotFound} />
         </Switch>

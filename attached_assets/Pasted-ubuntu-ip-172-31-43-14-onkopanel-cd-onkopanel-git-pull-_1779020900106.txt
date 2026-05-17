@@ -1,0 +1,99 @@
+ubuntu@ip-172-31-43-14:~/onkopanel$ cd ~/onkopanel && git pull origin main && docker compose build api db-migrate && docker compose up -d --no-deps api && docker compose run --rm db-migrate
+remote: Enumerating objects: 11, done.
+remote: Counting objects: 100% (11/11), done.
+remote: Compressing objects: 100% (4/4), done.
+remote: Total 9 (delta 5), reused 9 (delta 5), pack-reused 0 (from 0)
+Unpacking objects: 100% (9/9), 1.91 MiB | 7.86 MiB/s, done.
+From https://github.com/ERDEMEro/onkopanel
+ * branch            main       -> FETCH_HEAD
+   520eea5..1754cb4  main       -> origin/main
+Updating 520eea5..1754cb4
+Fast-forward
+ ...buntu-ip-172-31-43-14-onkopanel-cd-onkopanel-git-pull-_1779020168850.txt |  69 ++++++++++++++++++++++++++++++++++++
+ attached_assets/image_1779020388653.png                                     | Bin 0 -> 1028391 bytes
+ attached_assets/image_1779020399430.png                                     | Bin 0 -> 1024568 bytes
+ 3 files changed, 69 insertions(+)
+ create mode 100644 attached_assets/Pasted-ubuntu-ip-172-31-43-14-onkopanel-cd-onkopanel-git-pull-_1779020168850.txt
+ create mode 100644 attached_assets/image_1779020388653.png
+ create mode 100644 attached_assets/image_1779020399430.png
+[+] Building 1.6s (38/38) FINISHED
+ => [internal] load local bake definitions                                                                         0.0s
+ => => reading from stdin 929B                                                                                     0.0s
+ => [api internal] load build definition from Dockerfile.api                                                       0.0s
+ => => transferring dockerfile: 1.42kB                                                                             0.0s
+ => [db-migrate internal] load build definition from Dockerfile.migrate                                            0.0s
+ => => transferring dockerfile: 469B                                                                               0.0s
+ => [db-migrate internal] load metadata for docker.io/library/node:24-alpine                                       0.5s
+ => [db-migrate internal] load .dockerignore                                                                       0.0s
+ => => transferring context: 229B                                                                                  0.0s
+ => [db-migrate 1/8] FROM docker.io/library/node:24-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc34884a  0.0s
+ => => resolve docker.io/library/node:24-alpine@sha256:d1b3b4da11eefd5941e7f0b9cf17783fc99d9c6fc34884a665f40a06db  0.0s
+ => [api internal] load build context                                                                              0.1s
+ => => transferring context: 250.99kB                                                                              0.0s
+ => [db-migrate internal] load build context                                                                       0.1s
+ => => transferring context: 240.67kB                                                                              0.0s
+ => CACHED [api 2/8] RUN corepack enable && corepack prepare pnpm@latest --activate                                0.0s
+ => CACHED [api 3/8] WORKDIR /workspace                                                                            0.0s
+ => CACHED [db-migrate 4/8] COPY pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.base.json tsconfig.json  0.0s
+ => CACHED [db-migrate 5/8] COPY lib/db/package.json ./lib/db/                                                     0.0s
+ => CACHED [db-migrate 6/8] RUN pnpm install --frozen-lockfile --ignore-scripts --filter @workspace/db             0.0s
+ => CACHED [db-migrate 7/8] COPY lib/db/ ./lib/db/                                                                 0.0s
+ => CACHED [db-migrate 8/8] WORKDIR /workspace/lib/db                                                              0.0s
+ => [db-migrate] exporting to image                                                                                0.2s
+ => => exporting layers                                                                                            0.0s
+ => => exporting manifest sha256:77e90c7895a4140f137e38c040c69df3df35e4163b1933c8ab28170d4384f9ba                  0.0s
+ => => exporting config sha256:b94606f560301dcb27b2b8f9a405f67a0c134caa7356dd9388d585b4d3cc8cd8                    0.0s
+ => => exporting attestation manifest sha256:ebb78fb1ee8026a6070739e71966aa095d1090d5118fed12bf89ca4076c96640      0.0s
+ => => exporting manifest list sha256:585740001c0feda49ee786cc16e01be51cab83178a2491a5760660eed2f638c6             0.0s
+ => => naming to docker.io/library/onkopanel-db-migrate:latest                                                     0.0s
+ => => unpacking to docker.io/library/onkopanel-db-migrate:latest                                                  0.0s
+ => CACHED [api production 2/3] WORKDIR /app                                                                       0.0s
+ => CACHED [api builder  4/20] COPY pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.base.json tsconfig.j  0.0s
+ => CACHED [api builder  5/20] COPY lib/db/package.json                        ./lib/db/                           0.0s
+ => CACHED [api builder  6/20] COPY lib/api-spec/package.json                  ./lib/api-spec/                     0.0s
+ => CACHED [api builder  7/20] COPY lib/api-zod/package.json                   ./lib/api-zod/                      0.0s
+ => CACHED [api builder  8/20] COPY lib/api-client-react/package.json          ./lib/api-client-react/             0.0s
+ => CACHED [api builder  9/20] COPY artifacts/api-server/package.json          ./artifacts/api-server/             0.0s
+ => CACHED [api builder 10/20] RUN pnpm install --frozen-lockfile --ignore-scripts                                 0.0s
+ => CACHED [api builder 11/20] COPY lib/db/                         ./lib/db/                                      0.0s
+ => CACHED [api builder 12/20] COPY lib/api-spec/                   ./lib/api-spec/                                0.0s
+ => CACHED [api builder 13/20] COPY lib/api-zod/                    ./lib/api-zod/                                 0.0s
+ => CACHED [api builder 14/20] COPY lib/api-client-react/           ./lib/api-client-react/                        0.0s
+ => CACHED [api builder 15/20] COPY artifacts/api-server/           ./artifacts/api-server/                        0.0s
+ => CACHED [api builder 16/20] RUN cd lib/db            && npx tsc --build                                         0.0s
+ => CACHED [api builder 17/20] RUN cd lib/api-spec      && npx tsc --build 2>/dev/null || true                     0.0s
+ => CACHED [api builder 18/20] RUN cd lib/api-zod       && npx tsc --build 2>/dev/null || true                     0.0s
+ => CACHED [api builder 19/20] RUN cd lib/api-client-react && npx tsc --build 2>/dev/null || true                  0.0s
+ => CACHED [api builder 20/20] RUN pnpm --filter @workspace/api-server run build                                   0.0s
+ => CACHED [api production 3/3] COPY --from=builder /workspace/artifacts/api-server/dist ./dist                    0.0s
+ => [api] exporting to image                                                                                       0.4s
+ => => exporting layers                                                                                            0.0s
+ => => exporting manifest sha256:65b10e162f68db450469893081f869753846d72ee84cb7b55ea69a6f71822ba4                  0.0s
+ => => exporting config sha256:f0180d52f27d2f8aa2db3c49e5afb7d33f01f61d941124edef492bddd2b02b7e                    0.0s
+ => => exporting attestation manifest sha256:cb57d996c6eebd93f7e446d0ab0668588f963717191b447d7ff680dd8c7ab48c      0.0s
+ => => exporting manifest list sha256:1d64b48d6eefb64fd475f35c114a29529034759dce28701472be8dce359f1d98             0.0s
+ => => naming to docker.io/library/onkopanel-api:latest                                                            0.0s
+ => => unpacking to docker.io/library/onkopanel-api:latest                                                         0.2s
+ => [db-migrate] resolving provenance for metadata file                                                            0.0s
+ => [api] resolving provenance for metadata file                                                                   0.0s
+[+] build 2/2
+ ✔ Image onkopanel-api        Built                                                                                 1.7s
+ ✔ Image onkopanel-db-migrate Built                                                                                 1.7s
+[+] up 1/1
+ ✔ Container onkopanel-api-1 Started                                                                               10.6s
+[+]  1/1t 1/11
+ ✔ Container onkopanel-postgres-1 Running                                                                           0.0s
+Container onkopanel-postgres-1 Waiting
+Container onkopanel-postgres-1 Healthy
+Container onkopanel-db-migrate-run-d73058e40d02 Creating
+Container onkopanel-db-migrate-run-d73058e40d02 Created
+Reading config file '/workspace/lib/db/drizzle.config.ts'
+Using 'pg' driver for database querying
+[⣷] Pulling schema from database...
+npm notice
+npm notice New minor version of npm available! 11.12.1 -> 11.14.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.14.1
+npm notice To update run: npm install -g npm@11.14.1
+npm notice
+
+ubuntu@ip-172-31-43-14:~/onkopanel$
